@@ -88,12 +88,12 @@ class GUPPY (QWidget):
             #     print(" ")
             ## init cam parameter##
             self.LineTrigger=str(self.conf.value(self.nbcam+"/LineTrigger")) # line2 for Mako Line 1 for guppy (not tested)
-            self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
             
             self.cam0.feature('TriggerMode').value='Off'
             self.cam0.feature('TriggerActivation').value='RisingEdge'
             #self.cam0.feature('TriggerSelector').value='FrameStart'
             self.cam0.feature('TriggerSource').value='Software'
+            self.camParameter["trigger"]=self.cam0.feature('TriggerMode').value
             self.cam0.feature('ExposureAuto').value='Off'
             self.cam0.feature('GainAuto').value='Off'
             
@@ -102,15 +102,18 @@ class GUPPY (QWidget):
             self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
             self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
             
-            self.camParameter["exposureTime"]=int(self.cam0.feature('ExposureTime').value)/1000
+            
             self.camParameter["expMax"]=float(self.cam0.feature('ExposureTime').range[1])/1000
             self.camParameter["expMin"]=float(self.cam0.feature('ExposureTime').range[0])/1000
-            
+            if self.camParameter["expMin"] <=int(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
+                self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
+            else :
+                self.cam0.feature('ExposureTime').value=float(self.camParameter["expMin"])
+                
+            self.camParameter["exposureTime"]=int(self.cam0.feature('ExposureTime').value)/1000
             
             self.camParameter["gainMax"]=self.cam0.feature('Gain').range[1]
             self.camParameter["gainMin"]=self.cam0.feature('Gain').range[0]
-            
-            
             if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
                 self.cam0.feature('Gain').value=int(self.conf.value(self.nbcam+"/gain"))
             else:
@@ -118,7 +121,7 @@ class GUPPY (QWidget):
                 self.cam0.feature('Gain').value=int(self.camParameter["gainMin"])
             
             self.camParameter["gain"]=self.cam0.feature('Gain').value
-            self.camParameter["trigger"]=self.cam0.feature('TriggerMode').value
+            
             
             
             

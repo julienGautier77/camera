@@ -40,13 +40,13 @@ __version__='2020.03'
 
 class CAMERA(QWidget):
     
-    def __init__(self,cam='camDefault',conf='confCamera.ini',light=False):
+    def __init__(self,cam='camDefault',confFile='confCamera.ini',light=False):
         
         super(CAMERA, self).__init__()
         p = pathlib.Path(__file__)
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        self.conf=QtCore.QSettings(str(p.parent / conf), QtCore.QSettings.IniFormat) # ini file 
-        self.confPath=str(p.parent / conf) # ini file path
+        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
+        self.confPath=str(p.parent / confFile) # ini file path
         sepa=os.sep
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
@@ -96,6 +96,11 @@ class CAMERA(QWidget):
             self.CAM=IMGSOURCE(cam=self.nbcam,conf=self.conf)
             print(self.CAM.camParameter)
             self.isConnected=self.CAM.isConnected
+        elif self.cameraType=="basler":
+            from baslerCam import BASLER
+            self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
+            print(self.CAM.camParameter)
+            self.isConnected=self.CAM.isConnected
         else :
             self.isConnected=False
                 
@@ -104,9 +109,10 @@ class CAMERA(QWidget):
             
             self.hSliderShutter.setValue(self.CAM.camParameter["exposureTime"])
             self.shutterBox.setValue(self.CAM.camParameter["exposureTime"])
-            self.hSliderShutter.setMinimum(self.CAM.camParameter["expMin"])
-            self.shutterBox.setMinimum(self.CAM.camParameter["expMin"])
-            if self.CAM.camParameter["expMin"] >1500: # we limit exposure time at 1500ms
+            self.hSliderShutter.setMinimum(self.CAM.camParameter["expMin"]+1)
+            self.shutterBox.setMinimum(self.CAM.camParameter["expMin"]+1)
+            
+            if self.CAM.camParameter["expMax"] >1500: # we limit exposure time at 1500ms
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
             else :
@@ -201,13 +207,13 @@ class CAMERA(QWidget):
             self.labelExp.setAlignment(Qt.AlignCenter)
             self.vbox1.addWidget(self.labelExp)
             self.hSliderShutter=QSlider(Qt.Horizontal)
-            self.hSliderShutter.setMinimum(1)
-            self.hSliderShutter.setMaximum(1000)
+            
+            
            
             self.hSliderShutter.setMaximumWidth(80)
             self.shutterBox=QSpinBox()
-            self.shutterBox.setMinimum(1)
-            self.shutterBox.setMaximum(1000)
+            
+            
             self.shutterBox.setMaximumWidth(60)
             
             hboxShutter=QHBoxLayout()
@@ -399,6 +405,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam='cam1')  
+    e = CAMERA()  
     e.show()
     appli.exec_()       
