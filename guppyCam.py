@@ -2,16 +2,16 @@
 """
 Created on Mon Mar 30 10:23:01 2020
 
-@author: LOA
+@author: Julien Gautier (LOA)
+
 """
-from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QPushButton
-from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox
+from PyQt5.QtWidgets import QApplication,QWidget,QInputDialog
 from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
-import sys,time
+
+
+import time,sys
 import numpy as np
-import pathlib,os
+
 
 try:
     from pymba import Vimba  ## pip install pymba https://github.com/morefigs/pymba.git  on conda prompt
@@ -32,25 +32,62 @@ class GUPPY (QWidget):
     newData=QtCore.pyqtSignal(object)
     
     def __init__(self,cam='camDefault',conf=None):
-        
+        '''
+        Parameters
+        ----------
+        cam : TYPE, optional
+            DESCRIPTION. 
+            None : Choose a camera in a list
+            camDefault : the first camera is chossen
+            "cam1" : Take the camId in the confCamera.ini file
+            The default is 'camDefault'.
+        conf : TYPE, optional
+            DESCRIPTION.a QtCore.QSettings  objet : 
+            QtCore.QSettings('file.ini', QtCore.QSettings.IniFormat)
+            where file is the ini file where camera paremetesr are saved
+            The default is None.
+        Returns
+        -------
+        None.
+
+        '''
         super(GUPPY,self).__init__()
         
         self.nbcam=cam
         self.itrig='off'
-        self.conf=conf
+        if conf==None:
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+        else:
+            self.conf=conf
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
-        self.initCam()
+        self.items=cameraIds
         
-        
-        
+    def camAvailable(self): 
+        return cameraIds
+    
     def initCam(self):
         
-        '''initialisation of camera parameter : 
+        '''Open a camera
         '''
         
-        if self.nbcam=='camDefault': # camDefaul we take the fisrt one
+        
+        if self.nbcam==None: # create a message box to choose a camera 
+            items=cameraIds
+            item, ok = QInputDialog.getItem(self, "Select Guppy camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+            
+            if ok and item:
+                print ('ok')
+                items=list(items)
+                index = items.index(item)
+                self.cam0=Vimba().camera(cameraIds[index])
+                self.isConnected=True
+                self.nbcam='camDefault'
+                self.ccdName=cameraIds[index]
+                self.camID=cameraIds[index]
+                
+        elif self.nbcam=='camDefault': # camDefaul we take the fisrt one
             try:
                 self.cam0=Vimba().camera(cameraIds[0])
                 self.ccdName='CAMDefault'
@@ -59,8 +96,9 @@ class GUPPY (QWidget):
             except:
                 self.isConnected=False
                 self.ccdName='no camera'
-        else :
-            self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
+                
+        else : # read cam serial number
+            self.camID=self.conf.value(self.nbcam+"/camID") #
             self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
             try :
                 self.cam0=Vimba().camera(self.camID)
@@ -79,59 +117,71 @@ class GUPPY (QWidget):
                     self.ccdName='no camera'
                     
         if self.isConnected==True:
-            print(self.ccdName, 'is connected @:'  ,self.camID )
-            self.cam0.open()
-            # for feature_name in self.cam0.feature_names():
-            #     feature = self.cam0.feature(feature_name)
-            #     print(feature_name)
-            #     print(" ")
-            #     print(" ")
-            ## init cam parameter##
-            self.LineTrigger=str(self.conf.value(self.nbcam+"/LineTrigger")) # line2 for Mako Line 1 for guppy (not tested)
+            self.setCamParameter()
             
-            self.cam0.feature('TriggerMode').value='Off'
-            self.cam0.feature('TriggerActivation').value='RisingEdge'
-            #self.cam0.feature('TriggerSelector').value='FrameStart'
-            self.cam0.feature('TriggerSource').value='Software'
-            self.camParameter["trigger"]=self.cam0.feature('TriggerMode').value
-            self.cam0.feature('ExposureAuto').value='Off'
-            self.cam0.feature('GainAuto').value='Off'
+    def setCamParameter(self):
+        """Open camera
+        
+        
+        Set initial parameters
+        
+
+       
+        """
+        print(self.ccdName, 'is connected @:'  ,self.camID )
+        self.cam0.open()
+        
+        # for feature_name in self.cam0.feature_names():
+        #     feature = self.cam0.feature(feature_name)
+        #     print(feature_name)
+        #     print(" ")
+        #     print(" ")
+        ## init cam parameter##
+        self.LineTrigger=str(self.conf.value(self.nbcam+"/LineTrigger")) # line2 for Mako Line 1 for guppy (not tested)
+        
+        self.cam0.feature('TriggerMode').value='Off'
+        self.cam0.feature('TriggerActivation').value='RisingEdge'
+        #self.cam0.feature('TriggerSelector').value='FrameStart'
+        self.cam0.feature('TriggerSource').value='Software'
+        self.camParameter["trigger"]=self.cam0.feature('TriggerMode').value
+        self.cam0.feature('ExposureAuto').value='Off'
+        self.cam0.feature('GainAuto').value='Off'
+        
+        self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
+        self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
+        self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
+        self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
+        
+        
+        self.camParameter["expMax"]=float(self.cam0.feature('ExposureTime').range[1])/1000
+        self.camParameter["expMin"]=float(self.cam0.feature('ExposureTime').range[0])/1000
+        if self.camParameter["expMin"] <=int(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
+            self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
+        else :
+            self.cam0.feature('ExposureTime').value=float(self.camParameter["expMin"])
             
-            self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
-            self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
-            self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
-            self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
-            
-            
-            self.camParameter["expMax"]=float(self.cam0.feature('ExposureTime').range[1])/1000
-            self.camParameter["expMin"]=float(self.cam0.feature('ExposureTime').range[0])/1000
-            if self.camParameter["expMin"] <=int(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
-                self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
-            else :
-                self.cam0.feature('ExposureTime').value=float(self.camParameter["expMin"])
-                
-            self.camParameter["exposureTime"]=int(self.cam0.feature('ExposureTime').value)/1000
-            
-            self.camParameter["gainMax"]=self.cam0.feature('Gain').range[1]
-            self.camParameter["gainMin"]=self.cam0.feature('Gain').range[0]
-            if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
-                self.cam0.feature('Gain').value=int(self.conf.value(self.nbcam+"/gain"))
-            else:
-                print('gain error: gain set to minimum value')
-                self.cam0.feature('Gain').value=int(self.camParameter["gainMin"])
-            
-            self.camParameter["gain"]=self.cam0.feature('Gain').value
-            
-            
-            
-            
-            
-            self.threadRunAcq=ThreadRunAcq(self)
-            self.threadRunAcq.newDataRun.connect(self.newImageReceived)
-            
-            self.threadOneAcq=ThreadOneAcq(self)
-            self.threadOneAcq.newDataRun.connect(self.newImageReceived)
-            self.threadOneAcq.newStateCam.connect(self.stateCam)
+        self.camParameter["exposureTime"]=int(self.cam0.feature('ExposureTime').value)/1000
+        
+        self.camParameter["gainMax"]=self.cam0.feature('Gain').range[1]
+        self.camParameter["gainMin"]=self.cam0.feature('Gain').range[0]
+        if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
+            self.cam0.feature('Gain').value=int(self.conf.value(self.nbcam+"/gain"))
+        else:
+            print('gain error: gain set to minimum value')
+            self.cam0.feature('Gain').value=int(self.camParameter["gainMin"])
+        
+        self.camParameter["gain"]=self.cam0.feature('Gain').value
+        
+        
+        
+        
+        
+        self.threadRunAcq=ThreadRunAcq(self)
+        self.threadRunAcq.newDataRun.connect(self.newImageReceived)
+        
+        self.threadOneAcq=ThreadOneAcq(self)
+        self.threadOneAcq.newDataRun.connect(self.newImageReceived)
+        self.threadOneAcq.newStateCam.connect(self.stateCam)
             
             
     def setExposure(self,sh):
@@ -314,11 +364,9 @@ class ThreadOneAcq(QtCore.QThread):
         self.stopRunAcq=True
         
         self.cam0.run_feature_command('TriggerSoftware')       
-        
-        
-        
-        
-        
-        
-        
-        
+
+
+if __name__ == "__main__":       
+    appli = QApplication(sys.argv) 
+    e = GUPPY(cam=None)
+    appli.exec_()          

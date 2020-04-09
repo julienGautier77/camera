@@ -2,17 +2,14 @@
 """
 Created on Tue Mar 24 10:59:16 2020
 
-@author: LOA
-
-
-
-a Python user interface for allied Vision's camera
+a Python user interface for camera allied vison ImgingSource Balser 
 
 
 install aliiedVision SDK (https://www.alliedvision.com/en/products/software.html)
 
 on conda prompt 
 pip install pymba (https://github.com/morefigs/pymba.git )
+pip install pypylon: https://github.com/basler/pypylon 
 pip install qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
 pip install pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git)
 pip install visu
@@ -22,8 +19,9 @@ and comment the line (?)(?)
 @author: juliengautier
 version : 2019.3
 """
-__version__='Guppy_2019.9'
+
 __author__='julien Gautier'
+__version__='2020.03'
 version=__version__
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QPushButton
@@ -36,7 +34,7 @@ import numpy as np
 import pathlib,os
 import qdarkstyle
 
-__version__='2020.03'
+
 
 class CAMERA(QWidget):
     
@@ -44,17 +42,19 @@ class CAMERA(QWidget):
         
         super(CAMERA, self).__init__()
         p = pathlib.Path(__file__)
+        self.nbcam=cam
+        self.light=light
+        
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
         self.confPath=str(p.parent / confFile) # ini file path
         sepa=os.sep
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
-        self.light=light
+        
         self.iconPlay=self.icon+'Play.png'
         self.iconSnap=self.icon+'Snap.png'
         self.iconStop=self.icon+'Stop.png'
-        
         self.iconPlay=pathlib.Path(self.iconPlay)
         self.iconPlay=pathlib.PurePosixPath(self.iconPlay)
         self.iconStop=pathlib.Path(self.iconStop)
@@ -63,12 +63,61 @@ class CAMERA(QWidget):
         self.iconSnap=pathlib.PurePosixPath(self.iconSnap)
         
         
-        self.version=__version__
-        self.nbcam=cam
         self.nbShot=1
         self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.cameraType=self.conf.value(self.nbcam+"/camType")
+        self.version=__version__
         
+        
+        
+        if self.nbcam=="choose":
+            try :
+                from guppyCam import GUPPY
+                self.CAM=GUPPY(cam=self.nbcam,conf=self.conf)
+                self.itemsGuppy=self.CAM.camAvailable()
+                print(self.itemsGuppy)
+                lenGuppy=len(self.itemsGuppy)
+                print(lenGuppy)
+            except:
+                print('No allied vision camera connected')
+                pass
+            try :
+                from baslerCam import BASLER
+                self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
+                self.itemsBasler=self.CAM.camAvailable()
+                print(self.itemsBasler)
+                lenBasler=len(self.itemsBasler)
+                print(lenBasler)
+            except:
+                print('No Basler camera connected')
+                pass   
+            items=self.itemsGuppy+self.itemsBasler
+            print(items)
+            self.nbcam='camDefault'
+            self.cameraType=" "
+            self.ccdName=" "
+            
+        if self.cameraType=="guppy" :
+            from guppyCam import GUPPY
+            self.CAM=GUPPY(cam=self.nbcam,conf=self.conf)
+            self.CAM.initCam()
+            print(self.CAM.camParameter)
+            self.isConnected=self.CAM.isConnected
+        
+        elif self.cameraType=="imagingSource":
+            from ImgSourceCam2 import IMGSOURCE
+            self.CAM=IMGSOURCE(cam=self.nbcam,conf=self.conf)
+            print(self.CAM.camParameter)
+            self.isConnected=self.CAM.isConnected
+        elif self.cameraType=="basler":
+            from baslerCam import BASLER
+            self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
+            self.CAM.initCam()
+            print(self.CAM.camParameter)
+            self.isConnected=self.CAM.isConnected
+        else :
+            self.isConnected=False
+                
         if self.light==False:
             try :
                 from visu import SEE
@@ -83,28 +132,8 @@ class CAMERA(QWidget):
             self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam)
         
         self.setup()
+         
         
-        
-        if self.cameraType=="guppy" :
-            from guppyCam import GUPPY
-            self.CAM=GUPPY(cam=self.nbcam,conf=self.conf)
-            print(self.CAM.camParameter)
-            self.isConnected=self.CAM.isConnected
-        
-        elif self.cameraType=="imagingSource":
-            from ImgSourceCam2 import IMGSOURCE
-            self.CAM=IMGSOURCE(cam=self.nbcam,conf=self.conf)
-            print(self.CAM.camParameter)
-            self.isConnected=self.CAM.isConnected
-        elif self.cameraType=="basler":
-            from baslerCam import BASLER
-            self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
-            print(self.CAM.camParameter)
-            self.isConnected=self.CAM.isConnected
-        else :
-            self.isConnected=False
-                
-                
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
             
             self.hSliderShutter.setValue(self.CAM.camParameter["exposureTime"])
@@ -257,7 +286,8 @@ class CAMERA(QWidget):
                 self.visualisation.hbox0.addWidget(self.cameraWidget)
                 hMainLayout.addWidget(self.visualisation)
                 self.setLayout(hMainLayout)
-            
+                
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
                 
     def actionButton(self): 
         '''action when button are pressed
@@ -405,6 +435,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA()  
+    e = CAMERA("choose")  
     e.show()
     appli.exec_()       
