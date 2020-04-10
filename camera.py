@@ -38,7 +38,7 @@ import qdarkstyle
 
 class CAMERA(QWidget):
     
-    def __init__(self,cam='camDefault',confFile='confCamera.ini',light=False):
+    def __init__(self,cam='choose',confFile='confCamera.ini',light=False):
         
         super(CAMERA, self).__init__()
         p = pathlib.Path(__file__)
@@ -64,60 +64,115 @@ class CAMERA(QWidget):
         
         
         self.nbShot=1
-        self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-        self.cameraType=self.conf.value(self.nbcam+"/camType")
+        
+        self.isConnected=False
         self.version=__version__
         
         
         
         if self.nbcam=="choose":
+            self.nbcam='camDefault'
             try :
-                from guppyCam import GUPPY
-                self.CAM=GUPPY(cam=self.nbcam,conf=self.conf)
-                self.itemsGuppy=self.CAM.camAvailable()
-                print(self.itemsGuppy)
-                lenGuppy=len(self.itemsGuppy)
-                print(lenGuppy)
+                import guppyCam 
+                self.itemsGuppy=guppyCam.camAvailable()
+                # print(self.itemsGuppy)
+                self.lenGuppy=len(self.itemsGuppy)
+                
             except:
                 print('No allied vision camera connected')
+                self.itemsGuppy=()
+                self.lenGuppy=0
                 pass
             try :
-                from baslerCam import BASLER
-                self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
-                self.itemsBasler=self.CAM.camAvailable()
-                print(self.itemsBasler)
-                lenBasler=len(self.itemsBasler)
-                print(lenBasler)
+                import baslerCam
+                self.itemsBasler=baslerCam.camAvailable()
+                self.lenBasler=len(self.itemsBasler)
+                
             except:
                 print('No Basler camera connected')
-                pass   
-            items=self.itemsGuppy+self.itemsBasler
-            print(items)
-            self.nbcam='camDefault'
-            self.cameraType=" "
-            self.ccdName=" "
+                self.itemsBasler=()
+                self.lenBasler=0
+                pass 
             
-        if self.cameraType=="guppy" :
-            from guppyCam import GUPPY
-            self.CAM=GUPPY(cam=self.nbcam,conf=self.conf)
-            self.CAM.initCam()
-            print(self.CAM.camParameter)
-            self.isConnected=self.CAM.isConnected
+            
+            items=self.itemsGuppy+list(self.itemsBasler)
+            
+            
+            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+            
+            if ok and item:
+                
+                indexItem = items.index(item)
+                
+                if indexItem<self.lenGuppy:
+                    indexItem=indexItem
+                    self.cameraType="guppy"
+                    self.camID=guppyCam.getCamID(indexItem)
+                    
+                    self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+                    self.CAM.openCamByID(self.camID)
+                    self.isConnected=self.CAM.isConnected
+                    self.ccdName=self.camID
+                elif indexItem>self.lenGuppy-1  and indexItem<=self.lenBasler+self.lenGuppy:
+                    indexItem=indexItem-self.lenGuppy
+                    self.cameraType="basler"
+                    self.camID=baslerCam.getCamID(indexItem)
+                    self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf)
+                    self.CAM.openCamByID(self.camID)
+                    self.isConnected=self.CAM.isConnected
+                    self.ccdName=self.camID
+                else:
+                     self.isconnected=False
+                     print('No camera choosen')
+                     self.ccdName="no camera"
+            else :
+                self.isconnected=False
+                print('No camera choosen')
+                self.ccdName="no camera"
+                
+            print(self.cameraType,self.camID)
+            
         
-        elif self.cameraType=="imagingSource":
-            from ImgSourceCam2 import IMGSOURCE
-            self.CAM=IMGSOURCE(cam=self.nbcam,conf=self.conf)
-            print(self.CAM.camParameter)
+        elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
+            self.cameraType="guppy"
+            import guppyCam 
+            self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+            self.CAM.openFirstCam()
+            self.isConnected=self.CAM.isConnected
+            
+        elif self.nbcam=="firstBasler": # open the first basler cam in the list
+            self.cameraType="basler"
+            import guppyCam 
+            self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf)
+            self.CAM.openFirstCam()
+            self.isConnected=self.CAM.isConnected    
+            
+        else :  #open the camera nbcam in the ini file
+            try :
+                import guppyCam
+            except :
+                print( 'no guppy cam connected')
+                pass
+            try:
+                import baslerCam
+            except:
+                pass
+            
+            self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
+            self.cameraType=self.conf.value(self.nbcam+"/camType")
+            self.camID=self.conf.value(self.nbcam+"/camId")
+               
+        if self.cameraType=="guppy" :
+            self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+            self.CAM.openCamByID(self.camID)
             self.isConnected=self.CAM.isConnected
         elif self.cameraType=="basler":
-            from baslerCam import BASLER
-            self.CAM=BASLER(cam=self.nbcam,conf=self.conf)
-            self.CAM.initCam()
-            print(self.CAM.camParameter)
-            self.isConnected=self.CAM.isConnected
-        else :
-            self.isConnected=False
+                self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected=self.CAM.isConnected
                 
+        
+        
         if self.light==False:
             try :
                 from visu import SEE
@@ -130,6 +185,9 @@ class CAMERA(QWidget):
         else :
             from visualLight import SEELIGHT
             self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam)
+        
+        
+        
         
         self.setup()
          
@@ -158,20 +216,32 @@ class CAMERA(QWidget):
             
             self.actionButton()
             
+        if  self.isConnected==False:
+            self.setWindowTitle('Visualization         No camera connected      '   +  'v.  '+ self.version)
+            self.runButton.setEnabled(False)
+            self.snapButton.setEnabled(False)
+            self.trigg.setEnabled(False)
+            self.hSliderShutter.setEnabled(False)
+            self.shutterBox.setEnabled(False)
+            self.gainBox.setEnabled(False)
+            self.hSliderGain.setEnabled(False)
+            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
+            self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconSnap,self.iconSnap))
+            
+            
+            
     def setup(self):  
         
             """ user interface definition: 
             """
-            
-            self.cameraWidget=QWidget()
             self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             
+            self.cameraWidget=QWidget()
             
             self.vbox1=QVBoxLayout() 
             
             self.camName=QLabel(self.ccdName,self)
             self.camName.setAlignment(Qt.AlignCenter)
-            
             self.camName.setStyleSheet('font :bold  14pt;color: white')
             self.vbox1.addWidget(self.camName)
             
@@ -287,8 +357,9 @@ class CAMERA(QWidget):
                 hMainLayout.addWidget(self.visualisation)
                 self.setLayout(hMainLayout)
                 
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-                
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
+     
+            
     def actionButton(self): 
         '''action when button are pressed
         '''

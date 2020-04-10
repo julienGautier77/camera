@@ -14,9 +14,26 @@ import numpy as np
 
 from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
-class BASLER (QWidget):
+tlFactory = pylon.TlFactory.GetInstance()
+devices = tlFactory.EnumerateDevices()
+cameras = pylon.InstantCameraArray(min(len(devices), 12))
+
+
+def camAvailable() :
+    '''list of camera avialable
+    '''
+    items=()
+    for i, cam in enumerate(cameras):
+        cam.Attach(tlFactory.CreateDevice(devices[i]))
+        items=items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
+    return items
     
-   
+def getCamID (index):
+    id=cameras[index].GetDeviceInfo().GetSerialNumber()
+    return(id)
+    
+
+class BASLER (QWidget):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
@@ -40,8 +57,8 @@ class BASLER (QWidget):
         -------
         None.
         '''
-        super(BASLER,self).__init__()
         
+        super(BASLER,self).__init__()
         self.nbcam=cam
         self.itrig='off'
         
@@ -49,100 +66,93 @@ class BASLER (QWidget):
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
         else:
             self.conf=conf
+            
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
         self.isConnected=False
         
     
-    def camAvailable(self) :
+   
+    def openMenuCam(self):
+        '''create a message box to choose a camera
+        '''
         items=()
-        tlFactory = pylon.TlFactory.GetInstance()
-        devices = tlFactory.EnumerateDevices()
-        cameras = pylon.InstantCameraArray(min(len(devices), 5))
+           
         for i, cam in enumerate(cameras):
             cam.Attach(tlFactory.CreateDevice(devices[i]))
             items=items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
-        return items
-    
-    def initCam(self):
-        """
-        Initialise the camera parameter 
-        """
-        tlFactory = pylon.TlFactory.GetInstance()
-        
-        if self.nbcam==None: # create a message box to choose a camera 
-            items=()
-                # Get all attached devices and exit application if no device is found.
-            devices = tlFactory.EnumerateDevices()
-            cameras = pylon.InstantCameraArray(min(len(devices), 5))
-            for i, cam in enumerate(cameras):
-                cam.Attach(tlFactory.CreateDevice(devices[i]))
-                items=items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
            
-            item, ok = QInputDialog.getItem(self, "Select Basler camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+        item, ok = QInputDialog.getItem(self, "Select Basler camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
             
-            if ok and item:
-                print ('ok')
-                items=list(items)
-                index = items.index(item)
-                   
-                self.id=cameras[index].GetDeviceInfo().GetSerialNumber()
-                for i in pylon.TlFactory.GetInstance().EnumerateDevices():
-                    if i.GetSerialNumber()==self.id:
-                        camConnected=i
-                self.cam0= pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateDevice(camConnected))
-                self.ccdName=self.cam0.GetDeviceInfo().GetFriendlyName()
-                self.isConnected=True
-                self.nbcam='camDefault'
-            else:
-                self.isConnected=False
-                self.nbcam='camDefault'
+        if ok and item:
+            items=list(items)
+            index = items.index(item)
+            self.id=cameras[index].GetDeviceInfo().GetSerialNumber()
+            for i in devices:
+                if i.GetSerialNumber()==self.id:
+                    camConnected=i
+            self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+            self.ccdName=self.cam0.GetDeviceInfo().GetFriendlyName()
+            self.isConnected=True
+            self.nbcam='camDefault'
+        else:
+            self.isConnected=False
+            self.nbcam='camDefault'
+        
+        if self.isConnected==True:
+            self.setCamParameter()   
+             
+            
+    def openFirstCam(self):
+        '''we take the fisrt one
+        '''
+        
+        self.nbcam='camDefault' #
+        
+        try:
+            self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
+            self.ccdName='CamDefault'
+            self.isConnected=True
+        except:
+            self.isConnected=False
+            self.ccdName='no camera'
+        
+        if self.isConnected==True:
+            self.setCamParameter()       
+            
+    def openCamByID(self,camID=0): 
+        '''connect to a serial number
+        '''
+        # if
+        # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
+        # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
+        try :
+            for i in pylon.self.devices:
+                if i.GetSerialNumber()==self.id:
+                    camConnected=i
+            self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
                 
-        elif self.nbcam=='camDefault': # camDefault we take the fisrt one
+            self.isConnected=True
             
+        except:# if id number doesn't work we take the first one
             try:
-                self.cam0=pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-                self.ccdName='CamDefault'
+                self.nbcam='camDefault'
+                self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
+                self.ccdName='CAMdefault'
                 self.isConnected=True
             except:
                 self.isConnected=False
                 self.ccdName='no camera'
-                
-        else : # connect to a serial number
         
-            self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
-            self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-            try :
-                for i in pylon.TlFactory.GetInstance().EnumerateDevices():
-                    if i.GetSerialNumber()==self.id:
-                        camConnected=i
-                self.cam0= pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateDevice(camConnected))
-                
-                self.isConnected=True
-            
-            except:# if id number doesn't work we take the first one
-                try:
-                    self.nbcam='camDefault'
-                    self.cam0=pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
-                    self.ccdName='CAMdefault'
-                    self.isConnected=True
-                except:
-                    self.isConnected=False
-                    self.ccdName='no camera'
-                    
         if self.isConnected==True:
-            self.setCamParameter()
+            self.setCamParameter()          
+        
             
             
     def setCamParameter(self): 
-        """Open camera
+        """Set initial parameters
         
-        
-        Set initial parameters
-        
-
-       
         """
                
         self.cam0.Open()

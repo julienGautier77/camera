@@ -3,7 +3,29 @@
 Created on Mon Mar 30 10:23:01 2020
 
 @author: Julien Gautier (LOA)
+camAvailable:
 
+    return list of all camera
+
+getCamID(index)
+
+    return th ID of the camera 
+
+class GUPPY :
+    Parameters
+        ----------
+        cam : TYPE, optional
+            DESCRIPTION. 
+            None : Choose a camera in a list
+            camDefault : the first camera is chossen
+            "cam1" : Take the camId in the confCamera.ini file
+            The default is 'camDefault'.
+        conf : TYPE, optional
+            DESCRIPTION.a QtCore.QSettings  objet : 
+            QtCore.QSettings('file.ini', QtCore.QSettings.IniFormat)
+            where file is the ini file where camera parameters are saved
+            usefull to set init parameters (expTime and gain)
+            The default is None.
 """
 from PyQt5.QtWidgets import QApplication,QWidget,QInputDialog
 from pyqtgraph.Qt import QtCore
@@ -18,7 +40,7 @@ try:
     Vimba().startup()
     system=Vimba().system()
     cameraIds=Vimba().camera_ids()
-    print( "Cam available:",cameraIds)
+    # print( "Cam available:",cameraIds)
     
   #  Encrease timeout :
   #change in File "C:\ProgramData\Anaconda3\lib\site-packages\pymba\camera.py
@@ -26,7 +48,11 @@ try:
 except:
     print ('No pymba module installed see : https://github.com/morefigs/pymba.git ')
     
-    
+def camAvailable(): 
+    return cameraIds    
+def getCamID(index):
+    return(cameraIds[index]) 
+
     
 class GUPPY (QWidget):
     newData=QtCore.pyqtSignal(object)
@@ -44,7 +70,8 @@ class GUPPY (QWidget):
         conf : TYPE, optional
             DESCRIPTION.a QtCore.QSettings  objet : 
             QtCore.QSettings('file.ini', QtCore.QSettings.IniFormat)
-            where file is the ini file where camera paremetesr are saved
+            where file is the ini file where camera parameters are saved
+            usefull to set init parameters (expTime and gain)
             The default is None.
         Returns
         -------
@@ -63,61 +90,60 @@ class GUPPY (QWidget):
         self.camIsRunnig=False
         self.nbShot=1
         self.items=cameraIds
-        
-    def camAvailable(self): 
-        return cameraIds
-    
-    def initCam(self):
-        
-        '''Open a camera
+  
+    def openMenuCam(self):
+        '''create a message box to choose a camera
         '''
+        items=cameraIds
+        item, ok = QInputDialog.getItem(self, "Select Guppy camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
         
-        
-        if self.nbcam==None: # create a message box to choose a camera 
-            items=cameraIds
-            item, ok = QInputDialog.getItem(self, "Select Guppy camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
-            
-            if ok and item:
-                print ('ok')
-                items=list(items)
-                index = items.index(item)
-                self.cam0=Vimba().camera(cameraIds[index])
-                self.isConnected=True
-                self.nbcam='camDefault'
-                self.ccdName=cameraIds[index]
-                self.camID=cameraIds[index]
+        if ok and item:
+            items=list(items)
+            index = items.index(item)
+            self.cam0=Vimba().camera(cameraIds[index])
+            self.isConnected=True
+            self.nbcam='camDefault'
+            self.camID=cameraIds[index]
+        if self.isConnected==True:
+            self.setCamParameter()
+        return self.isConnected()
+    
+    def openFirstCam(self):
+        try :
+            self.cam0=Vimba().camera(cameraIds[0])
+            self.camID=cameraIds[0]
+            self.isConnected=True
+            self.nbcam='camDefault'
+        except:
+            self.isConnected=False
+            self.ccdName='no camera'
+        if self.isConnected==True:
+            self.setCamParameter()
+        return self.isConnected()
+    
+    def openCamByID(self,camID): 
                 
-        elif self.nbcam=='camDefault': # camDefaul we take the fisrt one
+        ''' read cam serial number
+        '''
+        self.camID=camID
+        
+        try :
+            self.cam0=Vimba().camera(self.camID)
+            self.isConnected=True
+            print('connected')
+        except:# if id number doesn't work we take the first one
             try:
+                print('Id not valid open the fisrt camera')
                 self.cam0=Vimba().camera(cameraIds[0])
-                self.ccdName='CAMDefault'
                 self.camID=cameraIds[0]
                 self.isConnected=True
             except:
-                self.isConnected=False
-                self.ccdName='no camera'
-                
-        else : # read cam serial number
-            self.camID=self.conf.value(self.nbcam+"/camID") #
-            self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-            try :
-                self.cam0=Vimba().camera(self.camID)
-                self.isConnected=True
-                print('connected')
-            except:# if id number doesn't work we take the first one
-                try:
-                    self.nbcam='camDefault'
-                    self.cam0=Vimba().camera(cameraIds[0])
-                    self.ccdName='CAMdefault'
-                    self.camID=cameraIds[0]
-                    self.isConnected=True
-                except:
                     print('not ccd connected')
                     self.isConnected=False
-                    self.ccdName='no camera'
-                    
+                    self.ccdName='no camera'            
         if self.isConnected==True:
             self.setCamParameter()
+            
             
     def setCamParameter(self):
         """Open camera
@@ -128,7 +154,7 @@ class GUPPY (QWidget):
 
        
         """
-        print(self.ccdName, 'is connected @:'  ,self.camID )
+        print( 'connected @:'  ,self.camID )
         self.cam0.open()
         
         # for feature_name in self.cam0.feature_names():
@@ -171,10 +197,6 @@ class GUPPY (QWidget):
             self.cam0.feature('Gain').value=int(self.camParameter["gainMin"])
         
         self.camParameter["gain"]=self.cam0.feature('Gain').value
-        
-        
-        
-        
         
         self.threadRunAcq=ThreadRunAcq(self)
         self.threadRunAcq.newDataRun.connect(self.newImageReceived)
@@ -305,7 +327,7 @@ class ThreadRunAcq(QtCore.QThread):
         
 class ThreadOneAcq(QtCore.QThread):
     
-    '''Second thread for controling one acquisition independtly
+    '''Second thread for controling one or more  acquisition independtly
     '''
     newDataRun=QtCore.Signal(object)
     newStateCam=QtCore.Signal(bool)
@@ -335,9 +357,6 @@ class ThreadOneAcq(QtCore.QThread):
                 if self.itrig=='off':
                     self.cam0.run_feature_command('TriggerSoftware')
                 
-                
-            
-                
                 if i<self.parent.nbShot-1:
                     self.newStateCam.emit(True)
                 else:
@@ -364,6 +383,9 @@ class ThreadOneAcq(QtCore.QThread):
         self.stopRunAcq=True
         
         self.cam0.run_feature_command('TriggerSoftware')       
+
+
+
 
 
 if __name__ == "__main__":       
