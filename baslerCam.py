@@ -123,27 +123,29 @@ class BASLER (QWidget):
             
     def openCamByID(self,camID=0): 
         '''connect to a serial number
+        
         '''
         # if
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-        try :
-            for i in pylon.self.devices:
-                if i.GetSerialNumber()==self.id:
-                    camConnected=i
-            self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
-                
-            self.isConnected=True
-            
-        except:# if id number doesn't work we take the first one
-            try:
-                self.nbcam='camDefault'
-                self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
-                self.ccdName='CAMdefault'
+        self.camID=camID
+        
+        for i in devices:
+            if i.GetSerialNumber()==self.camID:
+                camConnected=i
+                self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+                print ('connected to serial')
                 self.isConnected=True
-            except:
-                self.isConnected=False
-                self.ccdName='no camera'
+            
+        # except:# if id number doesn't work we take the first one
+        #     try:
+        #         self.nbcam='camDefault'
+        #         self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
+        #         self.ccdName='CAMdefault'
+        #         self.isConnected=True
+        #     except:
+        #         self.isConnected=False
+        #         self.ccdName='no camera'
         
         if self.isConnected==True:
             self.setCamParameter()          
@@ -157,7 +159,7 @@ class BASLER (QWidget):
                
         self.cam0.Open()
         self.camID=self.cam0.GetDeviceInfo().GetSerialNumber()
-        print(self.ccdName,'@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
+        print(' connected @IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
                 
         
         self.LineTrigger=str('None') # for 
@@ -283,6 +285,10 @@ class BASLER (QWidget):
         '''
         self.camIsRunnig=state
     
+    def closeCamera(self):
+        print('close basler')
+        self.cam0.Close()
+        
 class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
@@ -310,13 +316,13 @@ class ThreadRunAcq(QtCore.QThread):
             
             self.data=np.rot90(data,1)
             
-            if np.max(self.data)>0:
+            if np.max(self.data)>0: # send data if not zero 
                 
                 if self.stopRunAcq==True:
                     pass
                 else :
                     self.newDataRun.emit(self.data)
-            
+                    # print(self.cam0.DeviceTemperature.GetValue())
             
     def stopThreadRunAcq(self):
         
@@ -327,7 +333,8 @@ class ThreadRunAcq(QtCore.QThread):
         except :
             pass
         
-        
+    def closeCamera(self):
+        self.cam0.Close()
         
 class ThreadOneAcq(QtCore.QThread):
     

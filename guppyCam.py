@@ -3,6 +3,7 @@
 Created on Mon Mar 30 10:23:01 2020
 
 @author: Julien Gautier (LOA)
+
 camAvailable:
 
     return list of all camera
@@ -12,6 +13,7 @@ getCamID(index)
     return th ID of the camera 
 
 class GUPPY :
+    
     Parameters
         ----------
         cam : TYPE, optional
@@ -27,10 +29,10 @@ class GUPPY :
             usefull to set init parameters (expTime and gain)
             The default is None.
 """
+
+
 from PyQt5.QtWidgets import QApplication,QWidget,QInputDialog
 from pyqtgraph.Qt import QtCore
-
-
 import time,sys
 import numpy as np
 
@@ -47,6 +49,7 @@ try:
   #  def acquire_frame(self, timeout_ms: Optional[int] = 200000000) -> Frame: :
 except:
     print ('No pymba module installed see : https://github.com/morefigs/pymba.git ')
+
     
 def camAvailable(): 
     return cameraIds    
@@ -55,6 +58,7 @@ def getCamID(index):
 
     
 class GUPPY (QWidget):
+    
     newData=QtCore.pyqtSignal(object)
     
     def __init__(self,cam='camDefault',conf=None):
@@ -106,7 +110,7 @@ class GUPPY (QWidget):
             self.camID=cameraIds[index]
         if self.isConnected==True:
             self.setCamParameter()
-        return self.isConnected()
+        return self.isConnected
     
     def openFirstCam(self):
         try :
@@ -119,7 +123,7 @@ class GUPPY (QWidget):
             self.ccdName='no camera'
         if self.isConnected==True:
             self.setCamParameter()
-        return self.isConnected()
+        return self.isConnected
     
     def openCamByID(self,camID): 
                 
@@ -270,6 +274,9 @@ class GUPPY (QWidget):
         
     def stateCam(self,state):
         self.camIsRunnig=state
+    
+    def closeCamera(self):
+        self.cam0.Close()
     
 class ThreadRunAcq(QtCore.QThread):
     

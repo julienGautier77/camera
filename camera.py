@@ -70,7 +70,7 @@ class CAMERA(QWidget):
         
         
         
-        if self.nbcam=="choose":
+        if self.nbcam=="choose": # creat menu widget with all camera present 
             self.nbcam='camDefault'
             try :
                 import guppyCam 
@@ -134,15 +134,19 @@ class CAMERA(QWidget):
             
         
         elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
+            self.nbcam='camDefault'
             self.cameraType="guppy"
+            self.ccdName='First guppy Cam'
             import guppyCam 
             self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected
             
         elif self.nbcam=="firstBasler": # open the first basler cam in the list
+            self.ccdName='First basler Cam'
+            self.nbcam='camDefault'
             self.cameraType="basler"
-            import guppyCam 
+            import baslerCam 
             self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected    
@@ -162,18 +166,18 @@ class CAMERA(QWidget):
             self.cameraType=self.conf.value(self.nbcam+"/camType")
             self.camID=self.conf.value(self.nbcam+"/camId")
                
-        if self.cameraType=="guppy" :
-            self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
-            self.CAM.openCamByID(self.camID)
-            self.isConnected=self.CAM.isConnected
-        elif self.cameraType=="basler":
+            if self.cameraType=="guppy" :
+                self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected=self.CAM.isConnected
+            elif self.cameraType=="basler":
                 self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf)
+                print(self.camID)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
                 
         
-        
-        if self.light==False:
+        if self.light==False: 
             try :
                 from visu import SEE
                 self.visualisation=SEE(confpath=self.confPath,name=self.nbcam) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
@@ -205,7 +209,6 @@ class CAMERA(QWidget):
             else :
                 self.hSliderShutter.setMaximum(self.CAM.camParameter["expMax"])
                 self.shutterBox.setMaximum(self.CAM.camParameter["expMax"])
-            
             
             self.hSliderGain.setMinimum(self.CAM.camParameter["gainMin"])
             self.hSliderGain.setMaximum(self.CAM.camParameter["gainMax"])
@@ -252,7 +255,7 @@ class CAMERA(QWidget):
             
             self.runButton.setMaximumWidth(40)
             self.runButton.setMinimumWidth(20)
-            self.runButton.setMaximumHeight(60)
+            self.runButton.setMaximumHeight(70)
             self.runButton.setMinimumHeight(20)
             
             self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}""QToolButton:!hover{border-image: url(%s);background-color: rgb(0, 0, 0,0) ""QToolButton:hover{border-image: url(%s);background-color: blue "% (self.iconPlay,self.iconPlay,self.iconPlay,self.iconPlay) )
@@ -266,7 +269,7 @@ class CAMERA(QWidget):
             self.snapButton.setMenu(menu)
             self.snapButton.setMaximumWidth(40)
             self.snapButton.setMinimumWidth(20)
-            self.snapButton.setMaximumHeight(60)
+            self.snapButton.setMaximumHeight(70)
             self.snapButton.setMinimumHeight(20)
             self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"% (self.iconSnap,self.iconSnap) )
             
@@ -275,7 +278,7 @@ class CAMERA(QWidget):
             
             self.stopButton.setMaximumWidth(40)
             self.stopButton.setMinimumWidth(20)
-            self.stopButton.setMaximumHeight(60)
+            self.stopButton.setMaximumHeight(70)
             self.stopButton.setMinimumHeight(20)
             self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"% (self.iconStop,self.iconStop) )
             self.stopButton.setEnabled(False)
@@ -379,6 +382,7 @@ class CAMERA(QWidget):
     def oneImage(self):
         #self.nbShot=1
         self.acquireOneImage()
+     
         
     def nbShotAction(self):
         '''
@@ -389,6 +393,7 @@ class CAMERA(QWidget):
             self.nbShot=int(nbShot)
             if self.nbShot<=0:
                self.nbShot=1
+     
             
     def Display(self,data):
         '''Display data with visualisation module
@@ -398,6 +403,7 @@ class CAMERA(QWidget):
         self.visualisation.newDataReceived(self.data)
         if self.CAM.camIsRunnig==False:
             self.stopAcq()
+         
             
     def shutter (self):
         '''
@@ -411,11 +417,13 @@ class CAMERA(QWidget):
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
         self.conf.sync()
     
+    
     def mSliderShutter(self): # for shutter slider 
         sh=self.hSliderShutter.value() 
         self.shutterBox.setValue(sh) # 
         self.CAM.setExposure(sh) # Set shutter CCD in ms
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
+    
         
     def gain (self):
         '''
@@ -427,6 +435,7 @@ class CAMERA(QWidget):
         self.CAM.setGain(g)
         self.conf.setValue(self.nbcam+"/gain",float(g))
         self.conf.sync()
+    
     
     def mSliderGain(self):
         '''
@@ -440,6 +449,7 @@ class CAMERA(QWidget):
         self.conf.setValue(self.nbcam+"/gain",float(g))
         self.conf.sync()
         
+        
     def trigger(self):
         
         ''' select trigger mode
@@ -452,9 +462,11 @@ class CAMERA(QWidget):
             self.CAM.setTrigger("on")
         else :
             self.CAM.setTrigger("off")
+        
             
     def acquireOneImage(self):
-        
+        '''Start on acquisition
+        '''
         
         self.runButton.setEnabled(False)
         self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
@@ -463,14 +475,11 @@ class CAMERA(QWidget):
         self.stopButton.setEnabled(True)
         self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(False)
-        
-        
-        
+    
         self.CAM.startOneAcq(self.nbShot)
         
         
     def acquireMultiImage(self):    
-        
         ''' 
             start the acquisition thread
         '''
@@ -485,8 +494,8 @@ class CAMERA(QWidget):
         
         self.CAM.startAcq() # start mutli image acquisition thread 
         
-    def stopAcq(self):
         
+    def stopAcq(self):
         '''Stop     acquisition
         '''
         self.CAM.stopAcq()
@@ -499,13 +508,21 @@ class CAMERA(QWidget):
         self.stopButton.setEnabled(False)
         self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(True)  
-     
+    
+    
+    def closeEvent(self,event):
+        ''' closing window event (cross button)
+        '''
+        self.stopAcq()
+        time.sleep(0.1)
+        if self.isConnected==True:
+            self.CAM.close()
 
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA("choose")  
+    e = CAMERA("cam2")  
     e.show()
     appli.exec_()       
