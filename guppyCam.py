@@ -10,7 +10,7 @@ camAvailable:
 
 getCamID(index)
 
-    return th ID of the camera 
+    return the ID of the camera 
 
 class GUPPY :
     
@@ -62,26 +62,7 @@ class GUPPY (QWidget):
     newData=QtCore.pyqtSignal(object)
     
     def __init__(self,cam='camDefault',conf=None):
-        '''
-        Parameters
-        ----------
-        cam : TYPE, optional
-            DESCRIPTION. 
-            None : Choose a camera in a list
-            camDefault : the first camera is chossen
-            "cam1" : Take the camId in the confCamera.ini file
-            The default is 'camDefault'.
-        conf : TYPE, optional
-            DESCRIPTION.a QtCore.QSettings  objet : 
-            QtCore.QSettings('file.ini', QtCore.QSettings.IniFormat)
-            where file is the ini file where camera parameters are saved
-            usefull to set init parameters (expTime and gain)
-            The default is None.
-        Returns
-        -------
-        None.
-
-        '''
+        
         super(GUPPY,self).__init__()
         
         self.nbcam=cam
@@ -134,7 +115,7 @@ class GUPPY (QWidget):
         try :
             self.cam0=Vimba().camera(self.camID)
             self.isConnected=True
-            print('connected')
+            
         except:# if id number doesn't work we take the first one
             try:
                 print('Id not valid open the fisrt camera')
@@ -154,10 +135,10 @@ class GUPPY (QWidget):
         
         
         Set initial parameters
-        
-
-       
+    
         """
+        
+        
         print( 'connected @:'  ,self.camID )
         self.cam0.open()
         
@@ -185,6 +166,7 @@ class GUPPY (QWidget):
         
         self.camParameter["expMax"]=float(self.cam0.feature('ExposureTime').range[1])/1000
         self.camParameter["expMin"]=float(self.cam0.feature('ExposureTime').range[0])/1000
+        #if exposure time save in the ini file is not in the range we put the minimum
         if self.camParameter["expMin"] <=int(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
             self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
         else :
@@ -276,7 +258,8 @@ class GUPPY (QWidget):
         self.camIsRunnig=state
     
     def closeCamera(self):
-        self.cam0.Close()
+        self.cam0.close()
+        
     
 class ThreadRunAcq(QtCore.QThread):
     
