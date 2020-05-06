@@ -45,7 +45,7 @@ import qdarkstyle
 
 class CAMERA(QWidget):
     
-    def __init__(self,cam='choose',confFile='confCamera.ini',light=False):
+    def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
         Parameters
         ----------
@@ -62,20 +62,29 @@ class CAMERA(QWidget):
             DESCRIPTION. 
                 confFile= path to file.initr
                 The default is 'confCamera.ini'.
-        light : TYPE boolean, optional
-            DESCRIPTION.
-                light=False all the option are show for the visualisation
-                light= True only few option (save  open cross)
-            The default is False.
-
+        **kwds:
+            affLight : TYPE boolean, optional
+                DESCRIPTION.
+                    affLight=False all the option are show for the visualisation
+                    affLight= True only few option (save  open cross)
+                    The default is True.
+            
+            all kwds of VISU class
+            
         '''
+        
         
         super(CAMERA, self).__init__()
         
         p = pathlib.Path(__file__)
         self.nbcam=cam
-        self.light=light
         
+        self.kwds=kwds
+        if "affLight" in kwds:
+            self.light=kwds["affLight"]
+        else:
+            self.light=True
+            
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
         self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
         self.confPath=str(p.parent / confFile) # ini file path
@@ -98,7 +107,7 @@ class CAMERA(QWidget):
         self.openCam()
         self.setup()
         self.setCamPara()
-        
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         
     def openID(self):
         '''
@@ -116,6 +125,7 @@ class CAMERA(QWidget):
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except :
+                print("no allied vision camera detected or vimba is not installed")
                 pass
           
         elif self.cameraType=="basler":
@@ -125,15 +135,17 @@ class CAMERA(QWidget):
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
+                print("no basler camera detected or pypylon is not installed")
                 pass
         
         elif self.cameraType=="imgSource":
             try :
-                import ImgSourceCam2
-                self.CAM=ImgSourceCam2.IMGSOURCE(cam=self.nbcam,conf=self.conf)
+                import ImgSourceCamCallBack
+                self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
+                print("no imaging source camera detected or Tisgrabber is not installed")
                 pass
         else:
             print('no camera')
@@ -169,8 +181,8 @@ class CAMERA(QWidget):
                 pass 
             
             try :
-                import ImgSourceCam2
-                self.itemsImgSource=ImgSourceCam2.camAvailable()
+                import ImgSourceCamCallBack
+                self.itemsImgSource=ImgSourceCamCallBack.camAvailable()
                 self.lenImgSource=len(self.itemsImgSource)
                 
             except:
@@ -208,9 +220,9 @@ class CAMERA(QWidget):
                 elif indexItem>=self.lenBasler+self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy+self.lenImgSource:
                     indexItem=indexItem-self.lenGuppy-self.lenBasler
                     self.cameraType="imgSource"
-                    self.camID=ImgSourceCam2.getCamID(indexItem)
+                    self.camID=ImgSourceCamCallBack.getCamID(indexItem)
                     self.camID=self.camID.decode()
-                    self.CAM=ImgSourceCam2.IMGSOURCE(cam=self.nbcam,conf=self.conf)
+                    self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf)
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID
@@ -218,15 +230,23 @@ class CAMERA(QWidget):
                      self.isconnected=False
                      print('No camera choosen')
                      self.ccdName="no camera"
+                     self.nbcam='camDefault'
             else :
                 self.isconnected=False
                 print('No camera choosen')
                 self.ccdName="no camera"
                 self.cameraType=""
                 self.camID=""
+                self.nbcam='camDefault'
             
-            
-    
+        elif  self.nbcam==None:
+            self.isconnected=False
+            print('No camera')
+            self.ccdName="no camera"
+            self.cameraType=""
+            self.camID=""
+            self.nbcam='camDefault'
+             
         elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
             self.nbcam='camDefault'
             self.cameraType="guppy"
@@ -249,8 +269,8 @@ class CAMERA(QWidget):
             self.ccdName='First ImSource Cam'
             self.nbcam='camDefault'
             self.cameraType="imgSource"
-            import ImgSourceCam2 
-            self.CAM=baslerCam.ImgSourceCam2(cam=self.nbcam,conf=self.conf)
+            import ImgSourceCamCallBack 
+            self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected  
             
@@ -415,11 +435,9 @@ class CAMERA(QWidget):
             hMainLayout=QHBoxLayout()
             
             if self.light==False:
-                try :
-                    from visu import SEE
-                    self.visualisation=SEE(confpath=self.confPath,name=self.nbcam) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-                except :pass
                 
+                from visu import SEE
+                self.visualisation=SEE(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
                 self.vbox2=QVBoxLayout() 
                 self.vbox2.addWidget(self.visualisation)
                 
@@ -434,7 +452,7 @@ class CAMERA(QWidget):
                 hMainLayout.addWidget(self.visualisation)
                 self.setLayout(hMainLayout)
                 
-            # self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
             self.activateWindow()
             self.raise_()
             self.showNormal()
@@ -589,8 +607,10 @@ class CAMERA(QWidget):
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
-    # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA("menu")  
+    e = CAMERA('cam1',fft='off',meas='off',affLight=False)  
     e.show()
+    f = CAMERA('cam2',fft='off',meas='off',affLight=False) 
+    f.show()
     appli.exec_()       

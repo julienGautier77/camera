@@ -9,7 +9,21 @@ from enum import Enum
 import ctypes as C
 import os
 import sys,time
+
 import numpy as np
+
+class CallBackUser(C.Structure):
+    def __init__(self):
+        print('call')
+        
+    
+
+gr=C.POINTER(CallBackUser)
+GrabberHandlePtr = gr  
+C_FRAME_READY_CALLBACK = C.CFUNCTYPE(None, GrabberHandlePtr, C.POINTER(C.c_ubyte), C.c_ulong, C.c_void_p)
+
+
+
 
 class SinkFormats(Enum):
    Y800 = 0
@@ -476,6 +490,11 @@ class TIS_GrabberDLL(object):
     is_trigger_available.restype = C.c_int
     is_trigger_available.argtypes = (GrabberHandlePtr,)
     
+    
+    close_device = __tisgrabber.IC_CloseVideoCaptureDevice
+    close_device.restype = None
+    close_device.argtypes = (GrabberHandlePtr,)
+    
 # ############################################################################
 
     # definition of the frameready callback
@@ -498,11 +517,6 @@ class TIS_GrabberDLL(object):
     OpenVideoCaptureDevice.restype = C.c_int
     OpenVideoCaptureDevice.argtypes = [C.c_void_p, C.c_char_p]
     
-class GrabberHandle(C.Structure):
-    pass
-GrabberHandle._fields_ = [('unused',C.c_int)]    
-GrabberHandlePtr = C.POINTER(GrabberHandle)    
-C_FRAME_READY_CALLBACK = C.CFUNCTYPE(None, GrabberHandlePtr, C.POINTER(C.c_ubyte), C.c_ulong, C.c_void_p)
 
 # ############################################################################
     
@@ -514,7 +528,7 @@ class TIS_CAM(object):
       
         def __init__(self):
           
-            self._handle = C.POINTER(GrabberHandle)
+            
             self._handle = TIS_GrabberDLL.create_grabber()
             self._callback_registered = False
             self._frame = {'num'    :   -1,
@@ -531,7 +545,6 @@ class TIS_CAM(object):
             def cb_func(handle_ptr, p_data, frame_num, data):
                 self._frame['ready'] = True
                 self._frame['num'] = frame_num
-
             return C_FRAME_READY_CALLBACK(cb_func)
         
         def SetFrameReadyCallback(self):#CallbackFunction, data
@@ -544,8 +557,12 @@ class TIS_CAM(object):
             # data=None
             #self._rfrc_func
             self._rfrc_func = self._get_callback_func()
-            return TIS_GrabberDLL.SetFrameReadyCallback( self._handle, self._rfrc_func, None )
-
+            
+            TIS_GrabberDLL.SetFrameReadyCallback( self._handle, self._rfrc_func, None )
+            self._callback_registered = True
+            
+            
+            
         def SetContinuousMode(self, Mode):
             ''' Determines, whether new frames are automatically copied into memory.
 
@@ -563,8 +580,15 @@ class TIS_CAM(object):
             test = TIS_GrabberDLL.open_device_by_unique_name(self._handle,
                                                        self.s(unique_device_name))
 
-            return test                                           
-
+            return test 
+                                          
+        def close(self):
+            """
+            Close the camera device.
+            """
+            TIS_GrabberDLL.close_device(self._handle)
+            
+            
         def ShowDeviceSelectionDialog(self):
             self._handle = TIS_GrabberDLL.ShowDeviceSelectionDialog(self._handle)
             
@@ -929,7 +953,9 @@ class TIS_CAM(object):
                 :param enable: boolean -- True to enable the trigger, False to disable.
             """
             err = TIS_GrabberDLL.enable_trigger(self._handle, C.c_int(int(enable)))
-            print(err)
+            if err != 1:
+                print('error enable trig err:',err)
+                pass
         
         def send_trigger(self):
             """
@@ -937,5 +963,6 @@ class TIS_CAM(object):
             """
             err = TIS_GrabberDLL.software_trigger(self._handle)
             if err != 1:
-                raise IC_Exception(err)
+                print('error trig')
+                pass
         
