@@ -36,7 +36,7 @@ from pyqtgraph.Qt import QtCore
 import sys,time
 import numpy as np
 import pathlib,os
-
+from PyQt5.QtCore import Qt
 #https://github.com/TheImagingSource/IC-Imaging-Control-Samples
 
 try :
@@ -61,7 +61,7 @@ def getCamID(index):
 class IMGSOURCE (QWidget):
     newData=QtCore.pyqtSignal(object)
     
-    def __init__(self,cam='camDefault',conf=None):
+    def __init__(self,cam='camDefault',conf=None,**kwds):
         '''
         Parameters
         ----------
@@ -84,6 +84,7 @@ class IMGSOURCE (QWidget):
         '''
         
         super(IMGSOURCE,self).__init__()
+        print('callback')
         p = pathlib.Path(__file__)
         self.nbcam=cam
         self.itrig='off'
@@ -91,6 +92,10 @@ class IMGSOURCE (QWidget):
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
         else:
             self.conf=conf
+        if "multi"in kwds :
+            self.multi=kwds["multi"]
+        else:
+            self.multi=False    
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
@@ -193,7 +198,7 @@ class IMGSOURCE (QWidget):
        
         self.camParameter["gain"]=self.cam0.GetPropertyValue("Gain","Value")
         
-        # print(self.camParameter)
+        print(self.camParameter)
         
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
@@ -203,6 +208,9 @@ class IMGSOURCE (QWidget):
     
         
         self.threadRunAcq=ThreadRunAcq(self)
+        # if self.multi==True:
+        #     self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
+        # else:  
         self.threadRunAcq.newDataRun.connect(self.newImageReceived)
         
         self.threadOneAcq=ThreadOneAcq(self)
@@ -258,14 +266,14 @@ class IMGSOURCE (QWidget):
     def stopAcq(self):
         
         self.threadRunAcq.stopThreadRunAcq()
-        #self.threadOneAcq.stopThreadOneAcq()
+        self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):
         
         self.data=data
-        self.newData.emit(self.data)
-    
+        self.newData.emit(self.data) # emit data to main program
+        
         
     def stateCam(self,state):
         self.camIsRunnig=state
@@ -313,18 +321,18 @@ class ThreadRunAcq(QtCore.QThread):
                 
             # self.cam0.SnapImage()
             
-            self.cam0.wait_til_frame_ready(200000000)
+            self.cam0.wait_til_frame_ready(20000000)
             
             
             data1 = self.cam0.GetImage() 
-            data1 = np.array(data1, dtype=np.double)
+            data1 = np.array(data1)#, dtype=np.double)
             data1.squeeze()
             data=data1[:,:,0]
             self.data=np.rot90(data,1)
             
-            if self.data.max()>0:
+            if np.max(self.data)>0:
                 self.newDataRun.emit(self.data)
-            
+                
          
             
     def stopThreadRunAcq(self):
@@ -384,7 +392,7 @@ class ThreadOneAcq(QtCore.QThread):
                 else:
                     self.newStateCam.emit(False)
                     time.sleep(0.1)
-                if self.data.max()>0:
+                if np.max(self.data)>0:
                     self.newDataRun.emit(self.data)
                 time.sleep(0.5)
             self.newStateCam.emit(False)

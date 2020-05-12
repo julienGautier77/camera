@@ -41,11 +41,11 @@ from PyQt5 import QtGui
 import sys,time
 import pathlib,os
 import qdarkstyle
-
+import pyqtgraph as pg
 
 
 class CAMERA(QWidget):
-    
+    dataSignal=QtCore.pyqtSignal(object) # signal to send to visualisation 
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
         Parameters
@@ -81,14 +81,17 @@ class CAMERA(QWidget):
         self.nbcam=cam
         
         self.kwds=kwds
+        
         if "affLight" in kwds:
             self.light=kwds["affLight"]
         else:
             self.light=True
-        if "multi" in kwds:
+            
+        if "multi"in kwds :
             self.multi=kwds["multi"]
         else:
             self.multi=False    
+            
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
         
         self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
@@ -136,15 +139,17 @@ class CAMERA(QWidget):
         elif self.cameraType=="basler":
             try:
                 import baslerCam
+                
                 self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
+                
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
+                
             except:
-                print("no basler camera detected or pypylon is not installed")
+                print("no basler camera detected or pypylon is not installed ?")
                 pass
         
         elif self.cameraType=="imgSource":
-            print("l")
             try :
                 import ImgSourceCamCallBack
                 self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
@@ -451,10 +456,24 @@ class CAMERA(QWidget):
                 hMainLayout.addLayout(self.vbox2)
                 self.setLayout(hMainLayout)
                 
+            elif self.light=='ultra':
+                
+                self.visualisation=pg.GraphicsLayoutWidget()
+                self.p1=self.visualisation.addPlot()
+                self.imh=pg.ImageItem()
+                self.p1.addItem(self.imh)
+                self.vbox2=QVBoxLayout() 
+                self.vbox2.addWidget(self.visualisation)
+                hMainLayout.addWidget(self.cameraWidget)
+                hMainLayout.addLayout(self.vbox2)
+                self.setLayout(hMainLayout)
+                
+                
             else:
-                from visu import SEELIGHT
-                self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
+                from visu import SEELIGHTTHREAD
+                self.visualisation=SEELIGHTTHREAD(self,confpath=self.confPath,name=self.nbcam,**self.kwds)
                 self.visualisation.hbox0.addWidget(self.cameraWidget)
+            
                 hMainLayout.addWidget(self.visualisation)
                 self.setLayout(hMainLayout)
                 
@@ -475,7 +494,12 @@ class CAMERA(QWidget):
         self.gainBox.editingFinished.connect(self.gain)    
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
-        self.CAM.newData.connect(self.Display)
+        if self.multi==True:
+            
+            self.CAM.newData.connect(self.Display,QtCore.Qt.DirectConnection) #,QtCore.Qt.QueuedConnection)#DirectConnection)
+        else :
+            self.CAM.newData.connect(self.Display)
+            
         # self.TrigSoft.clicked.connect(self.softTrigger)
     
     
@@ -493,20 +517,24 @@ class CAMERA(QWidget):
             if self.nbShot<=0:
                self.nbShot=1
     
+    
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QtGui.QApplication.processEvents()    
+            QtGui.QApplication.processEvents()
+    
     
     def Display(self,data):
         '''Display data with visualisation module
         
         '''
-        if self.multi==True:
-            self.wait(0.01)
-        
+        self.wait(0.001)
         self.data=data
-        self.visualisation.newDataReceived(self.data)
+        if self.light=='ultra':
+            self.imh.setImage(self.data.astype(float),autoLevels=True,autoDownsample=True)
+        else:
+            self.dataSignal.emit(self.data) # sent data to visualisation
+            #self.visualisation.newDataReceived(self.data)
         if self.CAM.camIsRunnig==False:
             self.stopAcq()
               
@@ -623,7 +651,8 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA('cam2',fft='off',meas='on',affLight=True,multi=False)  
-    e.show()
-   
+    # e = CAMERA('cam1',fft='off',meas='off',affLight='ultra')  
+    # e.show()
+    f = CAMERA('cam2',fft='off',meas='on',affLight=True,multi=False)  
+    f.show()
     appli.exec_()       

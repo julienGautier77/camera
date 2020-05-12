@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QInputDialog
 from pyqtgraph.Qt import QtCore
 import sys,time
 import numpy as np
-
+from PyQt5.QtCore import Qt
 try :   
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
@@ -56,7 +56,7 @@ class BASLER (QWidget):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
-    def __init__(self,cam='camDefault',conf=None):
+    def __init__(self,cam='camDefault',conf=None,**kwds):
         
         super(BASLER,self).__init__()
         
@@ -67,6 +67,10 @@ class BASLER (QWidget):
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
         else:
             self.conf=conf
+        if "multi"in kwds :
+            self.multi=kwds["multi"]
+        else:
+            self.multi=False   
             
         self.camParameter=dict()
         self.camIsRunnig=False
@@ -193,8 +197,14 @@ class BASLER (QWidget):
         self.camParameter["trigger"]=self.cam0.TriggerMode.GetValue()
         
         self.threadRunAcq=ThreadRunAcq(self)
-        self.threadRunAcq.newDataRun.connect(self.newImageReceived)
         
+        
+        if self.multi==True:
+            self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
+        else:
+            self.threadRunAcq.newDataRun.connect(self.newImageReceived)
+           
+            
         self.threadOneAcq=ThreadOneAcq(self)
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
