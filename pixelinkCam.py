@@ -29,7 +29,7 @@ import numpy as np
 from PyQt5.QtCore import Qt
 try :   
     import pixelinkWrapper as pixelink # pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper
-
+    from pyPixelink import PIXELINK_CAM
     cameras=pixelink.PxLApi.getNumberCameras()
     cameras=cameras[1]
 except:
@@ -39,7 +39,7 @@ def camAvailable() :
     '''list of camera avialable
     '''
     items=()
-    for i in  cam in enumerate(cameras):
+    for i ,  cam in enumerate(cameras):
         items=items+(str(cameras[i].CameraSerialNum),)
     return items
     
@@ -81,18 +81,17 @@ class PIXELINK (QWidget):
         '''create a message box to choose a camera
         '''
         
-        items=()
-        for i, cam in enumerate(cameras):
-            items=items+(str(cameras[i].CameraSerialNum),)
+        
+        items=camAvailable()
            
-        item, ok = QInputDialog.getItem(self, "Select Basler camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+        item, ok = QInputDialog.getItem(self, "Select Pixelink camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
             
         if ok and item:
             items=list(items)
             index = items.index(item)
             self.id=getCamID(index)
             
-            self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+            self.cam0=PIXELINK_CAM(self.id)
             self.ccdName="CamDefault"
             self.isConnected=True
             self.nbcam='camDefault'
@@ -111,7 +110,8 @@ class PIXELINK (QWidget):
         self.nbcam='camDefault' #
         
         try:
-            self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
+            self.id=getCamID(index=0)
+            self.cam0=PIXELINK_CAM(self.id)
             self.ccdName='CamDefault'
             self.isConnected=True
         except:
@@ -128,15 +128,15 @@ class PIXELINK (QWidget):
         # if
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-        self.camID=camID
+        self.id=camID
         
-        for i in devices:
-            if i.GetSerialNumber()==self.camID:
-                camConnected=i
-                self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
-                self.isConnected=True
-            else: 
-                self.isConnected=False
+        try:
+            self.cam0=PIXELINK_CAM(self.id)
+            self.isConnected=True
+        
+                
+        except: 
+            self.isConnected=False
                 
         if self.isConnected==True:
             self.setCamParameter()          
@@ -148,48 +148,38 @@ class PIXELINK (QWidget):
         """
                
         self.cam0.Open()
-        self.camID=self.cam0.GetDeviceInfo().GetSerialNumber()
-        print(' connected@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
+        
+        print(' connected@: ',self.id )
                 
         
         self.LineTrigger=str('None') # for 
         
-        self.cam0.TriggerMode.SetValue('Off')
-        self.cam0.TriggerActivation.SetValue('RisingEdge')
-
-        self.cam0.TriggerSource.SetValue('Line1')
-        self.cam0.ExposureAuto.SetValue('Off')
-        self.cam0.GainAuto.SetValue('Off')
+        self.cam0.setTriggering(value='off')
         
-        self.cam0.Width=self.cam0.Width.Max  # set camera width at maximum
-        self.cam0.Height=self.cam0.Height.Max
+        self.camParameter["expMax"]=self.cam0.getExposureRange()[1]
+        self.camParameter["expMin"]=self.cam0.getExposureRange()[0]
         
-        
-        self.camParameter["expMax"]=float(self.cam0.ExposureTimeAbs.GetMax()/1000)
-        self.camParameter["expMin"]=float(self.cam0.ExposureTimeAbs.GetMin()/1000)
-        
-        self.camParameter["gainMax"]=self.cam0.GainRaw.GetMax()
-        self.camParameter["gainMin"]=self.cam0.GainRaw.GetMin()
+        self.camParameter["gainMax"]=self.cam0.getGainRange()[1]
+        self.camParameter["gainMin"]=self.cam0.getGainRange()[0]
         
         #if exposure time save in the ini file is not in the range we put the minimum
         if self.camParameter["expMin"] <=float(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
-            self.cam0.ExposureTimeAbs.SetValue(float(self.conf.value(self.nbcam+"/shutter"))*1000)
+            self.cam0.setExposure(float(self.conf.value(self.nbcam+"/shutter")))
         else:
-            self.cam0.ExposureTimeAbs.SetValue(self.camParameter["expMin"]*1000)
+            self.cam0.setExposure(self.camParameter["expMin"]*1000)
     
-        self.camParameter["exposureTime"]=int(self.cam0.ExposureTimeAbs.GetValue())/1000
+        self.camParameter["exposureTime"]=self.cam0.getExposure()
         
         
         if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
-            self.cam0.GainRaw.SetValue(int(self.conf.value(self.nbcam+"/gain")))
+            self.cam0.setGain(float(self.conf.value(self.nbcam+"/gain")))
         else:
             print('gain error: gain set to minimum value')
-            self.cam0.GainRaw.SetValue(int(self.camParameter["gainMin"]))
+            self.cam0.setGain(self.camParameter["gainMin"])
         
-        self.camParameter["gain"]=self.cam0.GainRaw.GetValue()
+        self.camParameter["gain"]=self.cam0.getGain()
         
         
-        self.camParameter["trigger"]=self.cam0.TriggerMode.GetValue()
         
         self.threadRunAcq=ThreadRunAcq(self)
         
@@ -209,17 +199,17 @@ class PIXELINK (QWidget):
         ''' set exposure time in ms
         '''
         
-        self.cam0.ExposureTimeAbs.SetValue(float (sh*1000))# in balser ccd exposure time is microsecond
-        self.camParameter["exposureTime"]=float(self.cam0.ExposureTimeAbs.GetValue())/1000
-        print("exposure time is set to",float(self.cam0.ExposureTimeAbs.GetValue()),' micro s')
+        self.cam0.setExposure(sh) # in balser ccd exposure time is microsecond
+        self.camParameter["exposureTime"]=float(self.cam0.getExposure)
+        print("exposure time is set to",float(self.cam0.getExposure),' ms')
         
     def setGain(self,g):
         ''' set gain 
         '''
         
-        self.cam0.GainRaw.SetValue(int(g)) # 
-        print("Gain is set to",self.cam0.GainRaw.GetValue())   
-        self.camParameter["gain"]=self.cam0.GainRaw.GetValue()
+        self.cam0.setGain(g) # 
+        print("Gain is set to",self.cam0.getGain())   
+        self.camParameter["gain"]=self.cam0.getGain()
     
     def softTrigger(self):
         '''to have a sofware trigger
@@ -232,14 +222,13 @@ class PIXELINK (QWidget):
         '''
         
         if trig=='on':
-            self.cam0.TriggerMode.SetValue('On')
+            self.cam0.setTriggering(value='on')
             self.itrig='on'
         else:
-            self.cam0.TriggerMode.SetValue('Off')
-            
+            self.cam0.setTriggering(value='off')
             self.itrig='off'
         
-        self.camParameter["trigger"]=self.TriggerMode.GetValue()
+        self.camParameter["trigger"]=self.getTriggering()
         
     def startAcq(self):
         '''Acquistion in live mode
