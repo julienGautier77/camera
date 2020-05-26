@@ -52,7 +52,7 @@ def getCamID (index):
     return(id)
     
 
-class BASLER (QWidget):
+class BASLER (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
@@ -164,6 +164,8 @@ class BASLER (QWidget):
 
         self.cam0.TriggerSource.SetValue('Line1')
         self.cam0.ExposureAuto.SetValue('Off')
+        
+        
         self.cam0.GainAuto.SetValue('Off')
         
         self.cam0.Width=self.cam0.Width.Max  # set camera width at maximum
@@ -244,7 +246,7 @@ class BASLER (QWidget):
             
             self.itrig='off'
         
-        self.camParameter["trigger"]=self.TriggerMode.GetValue()
+        self.camParameter["trigger"]=self.cam0.TriggerMode.GetValue()
         
     def startAcq(self):
         '''Acquistion in live mode
@@ -310,7 +312,7 @@ class ThreadRunAcq(QtCore.QThread):
         
     def run(self):
         while self.stopRunAcq is not True :
-            data=self.cam0.GrabOne(200000)
+            data=self.cam0.GrabOne(20000000)
             data=self.converter.Convert(data)
             data = data.GetArray()#, dtype=np.double)
             data.squeeze()
@@ -347,7 +349,7 @@ class ThreadOneAcq(QtCore.QThread):
     
     def __init__(self, parent):
         
-        super(ThreadOneAcq,self).__init__(parent)
+        super(ThreadOneAcq,self).__init__()
         self.parent=parent
         self.cam0 = parent.cam0
         self.stopRunAcq=False
@@ -378,7 +380,7 @@ class ThreadOneAcq(QtCore.QThread):
                     time.sleep(0.1)
                     
                 if np.max(self.data)>0 : 
-                    self.newDataRun.emit(data)
+                    self.newDataRun.emit(self.data)
                     
             else:
                 break
@@ -400,9 +402,9 @@ class ThreadOneAcq(QtCore.QThread):
         
 if __name__ == "__main__":       
     
-    appli = QApplication(sys.argv) 
-    e = BASLER(cam=None)
-    appli.exec_()              
+    
+    e = BASLER(cam='cam1')
+                 
         
         
         

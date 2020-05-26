@@ -19,6 +19,22 @@ pip install pypylon: https://github.com/basler/pypylon
 
 pip install qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
 pip install pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git)
+Change in pyqtgraph in ImgageItem.py line 462 :
+    if bins == 'auto':
+            if stepData.dtype.kind in "ui":
+                mn = stepData.min()
+                mx = stepData.max()
+                if mn==mx:                # add to avoid / by zero !!!
+                    mx=mx+0.01
+                step = np.ceil((mx-mn) / 500.)
+                bins = np.arange(mn, mx+1.01*step, step, dtype=np.int)
+                if len(bins) == 0:
+                    bins = [mn, mx]
+            else:
+                bins = 500
+
+
+
 pip install visu
 
 
@@ -144,10 +160,20 @@ class CAMERA(QWidget):
                 pass
         
         elif self.cameraType=="imgSource":
-            print("l")
+            
             try :
                 import ImgSourceCamCallBack
                 self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected=self.CAM.isConnected
+            except:
+                print("no imaging source camera detected or Tisgrabber is not installed")
+                pass
+        elif self.cameraType=="pixelink":
+            
+            try :
+                import pixelinkCam
+                self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
@@ -182,7 +208,7 @@ class CAMERA(QWidget):
                 
             except:
                 print('No Basler camera connected')
-                self.itemsBasler=()
+                self.itemsBasler=[]
                 self.lenBasler=0
                 pass 
             
@@ -197,7 +223,18 @@ class CAMERA(QWidget):
                 self.lenImgSource=0
                 pass 
             
-            items=self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource
+            try :
+                import pixelinkCam
+                self.itemsPixelink=pixelinkCam.PIXELINK.camAvailable()
+                self.lenImgPixelink=len(self.itemsPixelink)
+                
+            except:
+                print('No pixelink camera connected')
+                self.itemsPixelink=[]
+                self.lenPixelink=0
+                pass 
+            
+            items=self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
             
             item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
             
@@ -232,6 +269,17 @@ class CAMERA(QWidget):
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID
+                    
+                elif indexItem>=self.lenBasler+self.lenGuppy+ self.lenImgSource and indexItem<self.lenBasler+self.lenGuppy+self.lenImgSource+self.lenPixelink:
+                    indexItem=indexItem-self.lenGuppy-self.lenBasler-self.lenImgSource
+                    self.cameraType="pixelink"
+                    self.camID=pixelinkCam.getCamID(indexItem)
+                    
+                    self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+                    self.CAM.openCamByID(self.camID)
+                    self.isConnected=self.CAM.isConnected
+                    self.ccdName=self.camID    
+                
                 else:
                      self.isconnected=False
                      print('No camera choosen')
@@ -278,8 +326,16 @@ class CAMERA(QWidget):
             import ImgSourceCamCallBack 
             self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
             self.CAM.openFirstCam()
-            self.isConnected=self.CAM.isConnected  
+            self.isConnected=self.CAM.isConnected 
             
+        elif self.nbcam=="firstPixelink": # open the first pixelink cam in the list
+            self.ccdName='First Pixelink Cam'
+            self.nbcam='camDefault'
+            self.cameraType="pixelink"
+            import pixelinkCam
+            self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+            self.CAM.openFirstCam()
+            self.isConnected=self.CAM.isConnected      
             
         elif self.nbcam=='menu': # Qdialog with a menu with all the camera name present in the inifile
             self.groupsName=[]
@@ -623,7 +679,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA('cam2',fft='off',meas='on',affLight=True,multi=False)  
+    e = CAMERA("firstPixelink",fft='off',meas='on',affLight=True,multi=True)  
     e.show()
    
     appli.exec_()       

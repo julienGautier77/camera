@@ -200,8 +200,8 @@ class PIXELINK (QWidget):
         '''
         
         self.cam0.setExposure(sh) # in balser ccd exposure time is microsecond
-        self.camParameter["exposureTime"]=float(self.cam0.getExposure)
-        print("exposure time is set to",float(self.cam0.getExposure),' ms')
+        self.camParameter["exposureTime"]=float(self.cam0.getExposure())
+        print("exposure time is set to",float(self.cam0.getExposure()),' ms')
         
     def setGain(self,g):
         ''' set gain 
@@ -215,7 +215,6 @@ class PIXELINK (QWidget):
         '''to have a sofware trigger
         '''
         print('trig soft')
-        self.cam0.ExecuteSoftwareTrigger()
 
     def setTrigger(self,trig='off'):
         '''set trigger mode on/off
@@ -228,7 +227,7 @@ class PIXELINK (QWidget):
             self.cam0.setTriggering(value='off')
             self.itrig='off'
         
-        self.camParameter["trigger"]=self.getTriggering()
+        self.camParameter["trigger"]=self.cam0.getTriggering()
         
     def startAcq(self):
         '''Acquistion in live mode
@@ -268,9 +267,10 @@ class PIXELINK (QWidget):
         self.camIsRunnig=state
     
     def closeCamera(self):
-        print('close basler')
+        print('close pixelink')
+        self.cam0.setTriggering('off')
         self.cam0.Close()
-        
+    
         
         
         
@@ -287,39 +287,44 @@ class ThreadRunAcq(QtCore.QThread):
         self.stopRunAcq=False
         self.itrig= parent.itrig
         self.LineTrigger=parent.LineTrigger
-        self.converter=pylon.ImageFormatConverter()
+        
         
     def newRun(self):
         self.stopRunAcq=False
         
     def run(self):
+        self.cam0.startStream()
         while self.stopRunAcq is not True :
-            data=self.cam0.GrabOne(200000)
-            data=self.converter.Convert(data)
-            data = data.GetArray()#, dtype=np.double)
-            data.squeeze()
+            if self.stopRunAcq==True:
+                    break
+            self.data=self.cam0.getNextFrame()
             
-            self.data=np.rot90(data,1)
+            self.data=np.rot90(self.data,1)
             
             if np.max(self.data)>0: # send data if not zero 
                 
                 if self.stopRunAcq==True:
-                    pass
+                    break
                 else :
                     self.newDataRun.emit(self.data)
                     # print(self.cam0.DeviceTemperature.GetValue())
             
     def stopThreadRunAcq(self):
         
-        self.stopRunAcq=True
-        
         try :
-            self.cam0.ExecuteSoftwareTrigger()
+            trig=self.cam0.getTriggering()    
+            if trig=='on':
+                self.cam0.setTriggering('software')
+                print('send software trigger')
+                self.cam0.getNextFrame()
+                time.sleep(0.1)
+                self.cam0.setTriggering('on')
+            self.cam0.stopStream()
         except :
             pass
+        self.stopRunAcq=True
         
-    def closeCamera(self):
-        self.cam0.Close()
+    
         
         
         
@@ -337,7 +342,7 @@ class ThreadOneAcq(QtCore.QThread):
         self.stopRunAcq=False
         self.itrig= parent.itrig
         self.LineTrigger=parent.LineTrigger
-        self.converter=pylon.ImageFormatConverter()
+        
    
     
     def newRun(self):
@@ -345,15 +350,12 @@ class ThreadOneAcq(QtCore.QThread):
         
     def run(self):
         self.newStateCam.emit(True)
-        
+        self.cam0.startStream()
         for i in range (self.parent.nbShot):
             if self.stopRunAcq is not True :
-                data=self.cam0.GrabOne(200000)
-                data=self.converter.Convert(data)
-                data = data.GetArray()#, dtype=np.double)
-                data.squeeze()
+                self.data=self.cam0.getNextFrame()
             
-                self.data=np.rot90(data,1)
+                self.data=np.rot90(self.data,1)
                 
                 if i<self.parent.nbShot-1:
                     self.newStateCam.emit(True)
@@ -362,8 +364,8 @@ class ThreadOneAcq(QtCore.QThread):
                     time.sleep(0.1)
                     
                 if np.max(self.data)>0 : 
-                    self.newDataRun.emit(data)
-                    
+                    self.newDataRun.emit(self.data)
+                    print('newdata')
             else:
                 break
             
@@ -371,12 +373,18 @@ class ThreadOneAcq(QtCore.QThread):
        
     def stopThreadOneAcq(self):
         
-        self.stopRunAcq=True
-        
         try :
-            self.cam0.ExecuteSoftwareTrigger()
+            trig=self.cam0.getTriggering()    
+            if trig=='on':
+                self.cam0.setTriggering('software')
+                print('send software trigger')
+                self.cam0.getNextFrame()
+                time.sleep(0.1)
+                self.cam0.setTriggering('on')
+            self.cam0.stopStream()
         except :
-            pass      
+            pass
+        self.stopRunAcq=True
         
     
         
@@ -385,7 +393,7 @@ class ThreadOneAcq(QtCore.QThread):
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
-    e = BASLER(cam=None)
+    e = PIXELINK(cam=None)
     appli.exec_()              
         
         
