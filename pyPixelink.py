@@ -10,7 +10,7 @@ import ctypes
 import numpy
 
 class PIXELINK_CAM(object):
-    
+    # a easer way to use pixelinkWrapper
     def __init__(self,idNb):
         self.id=idNb
         self.PT_COLOR = 0
@@ -118,71 +118,79 @@ class PIXELINK_CAM(object):
         return self.isSupported
     
     def setTriggering(self, value='off'):
-        self.is_triggering_supported()
-        mode=pixelinkWrapper.PxLApi.TriggerModes.MODE_0
-        polarity=pixelinkWrapper.PxLApi.Polarity.ACTIVE_LOW
-        delay=0.0
-        param=0
-        if value=='on' and self.isSupported==True : 
-            triggerType=pixelinkWrapper.PxLApi.TriggerTypes.HARDWARE
-            # Read current settings
-            ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
-            flags = ret[1]
-            params = ret[2]
-            assert 5 == len(params)
-            
-            # Very important step: Enable triggering by clearing the FEATURE_FLAG_OFF bit
-            flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.MANUAL
         
-            # Assign the new values...
-            params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
-            params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
-            params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
-            params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
-            params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
-        
-            # ... and write them to the camera
-            ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
-        if value=='off':
-            # Read current settings
-            ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
-            flags = ret[1]
-            params = ret[2]
-            assert 5 == len(params)
-
-            # Disable triggering
-            flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.OFF
-            triggerType=pixelinkWrapper.PxLApi.TriggerTypes.FREE_RUNNING
-            params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
-            params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
-            params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
-            params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
-            params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
-            ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+        # set trigger in different mode 
+        if self.is_triggering_supported()==True :
             
-        if value=='software':
-            # Read current settings
-            ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
-            flags = ret[1]
-            params = ret[2]
-            assert 5 == len(params)
-
-            flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.MANUAL
-            triggerType=pixelinkWrapper.PxLApi.TriggerTypes.SOFTWARE
-            params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
-            params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
-            params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
-            params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
-            params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
-            ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
-            assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+            mode=pixelinkWrapper.PxLApi.TriggerModes.MODE_0
+            polarity=pixelinkWrapper.PxLApi.Polarity.ACTIVE_LOW
+            delay=0.0
+            param=0
+            
+            if value=='on' and self.isSupported==True : 
+                triggerType=pixelinkWrapper.PxLApi.TriggerTypes.HARDWARE
+                # Read current settings
+                ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+                flags = ret[1]
+                params = ret[2]
+                assert 5 == len(params)
+                
+                # Very important step: Enable triggering by clearing the FEATURE_FLAG_OFF bit
+                flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.MANUAL
+            
+                # Assign the new values...
+                params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
+                params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
+                params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
+                params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
+                params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
+            
+                # ... and write them to the camera
+                ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+                
+            if value=='off':
+                # Read current settings
+                ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+                flags = ret[1]
+                params = ret[2]
+                assert 5 == len(params)
+    
+                # Disable triggering
+                flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.OFF
+                triggerType=pixelinkWrapper.PxLApi.TriggerTypes.FREE_RUNNING
+                params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
+                params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
+                params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
+                params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
+                params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
+                ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+                
+            if value=='software':
+                # Read current settings
+                ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+                flags = ret[1]
+                params = ret[2]
+                assert 5 == len(params)
+    
+                flags = ~pixelinkWrapper.PxLApi.FeatureFlags.MOD_BITS | pixelinkWrapper.PxLApi.FeatureFlags.MANUAL
+                triggerType=pixelinkWrapper.PxLApi.TriggerTypes.SOFTWARE
+                params[pixelinkWrapper.PxLApi.TriggerParams.MODE] = mode
+                params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] = triggerType
+                params[pixelinkWrapper.PxLApi.TriggerParams.POLARITY] = polarity
+                params[pixelinkWrapper.PxLApi.TriggerParams.DELAY] = delay
+                params[pixelinkWrapper.PxLApi.TriggerParams.PARAMETER] = param
+                ret = pixelinkWrapper.PxLApi.setFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER, flags, params)
+                assert pixelinkWrapper.PxLApi.apiSuccess(ret[0])
+        else :
+            print('triggering is not supported')
             
     def getTriggering(self):
+        
         ret = pixelinkWrapper.PxLApi.getFeature(self.hCamera, pixelinkWrapper.PxLApi.FeatureId.TRIGGER)
         params=ret[2]
         triggerType=params[pixelinkWrapper.PxLApi.TriggerParams.TYPE] 
@@ -198,10 +206,12 @@ class PIXELINK_CAM(object):
         if not pixelinkWrapper.PxLApi.apiSuccess(ret[0]):
             print("Error: Unable to start the stream on the camera")
     
+    
     def stopStream(self):
         ret = pixelinkWrapper.PxLApi.setStreamState(self.hCamera, pixelinkWrapper.PxLApi.StreamState.SOP)
         if not pixelinkWrapper.PxLApi.apiSuccess(ret[0]):
             print("Error: Unable to stop the stream on the camera")
+    
     
     def getNextFrame(self):
         ret = pixelinkWrapper.PxLApi.getNextFrame(self.hCamera, self.rawFrame)

@@ -246,6 +246,8 @@ class GUPPY (QWidget):
         
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
+        if self.threadRunAcq.isRunning():
+            self.threadRunAcq.terminate()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):

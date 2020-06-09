@@ -36,18 +36,18 @@ from pyqtgraph.Qt import QtCore
 import sys,time
 import numpy as np
 import pathlib,os
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QMutex
 #https://github.com/TheImagingSource/IC-Imaging-Control-Samples
-
+from dll import tisgrabber as IC 
 try :
-    from dll import tisgrabber as IC 
+    
     # print('import imgSource dll : ok')
     Camera = IC.TIS_CAM()
     Devices = Camera.GetDevices()
 except :
     print ('librairy imaging source not found')
-    #add path ...\camera\dll\ in environement variable path
-    # in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d'environement
+    print('add path ...\camera\dll\ in environement variable path and reboot spyder ')
+    print('in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d environement')
     pass
     
 def camAvailable():
@@ -58,7 +58,7 @@ def camAvailable():
 def getCamID(index):
     return(Devices[index]) 
     
-class IMGSOURCE (QWidget):
+class IMGSOURCE (QtCore.QThread):
     newData=QtCore.pyqtSignal(object)
     
     def __init__(self,cam='camDefault',conf=None,**kwds):
@@ -198,7 +198,7 @@ class IMGSOURCE (QWidget):
        
         self.camParameter["gain"]=self.cam0.GetPropertyValue("Gain","Value")
         
-        print(self.camParameter)
+        #print(self.camParameter)
         
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
@@ -208,10 +208,10 @@ class IMGSOURCE (QWidget):
     
         
         self.threadRunAcq=ThreadRunAcq(self)
-        # if self.multi==True:
-        #     self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
-        # else:  
-        self.threadRunAcq.newDataRun.connect(self.newImageReceived)
+        if self.multi==True:
+            self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
+        else:  
+            self.threadRunAcq.newDataRun.connect(self.newImageReceived)
         
         self.threadOneAcq=ThreadOneAcq(self)
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)
@@ -253,10 +253,12 @@ class IMGSOURCE (QWidget):
             self.itrig='off'
             
     def startAcq(self):
+        
         self.camIsRunnig=True
-        self.threadRunAcq.newRun() # to set stopRunAcq=False
+        self.threadRunAcq.newRun()# to set stopRunAcq=False
         self.threadRunAcq.start()
-    
+        
+        
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
         self.camIsRunnig=True
@@ -266,6 +268,9 @@ class IMGSOURCE (QWidget):
     def stopAcq(self):
         
         self.threadRunAcq.stopThreadRunAcq()
+        if self.threadRunAcq.isRunning():
+            self.threadRunAcq.terminate()
+            
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
             
@@ -296,11 +301,15 @@ class ThreadRunAcq(QtCore.QThread):
         self.stopRunAcq=False
         self.itrig= self.parent.itrig
         
+    def __del__(self):
+        self.wait()   
         
     def newRun(self):
+        
         self.stopRunAcq=False
         
     def run(self):
+        
         self.cam0.reset_frame_ready()
         self.cam0.SetContinuousMode(0)
         self.cam0.StartLive(0)
@@ -311,9 +320,10 @@ class ThreadRunAcq(QtCore.QThread):
         if not self.cam0.callback_registered:
             self.cam0.SetFrameReadyCallback()
             
-       
+        self.mutex=QMutex()
         while self.stopRunAcq is not True :
-            
+            self.mutex.lock()
+            self.cam0.reset_frame_ready()
             if self.stopRunAcq:
                 break
             if self.itrig=="off": # if no harware trigger we send a soft trigger
@@ -323,23 +333,25 @@ class ThreadRunAcq(QtCore.QThread):
             
             self.cam0.wait_til_frame_ready(20000000)
             
-            
             data1 = self.cam0.GetImage() 
-            data1 = np.array(data1)#, dtype=np.double)
+            #data1 = np.array(data1)#☻, dtype=np.double)
             data1.squeeze()
             data=data1[:,:,0]
+            
             self.data=np.rot90(data,1)
             
             if np.max(self.data)>0:
                 self.newDataRun.emit(self.data)
-                
+               
+            self.mutex.unlock()  
          
             
     def stopThreadRunAcq(self):
         
         self.stopRunAcq=True
         self.cam0.StopLive()
-        self.cam0.send_trigger()
+        self.cam0.send_trigger()   
+        
         
 class ThreadOneAcq(QtCore.QThread):
     
@@ -357,7 +369,6 @@ class ThreadOneAcq(QtCore.QThread):
         self.itrig= self.parent.itrig
         
         
-    
     def newRun(self):
         self.stopRunAcq=False
         
@@ -400,7 +411,7 @@ class ThreadOneAcq(QtCore.QThread):
         
         
     def stopThreadOneAcq(self):
-     
+        
         self.stopRunAcq=True
         self.cam0.StopLive()
         self.cam0.send_trigger()       

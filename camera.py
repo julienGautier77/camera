@@ -85,8 +85,8 @@ class CAMERA(QWidget):
                     affLight=False all the option are show for the visualisation
                     affLight= True only few option (save  open cross)
                     The default is True.
-            
-            all kwds of VISU class
+            multi add time sleep to access QApplication.processEvents() 
+            + all kwds of VISU class
             
         '''
         
@@ -181,7 +181,11 @@ class CAMERA(QWidget):
                 pass
         else:
             print('no camera')
-            
+            self.isConnected=False
+            self.ccdName="no camera"
+            self.cameraType=""
+            self.camID=""
+            self.nbcam='camDefault'
             
     def openCam(self):
         '''open a camera with different way  
@@ -349,8 +353,10 @@ class CAMERA(QWidget):
                 self.openID()
         
         else :  #open the camera by ID : nbcam return ID of the ini file
-            self.openID()
-        
+            try : 
+                self.openID()
+            except :
+                self.isConnected=False 
       
         
     def setCamPara(self):
@@ -559,7 +565,7 @@ class CAMERA(QWidget):
         
         '''
         if self.multi==True:
-            self.wait(0.01)
+            self.wait(0.05)
         
         self.data=data
         self.visualisation.newDataReceived(self.data)
@@ -623,6 +629,7 @@ class CAMERA(QWidget):
     def acquireOneImage(self):
         '''Start on acquisition
         '''
+        
         self.runButton.setEnabled(False)
         self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(False)
@@ -638,6 +645,7 @@ class CAMERA(QWidget):
         ''' 
             start the acquisition thread
         '''
+        
         self.runButton.setEnabled(False)
         self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(False)
@@ -650,9 +658,10 @@ class CAMERA(QWidget):
         
         
     def stopAcq(self):
-        '''Stop     acquisition
+        '''Stop  acquisition
         '''
-        self.CAM.stopAcq()
+        if self.isConnected==True:
+            self.CAM.stopAcq()
         
         self.runButton.setEnabled(True)
         self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
@@ -664,13 +673,19 @@ class CAMERA(QWidget):
         self.trigg.setEnabled(True)  
     
     
+    
+    def close(self):
+        if self.isConnected==True:
+            self.CAM.closeCamera()
+        
+        
     def closeEvent(self,event):
         ''' closing window event (cross button)
         '''
         if self.isConnected==True:
              self.stopAcq()
              time.sleep(0.1)
-             self.CAM.closeCamera()
+             self.close()
             
             
             
@@ -679,7 +694,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA("firstPixelink",fft='off',meas='on',affLight=True,multi=True)  
+    e = CAMERA("cam1",fft='off',meas='on',affLight=False,multi=False)  
     e.show()
    
     appli.exec_()       

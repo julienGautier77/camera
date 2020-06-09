@@ -15,13 +15,22 @@ import sys,time
 import pathlib,os
 import qdarkstyle
 import camera
+from PyQt5 import QtGui 
 
 class MULTICAM(QWidget):
-    def __init__(self,numberOfCam=2,names=['cam1','cam2'],**kwds):
+    """
+        Qwidget for opening many camera in a same window
+
+    """
+    def __init__(self,names=['cam1','cam2'],**kwds):
         super(MULTICAM, self).__init__()
         
         self.kwds=kwds
-        self.numerOfCam=numberOfCam
+        self.numerOfCam=len(names)
+        if self.numerOfCam%2is not 0: # if cam number is not odd we add one
+            names.append('cam=None')
+        self.numerOfCam=len(names)    
+        
         self.names=names
         
         
@@ -35,99 +44,78 @@ class MULTICAM(QWidget):
         self.cam=[]
         
         for cams in self.names:
-            print(cams)
+            
             self.cam.append(camera.CAMERA(cam=cams,**self.kwds))
         
         
         self.setup()
         
-        #self.actionButton()
+        self.actionButton()
         
     def setup(self):
 
         grid_layout = QGridLayout()
         grid_layout.setVerticalSpacing(1)
         grid_layout.setHorizontalSpacing(1)
+        self.dock=[]
         
+        for i in range(0,self.numerOfCam):
+            
+            self.dock.append(QDockWidget(self))
+            self.dock[i].setWindowTitle(self.cam[i].ccdName)
+            self.dock[i].setStyleSheet("QDockWidget::title { color: purple;}")
+            self.dock[i].setWidget(self.cam[i])
+            self.dock[i].setFeatures(QDockWidget.DockWidgetFloatable)
+        # self.dock0.setWindowState(Qt::WindowFullScreen)
         
-        self.dock0=QDockWidget(self)
-        self.dock0.setWindowTitle(self.cam[0].ccdName)
-        self.dock0.setStyleSheet("QDockWidget::title { color: purple;}")
-        self.dock0.setWidget(self.cam[0])
-        self.dock0.setFeatures(QDockWidget.DockWidgetFloatable)
-#        self.dock0.setWindowState(Qt::WindowFullScreen)
-        
-        self.dock1=QDockWidget(self)
-        self.dock1.setWindowTitle(self.cam[1].ccdName)
-        self.dock1.setWidget(self.cam[1])
-        self.dock1.setFeatures(QDockWidget.DockWidgetFloatable)
-        
-        
-        
-        grid_layout.addWidget(self.dock0, 0, 0)
-        grid_layout.addWidget(self.dock1, 0, 1)
+        z=0
+        for i in range(0,int(self.numerOfCam/2)):
+            for j in range(0,int(self.numerOfCam/2)):
+                if z<self.numerOfCam:
+                    grid_layout.addWidget(self.dock[z], i, j)
+                z+=1
        
         grid_layout.setContentsMargins(0,0,0,0)
         self.horizontalGroupBox=QGroupBox()
         self.horizontalGroupBox.setLayout(grid_layout)
         self.horizontalGroupBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        #self.setCentralWidget(self.horizontalGroupBox)
+        
         windowLayout=QVBoxLayout()
         windowLayout.addWidget(self.horizontalGroupBox)
+#        windowLayout.addWidget(self.resetButton)
         windowLayout.setContentsMargins(1,1,1,1)
+        
         self.setContentsMargins(1,1,1,1)
         self.setLayout(windowLayout)
         
     def actionButton(self):
-        self.dock0.topLevelChanged.connect(self.Dock0Changed)
-        self.dock1.topLevelChanged.connect(self.Dock1Changed)
-        self.dock2.topLevelChanged.connect(self.Dock2Changed)
-        self.dock3.topLevelChanged.connect(self.Dock3Changed)
-        self.dock4.topLevelChanged.connect(self.Dock4Changed)
-        self.dock5.topLevelChanged.connect(self.Dock5Changed)
         
-    def Dock0Changed(self):
-        self.dock0.showMaximized()
-    def Dock0Maximisize(self):
-        self.dock0.setFloating(True)
-        self.dock0.showMaximized()
-    def Dock1Changed(self):
-        self.dock1.showMaximized()
-    def Dock1Maximisize(self):
-        self.dock1.setFloating(True)
-        self.dock1.showMaximized()
-    def Dock2Changed(self):
-        self.dock2.showMaximized()
-    def Dock2Maximisize(self):
-        self.dock2.setFloating(True)
-        self.dock2.showMaximized()
-    def Dock3Changed(self):
-        self.dock3.showMaximized()
-    def Dock3Maximisize(self):
-        self.dock3.setFloating(True)
-        self.dock3.showMaximized()
-    def Dock4Changed(self):
-        self.dock4.showMaximized() 
-    def Dock4Maximisize(self):
-        self.dock4.setFloating(True)
-        self.dock4.showMaximized()
-    def Dock5Changed(self):
-        self.dock5.showMaximized()
-    def Dock5Maximisize(self):
-        self.dock5.setFloating(True)
-        self.dock5.showMaximized()
+        for dock in self.dock:
+            dock.topLevelChanged.connect(lambda :self.DockChanged(dock))
+        
+        
+    def DockChanged(self,dock):
+        self.wait(0.01)
+        dock.showMaximized()
+        
+        dock.showFullScreen()
+        
+    def wait(self,seconds):
+        time_end=time.time()+seconds
+        while time.time()<time_end:
+            QtGui.QApplication.processEvents()    
         
     def stopRun(self):
-        self.cam0.cam.stopAcq()
-        self.cam1.cam.stopAcq()
-        self.cam2.cam.stopAcq()
-        self.cam3.cam.stopAcq()
-        self.cam4.cam.stopAcq()
-        self.cam5.cam.stopAcq()
+        for cam in self.cam:
+            cam.stopAcq()
         
+    def closeAll(self):
+        for cam in self.cam:
+            cam.close()
     def closeEvent(self,event):
         self.stopRun()
-        sys.exit(0)
+        self.closeAll()
+        # sys.exit(0)
         event.accept()
         
         
@@ -135,6 +123,6 @@ if __name__=='__main__':
     
     app=QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    multicam=MULTICAM(numberOfCam=2,names=['cam1','cam0'],affLight=True,multi=True) 
+    multicam=MULTICAM(names=['cam1','firstPixelink','cam2','cam=None','cam=None'],affLight=True,multi=True) 
     multicam.show()
     sys.exit(app.exec_() )

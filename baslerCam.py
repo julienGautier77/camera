@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QInputDialog
 from pyqtgraph.Qt import QtCore
 import sys,time
 import numpy as np
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QMutex
 try :   
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
@@ -268,6 +268,8 @@ class BASLER (QtCore.QThread):
     def stopAcq(self):
         
         self.threadRunAcq.stopThreadRunAcq()
+        # if self.threadRunAcq.isRunning():
+        #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
             
@@ -311,8 +313,14 @@ class ThreadRunAcq(QtCore.QThread):
         self.stopRunAcq=False
         
     def run(self):
+        self.mutex=QMutex()
         while self.stopRunAcq is not True :
-            data=self.cam0.GrabOne(20000000)
+            # self.mutex.lock()
+            try :
+                data=self.cam0.GrabOne(20000000)
+            except :
+                self.cam0.StopGrabbing()
+                data=self.cam0.GrabOne(20000000)
             data=self.converter.Convert(data)
             data = data.GetArray()#, dtype=np.double)
             data.squeeze()
@@ -322,11 +330,11 @@ class ThreadRunAcq(QtCore.QThread):
             if np.max(self.data)>0: # send data if not zero 
                 
                 if self.stopRunAcq==True:
-                    pass
+                    break
                 else :
                     self.newDataRun.emit(self.data)
                     # print(self.cam0.DeviceTemperature.GetValue())
-            
+            # self.mutex.unlock()
     def stopThreadRunAcq(self):
         
         self.stopRunAcq=True

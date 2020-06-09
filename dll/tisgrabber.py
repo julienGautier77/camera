@@ -42,6 +42,7 @@ GrabberHandle._fields_ = [('unused', C.c_int)]
 
 
 class TIS_GrabberDLL(object):
+    
     if sys.maxsize > 2**32 :
         __tisgrabber = C.windll.LoadLibrary("tisgrabber_x64.dll")
     else:
@@ -728,9 +729,9 @@ class TIS_CAM(object):
             
             Bild = C.cast(img_ptr, C.POINTER(C.c_ubyte * buffer_size))
             
-            
+            #,
             img = np.ndarray(buffer = Bild.contents,
-                         dtype = np.uint8,
+                        dtype = np.uint8,
                          shape = (lHeight,
                                   lWidth,iBitsPerPixel))
             img.reshape(lHeight,lWidth,iBitsPerPixel)

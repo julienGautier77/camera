@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Created on Mon Mar 30 10:23:01 2020
-pixelink class : class to control basler camera
+pixelink class : an easer class to control basler camera
         
         Parameters
         ----------
@@ -50,7 +50,7 @@ def getCamID (index=0):
     return(idnb)
     
 
-class PIXELINK (QWidget):
+class PIXELINK (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
@@ -250,6 +250,8 @@ class PIXELINK (QWidget):
         
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
+        if self.threadRunAcq.isRunning():
+            self.threadRunAcq.terminate()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):
