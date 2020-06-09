@@ -32,7 +32,7 @@ Works with :
   appli = QApplication(sys.argv)    
   appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())    
   #pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'    
-  e = CAMERA("cam1",fft='off',meas='on',affLight=False,multi=False)    
+  e = CAMERA("cam='choose'",fft='off',meas='on',affLight=False)    
   e.show()   
   appli.exec_()    
   
