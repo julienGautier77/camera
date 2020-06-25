@@ -61,6 +61,7 @@ import qdarkstyle
 
 
 class CAMERA(QWidget):
+    datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
     
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
@@ -360,7 +361,7 @@ class CAMERA(QWidget):
       
         
     def setCamPara(self):
-        '''set min max adn value of cam in the widget
+        '''set min max gain and exp value of cam in the widget
         '''
         
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
@@ -537,7 +538,7 @@ class CAMERA(QWidget):
         self.gainBox.editingFinished.connect(self.gain)    
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
-        self.CAM.newData.connect(self.Display)
+        self.CAM.newData.connect(self.Display)#,QtCore.Qt.DirectConnection)
         # self.TrigSoft.clicked.connect(self.softTrigger)
     
     
@@ -569,6 +570,8 @@ class CAMERA(QWidget):
         
         self.data=data
         self.visualisation.newDataReceived(self.data)
+        self.imageReceived=True
+        self.datareceived.emit(True)
         if self.CAM.camIsRunnig==False:
             self.stopAcq()
               
@@ -582,14 +585,20 @@ class CAMERA(QWidget):
         time.sleep(0.1)
         self.CAM.setExposure(sh) # Set shutter CCD in ms
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
+        self.CAM.camParameter["exposureTime"]=sh
         self.conf.sync()
+    
+    
     
     def mSliderShutter(self): # for shutter slider 
         sh=self.hSliderShutter.value() 
         self.shutterBox.setValue(sh) # 
         self.CAM.setExposure(sh) # Set shutter CCD in ms
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
-    
+        self.CAM.camParameter["exposureTime"]=sh
+        # self.conf.sync()
+        
+        
     def gain (self):
         '''
         set gain
@@ -629,7 +638,7 @@ class CAMERA(QWidget):
     def acquireOneImage(self):
         '''Start on acquisition
         '''
-        
+        self.imageReceived=False
         self.runButton.setEnabled(False)
         self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(False)
