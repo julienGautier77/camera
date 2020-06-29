@@ -246,8 +246,6 @@ class GUPPY (QWidget):
         
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
-        if self.threadRunAcq.isRunning():
-            self.threadRunAcq.terminate()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):
@@ -283,11 +281,14 @@ class ThreadRunAcq(QtCore.QThread):
         
     def run(self):
         while self.stopRunAcq is not True :
-            self.cam0.feature('TriggerSource').value='Software'
-            
+            if self.parent.itrig=='off':
+                self.cam0.feature('TriggerSource').value='Software'
+            else :
+                self.cam0.feature('TriggerSource').value='InputLines'
             self.cam0.arm('SingleFrame')
             dat1=self.cam0.acquire_frame()  
-            if self.itrig=='off':
+            if self.parent.itrig=='off':
+                
                 self.cam0.run_feature_command('TriggerSoftware')
                 
             if dat1 is not None:
@@ -304,9 +305,11 @@ class ThreadRunAcq(QtCore.QThread):
         #self.cam0.send_trigger()
         
         self.stopRunAcq=True
-        
-        self.cam0.run_feature_command('TriggerSoftware')
-            
+#        self.cam0.run_feature_command ('AcquisitionAbort')
+#        self.cam0.end_capture()
+#        self.cam0.feature('TriggerSource').value='Software'
+#        self.cam0.run_feature_command('TriggerSoftware')
+#            
             
         #self.cam0.feature('TriggerSource').value=self.LineTrigger
         #self.cam0.run_feature_command ('AcquisitionAbort')
@@ -338,15 +341,18 @@ class ThreadOneAcq(QtCore.QThread):
         self.stopRunAcq=False
         
     def run(self):
-        
-        self.cam0.feature('TriggerSource').value='Software'
+        if self.parent.itrig=='off':
+                self.cam0.feature('TriggerSource').value='Software'
+        else :
+                self.cam0.feature('TriggerSource').value='InputLines'
+       
         self.newStateCam.emit(True)
         
         for i in range (self.parent.nbShot):
             if self.stopRunAcq is not True :
                 self.cam0.arm('SingleFrame')
                 dat1=self.cam0.acquire_frame()  
-                if self.itrig=='off':
+                if self.parent.itrig=='off':
                     self.cam0.run_feature_command('TriggerSoftware')
                 
                 if i<self.parent.nbShot-1:
@@ -371,10 +377,11 @@ class ThreadOneAcq(QtCore.QThread):
     def stopThreadOneAcq(self):
         
         #self.cam0.send_trigger()
-        
         self.stopRunAcq=True
-        
-        self.cam0.run_feature_command('TriggerSoftware')       
+#        self.cam0.run_feature_command ('AcquisitionAbort')
+#        self.stopRunAcq=True
+#        
+#        self.cam0.run_feature_command('TriggerSoftware')       
 
 
 
