@@ -35,7 +35,7 @@ from PyQt5.QtWidgets import QApplication,QWidget,QInputDialog
 from pyqtgraph.Qt import QtCore
 import time,sys
 import numpy as np
-
+from PyQt5 import QtGui 
 
 try:
     from pymba import Vimba  ## pip install pymba https://github.com/morefigs/pymba.git  on conda prompt
@@ -188,7 +188,7 @@ class GUPPY (QWidget):
         self.threadRunAcq.newDataRun.connect(self.newImageReceived)
         
         self.threadOneAcq=ThreadOneAcq(self)
-        self.threadOneAcq.newDataRun.connect(self.newImageReceived)
+        self.threadOneAcq.newDataRun.connect(self.newImageReceived)#,QtCore.Qt.DirectConnection)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
             
             
@@ -286,13 +286,14 @@ class ThreadRunAcq(QtCore.QThread):
             else :
                 self.cam0.feature('TriggerSource').value='InputLines'
             self.cam0.arm('SingleFrame')
+            
             dat1=self.cam0.acquire_frame()  
             if self.parent.itrig=='off':
                 
                 self.cam0.run_feature_command('TriggerSoftware')
+            data=dat1.buffer_data_numpy()    
+            if np.max(data)>0:
                 
-            if dat1 is not None:
-                data=dat1.buffer_data_numpy()
                 data=np.rot90(data,3)
                 if self.stopRunAcq==True:
                     pass
@@ -336,36 +337,50 @@ class ThreadOneAcq(QtCore.QThread):
         self.itrig= parent.itrig
         self.LineTrigger=parent.LineTrigger
         
-    
+    def wait(self,seconds):
+        time_end=time.time()+seconds
+        while time.time()<time_end:
+            QtGui.QApplication.processEvents()    
     def newRun(self):
         self.stopRunAcq=False
         
     def run(self):
-        if self.parent.itrig=='off':
-                self.cam0.feature('TriggerSource').value='Software'
-        else :
-                self.cam0.feature('TriggerSource').value='InputLines'
+        
        
         self.newStateCam.emit(True)
         
         for i in range (self.parent.nbShot):
             if self.stopRunAcq is not True :
-                self.cam0.arm('SingleFrame')
-                dat1=self.cam0.acquire_frame()  
+                if self.parent.itrig=='off':
+                    self.cam0.feature('TriggerSource').value='Software'
+                else :
+                    self.cam0.feature('TriggerSource').value='InputLines'
+                self.cam0.revoke_all_frames()
+                self.cam0.flush_capture_queue()
+                self.cam0.arm('SingleFrame')#
+                dat1=self.cam0.acquire_frame() 
+                
                 if self.parent.itrig=='off':
                     self.cam0.run_feature_command('TriggerSoftware')
-                
+                # print(dat1.data.receiveStatus,dat1.data.receiveFlags)# == -1
                 if i<self.parent.nbShot-1:
                     self.newStateCam.emit(True)
+                    
+                    time.sleep(0.1)
                 else:
                     self.newStateCam.emit(False)
+                    
                     time.sleep(0.1)
+                data=dat1.buffer_data_numpy()    
+                if np.max(data)>0:
                     
-                if dat1 is not None:
-                    data=dat1.buffer_data_numpy()
                     data=np.rot90(data,3)    
-                    self.newDataRun.emit(data)
-                    
+                    if self.stopRunAcq==True:
+                        pass
+                    else :
+                        
+                        self.newDataRun.emit(data)
+                time.sleep(0.1)  
                 self.cam0.disarm()
                 
             else:

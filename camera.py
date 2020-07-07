@@ -365,18 +365,19 @@ class CAMERA(QWidget):
         '''
         
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
-            
-            self.hSliderShutter.setValue(self.CAM.camParameter["exposureTime"])
-            self.shutterBox.setValue(self.CAM.camParameter["exposureTime"])
-            self.hSliderShutter.setMinimum(self.CAM.camParameter["expMin"]+1)
-            self.shutterBox.setMinimum(self.CAM.camParameter["expMin"]+1)
-            
+            print('camshutter',self.CAM.camParameter["exposureTime"])
             if self.CAM.camParameter["expMax"] >1500: # we limit exposure time at 1500ms
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
             else :
                 self.hSliderShutter.setMaximum(self.CAM.camParameter["expMax"])
                 self.shutterBox.setMaximum(self.CAM.camParameter["expMax"])
+            self.hSliderShutter.setValue(self.CAM.camParameter["exposureTime"])
+            self.shutterBox.setValue(self.CAM.camParameter["exposureTime"])
+            self.hSliderShutter.setMinimum(self.CAM.camParameter["expMin"]+1)
+            self.shutterBox.setMinimum(self.CAM.camParameter["expMin"]+1)
+            
+            
             
             self.hSliderGain.setMinimum(self.CAM.camParameter["gainMin"])
             self.hSliderGain.setMaximum(self.CAM.camParameter["gainMax"])
@@ -396,8 +397,8 @@ class CAMERA(QWidget):
             self.shutterBox.setEnabled(False)
             self.gainBox.setEnabled(False)
             self.hSliderGain.setEnabled(False)
-            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
-            self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconSnap,self.iconSnap))
+            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconPlay,self.iconPlay))
+            self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconSnap,self.iconSnap))
             
             
             
@@ -423,7 +424,7 @@ class CAMERA(QWidget):
             self.runButton.setMinimumWidth(20)
             self.runButton.setMaximumHeight(70)
             self.runButton.setMinimumHeight(20)
-            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}""QToolButton:!hover{border-image: url(%s);background-color: rgb(0, 0, 0,0) ""QToolButton:hover{border-image: url(%s);background-color: blue "% (self.iconPlay,self.iconPlay,self.iconPlay,self.iconPlay) )
+            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}""QToolButton:!hover{border-image: url(%s);background-color: gray ""QToolButton:hover{border-image: url(%s);background-color: blue "% (self.iconPlay,self.iconPlay,self.iconPlay,self.iconPlay) )
             
             self.snapButton=QToolButton(self)
             self.snapButton.setPopupMode(0)
@@ -435,7 +436,7 @@ class CAMERA(QWidget):
             self.snapButton.setMinimumWidth(20)
             self.snapButton.setMaximumHeight(70)
             self.snapButton.setMinimumHeight(20)
-            self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"% (self.iconSnap,self.iconSnap) )
+            self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconSnap,self.iconSnap) )
             
             self.stopButton=QToolButton(self)
             
@@ -443,7 +444,7 @@ class CAMERA(QWidget):
             self.stopButton.setMinimumWidth(20)
             self.stopButton.setMaximumHeight(70)
             self.stopButton.setMinimumHeight(20)
-            self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"% (self.iconStop,self.iconStop) )
+            self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconStop,self.iconStop) )
             self.stopButton.setEnabled(False)
           
             
@@ -566,8 +567,8 @@ class CAMERA(QWidget):
         
         '''
         if self.multi==True:
-            self.wait(0.05)
-        
+            self.wait(0.1)
+            
         self.data=data
         self.visualisation.newDataReceived(self.data)
         self.imageReceived=True
@@ -640,11 +641,11 @@ class CAMERA(QWidget):
         '''
         self.imageReceived=False
         self.runButton.setEnabled(False)
-        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
+        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(False)
-        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconSnap,self.iconSnap))
+        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color:gray}"%(self.iconSnap,self.iconSnap))
         self.stopButton.setEnabled(True)
-        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconStop,self.iconStop) )
+        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(False)
     
         self.CAM.startOneAcq(self.nbShot)
@@ -656,11 +657,11 @@ class CAMERA(QWidget):
         '''
         
         self.runButton.setEnabled(False)
-        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
+        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(False)
-        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconSnap,self.iconSnap))
+        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconSnap,self.iconSnap))
         self.stopButton.setEnabled(True)
-        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconStop,self.iconStop) )
+        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(False)
         
         self.CAM.startAcq() # start mutli image acquisition thread 
@@ -673,12 +674,12 @@ class CAMERA(QWidget):
             self.CAM.stopAcq()
         
         self.runButton.setEnabled(True)
-        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconPlay,self.iconPlay))
+        self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconPlay,self.iconPlay))
         self.snapButton.setEnabled(True)
-        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: rgb(0, 0, 0,0) ;border-color: rgb(0, 0, 0)}"%(self.iconSnap,self.iconSnap))
+        self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconSnap,self.iconSnap))
         
         self.stopButton.setEnabled(False)
-        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0,0);}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: rgb(0, 0, 0)}"%(self.iconStop,self.iconStop) )
+        self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(True)  
     
     
@@ -703,7 +704,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA("cam1",fft='off',meas='on',affLight=False,multi=False)  
+    e = CAMERA(cam="firstGuppy",fft='off',meas='on',affLight=False,multi=False)  
     e.show()
    
     appli.exec_()       
