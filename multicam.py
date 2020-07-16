@@ -42,11 +42,13 @@ class MULTICAM(QWidget):
         self.icon=str(p.parent) + sepa + 'icons' +sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.cam=[]
-        
+        i=1
         for cams in self.names:
-            
-            self.cam.append(camera.CAMERA(cam=cams,**self.kwds))
-        
+            if i%2is not 0:
+                self.cam.append(camera.CAMERA(cam=cams,aff='left',**self.kwds))
+            else :
+                self.cam.append(camera.CAMERA(cam=cams,aff='right',**self.kwds))
+            i+=1
         
         self.setup()
         
@@ -96,9 +98,10 @@ class MULTICAM(QWidget):
         
     def DockChanged(self,dock):
         self.wait(0.01)
+        dock.setFloating(True)
         dock.showMaximized()
-        
-        dock.showFullScreen()
+        print('ici')
+        # dock.showFullScreen()
         
     def wait(self,seconds):
         time_end=time.time()+seconds
@@ -119,10 +122,69 @@ class MULTICAM(QWidget):
         event.accept()
         
         
+class MainWindows(QWidget):
+    ## Main class 3 tabs : 12 cameras
+    def __init__(self):
+        super().__init__()
+
+        self.left=100
+        self.top=30
+        self.width=1200
+        self.height=300
+        self.setGeometry(self.left,self.top,self.width,self.height)
+        self.setWindowTitle('Lolita Alignment' )
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        p = pathlib.Path(__file__)
+        sepa=os.sep
+        self.icon=str(p.parent) + sepa + 'icons' +sepa
+        self.setWindowIcon(QIcon(self.icon+'LOA.png'))
+        
+        self.setup()
+        self.actionButton()
+        
+        
+    def setup(self):
+        
+        self.layout=QVBoxLayout(self)
+        self.layout.setContentsMargins(1,1,1,1)
+        self.setContentsMargins(1,1,1,1)
+        self.tabs=QTabWidget()
+        self.tabs.setContentsMargins(1,1,1,1)
+        self.tab0=MULTICAM(names=['cam0','cam1','cam2','cam3'])
+        self.tab1=MULTICAM(names=['cam6','cam7','cam4','cam5'])
+#        self.tab2=App4Cam()
+
+        self.tabs.addTab(self.tab0,'   Lolita centers     ')
+        self.tabs.addTab(self.tab1,'    P3 & misc.    ')
+        #self.tabs.addTab(self.tab2,'    P3    ')
+
+        self.layout.addWidget(self.tabs)
+        self.setLayout(self.layout)
+        
+
+
+    def changeTab(self):
+#        print('tab change', 'tab is',self.tabs.currentIndex())
+        self.tab=[self.tab0,self.tab1]
+        self.tab0.stopRun()
+        self.tab1.stopRun()
+        #self.tab2.stopRun()
+        
+        
+    def actionButton(self):
+        self.tabs.currentChanged.connect(self.changeTab)
+        
+    def closeEvent(self,event):
+        
+        event.accept()
+        
+        
+        
+
 if __name__=='__main__':
     
     app=QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    multicam=MULTICAM(names=['cam1','firstPixelink','cam2','cam=None','cam=None'],affLight=True,multi=True) 
-    multicam.show()
+    multiTab=MainWindows()
+    multiTab.show()
     sys.exit(app.exec_() )

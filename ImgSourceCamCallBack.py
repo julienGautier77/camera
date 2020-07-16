@@ -84,7 +84,7 @@ class IMGSOURCE (QtCore.QThread):
         '''
         
         super(IMGSOURCE,self).__init__()
-        print('callback')
+        # print('callback')
         p = pathlib.Path(__file__)
         self.nbcam=cam
         self.itrig='off'
@@ -99,8 +99,8 @@ class IMGSOURCE (QtCore.QThread):
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
-    
-        self.cam0=Camera
+        self.Camera = IC.TIS_CAM()
+        self.cam0=self.Camera
     
         
     def openMenuCam(self):
@@ -136,7 +136,7 @@ class IMGSOURCE (QtCore.QThread):
         try :
             self.cam0.open(self.camID)
             self.isConnected=True
-            # print('connected@ ID:',self.camID)
+            # print('ICI connected@ ID:',self.camID)
         except:# if id number doesn't work we take the first one
             try:
                 print('Id not valid open the fisrt camera')
@@ -163,7 +163,7 @@ class IMGSOURCE (QtCore.QThread):
         # self.cam0.SetVideoFormat("RGB32 (640x480)")
         # self.camParameter["format"]=self.cam0.GetFormat()
         
-        print('trigger available',self.cam0.is_triggerable())
+        print('trigger available :',self.cam0.is_triggerable())
         self.camParameter["triggerAvailable"]=self.cam0.is_triggerable()
         self.camParameter["gainMax"]=self.cam0.GetPropertyValueRange("Gain","Value")[1]
         self.camParameter["gainMin"]=self.cam0.GetPropertyValueRange("Gain","Value")[0]
@@ -299,7 +299,7 @@ class ThreadRunAcq(QtCore.QThread):
         self.parent=parent
         self.cam0 = self.parent.cam0
         self.stopRunAcq=False
-        self.itrig= self.parent.itrig
+        # self.itrig= self.parent.itrig
         
     def __del__(self):
         self.wait()   
@@ -309,7 +309,7 @@ class ThreadRunAcq(QtCore.QThread):
         self.stopRunAcq=False
         
     def run(self):
-        
+        self.itrig= self.parent.itrig
         self.cam0.reset_frame_ready()
         self.cam0.SetContinuousMode(0)
         self.cam0.StartLive(0)
@@ -328,7 +328,7 @@ class ThreadRunAcq(QtCore.QThread):
                 break
             if self.itrig=="off": # if no harware trigger we send a soft trigger
                 self.cam0.send_trigger()
-                
+                # print('soft trig send')
             # self.cam0.SnapImage()
             
             self.cam0.wait_til_frame_ready(20000000)
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = IMGSOURCE(cam='camDefault')  
+    e = IMGSOURCE(cam='cam0')  
    
         
         

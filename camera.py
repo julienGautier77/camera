@@ -105,7 +105,11 @@ class CAMERA(QWidget):
         if "multi" in kwds:
             self.multi=kwds["multi"]
         else:
-            self.multi=False    
+            self.multi=False 
+        if "affLeft" in kwds:
+            self.affLeft=kwds["affLeft"]
+        else: 
+            self.affLeft=True
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
         
         self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
@@ -166,6 +170,7 @@ class CAMERA(QWidget):
                 import ImgSourceCamCallBack
                 self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
+                # print('openID',self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
@@ -365,7 +370,7 @@ class CAMERA(QWidget):
         '''
         
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
-            print('camshutter',self.CAM.camParameter["exposureTime"])
+            # print('camshutter',self.CAM.camParameter["exposureTime"])
             if self.CAM.camParameter["expMax"] >1500: # we limit exposure time at 1500ms
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
@@ -414,7 +419,7 @@ class CAMERA(QWidget):
             
             self.camName=QLabel(self.ccdName,self)
             self.camName.setAlignment(Qt.AlignCenter)
-            self.camName.setStyleSheet('font :bold  12pt;color: white')
+            self.camName.setStyleSheet('font :bold  8pt;color: white')
             self.vbox1.addWidget(self.camName)
             
             hbox1=QHBoxLayout() # horizontal layout pour run snap stop
@@ -458,21 +463,26 @@ class CAMERA(QWidget):
             self.trigg.setMaximumWidth(80)
             self.trigg.addItem('OFF')
             self.trigg.addItem('ON')
+            self.trigg.setStyleSheet('font :bold  6pt;color: white')
             self.labelTrigger=QLabel('Trigger')
-            self.labelTrigger.setMaximumWidth(50)
+            self.labelTrigger.setMaximumWidth(45)
+            self.labelTrigger.setStyleSheet('font :bold  5pt')
             self.itrig=self.trigg.currentIndex()
             hbox2=QHBoxLayout()
             hbox2.addWidget(self.labelTrigger)
+            
             hbox2.addWidget(self.trigg)
             self.vbox1.addLayout(hbox2)
             
             self.labelExp=QLabel('Exposure (ms)')
+            self.labelExp.setStyleSheet('font :bold  6pt')
             self.labelExp.setMaximumWidth(120)
             self.labelExp.setAlignment(Qt.AlignCenter)
             self.vbox1.addWidget(self.labelExp)
             self.hSliderShutter=QSlider(Qt.Horizontal)
             self.hSliderShutter.setMaximumWidth(80)
             self.shutterBox=QSpinBox()
+            self.shutterBox.setStyleSheet('font :bold  6pt')
             self.shutterBox.setMaximumWidth(60)
             hboxShutter=QHBoxLayout()
             hboxShutter.addWidget(self.hSliderShutter)
@@ -481,6 +491,7 @@ class CAMERA(QWidget):
             
             
             self.labelGain=QLabel('Gain')
+            self.labelGain.setStyleSheet('font :bold  6pt')
             self.labelGain.setMaximumWidth(120)
             self.labelGain.setAlignment(Qt.AlignCenter)
             self.vbox1.addWidget(self.labelGain)
@@ -489,6 +500,7 @@ class CAMERA(QWidget):
             self.hSliderGain.setMaximumWidth(80)
             self.gainBox=QSpinBox()
             self.gainBox.setMaximumWidth(60)
+            self.gainBox.setStyleSheet('font :bold  6pt')
             hboxGain.addWidget(self.hSliderGain)
             hboxGain.addWidget(self.gainBox)
             self.vbox1.addLayout(hboxGain)
@@ -513,6 +525,7 @@ class CAMERA(QWidget):
                 
                 hMainLayout.addWidget(self.cameraWidget)
                 hMainLayout.addLayout(self.vbox2)
+                
                 self.setLayout(hMainLayout)
                 
             else:
@@ -704,7 +717,8 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="firstGuppy",fft='off',meas='on',affLight=False,multi=False)  
+    e = CAMERA(cam="cam1",fft='off',meas='on',affLight=True,aff='right',multi=False)  
     e.show()
-   
+    # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
+    # x.show()
     appli.exec_()       
