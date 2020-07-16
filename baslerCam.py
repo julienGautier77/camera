@@ -138,12 +138,16 @@ class BASLER (QtCore.QThread):
         for i in devices:
             if i.GetSerialNumber()==self.camID:
                 camConnected=i
+                
                 self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+                
                 self.isConnected=True
+                break
             else: 
                 self.isConnected=False
-                
+        print('la',self.isConnected)       
         if self.isConnected==True:
+            
             self.setCamParameter()          
         
             
