@@ -46,7 +46,7 @@ version : 2019.4
 
 __author__='julien Gautier'
 __version__='2020.04'
-version=__version__
+
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
 from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog
@@ -58,7 +58,10 @@ import sys,time
 import pathlib,os
 import qdarkstyle
 
+import __init__
 
+__version__=__init__.__version__
+version=str(__version__)
 
 class CAMERA(QWidget):
     datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
@@ -128,7 +131,7 @@ class CAMERA(QWidget):
         self.iconSnap=pathlib.PurePosixPath(self.iconSnap)
         self.nbShot=1
         self.isConnected=False
-        self.version=__version__
+        self.version=str(__version__)
         
         self.openCam()
         self.setup()
