@@ -380,10 +380,10 @@ class CAMERA(QWidget):
             else :
                 self.hSliderShutter.setMaximum(self.CAM.camParameter["expMax"])
                 self.shutterBox.setMaximum(self.CAM.camParameter["expMax"])
-            self.hSliderShutter.setValue(self.CAM.camParameter["exposureTime"])
-            self.shutterBox.setValue(self.CAM.camParameter["exposureTime"])
-            self.hSliderShutter.setMinimum(self.CAM.camParameter["expMin"]+1)
-            self.shutterBox.setMinimum(self.CAM.camParameter["expMin"]+1)
+            self.hSliderShutter.setValue(int(self.CAM.camParameter["exposureTime"]))
+            self.shutterBox.setValue(int(self.CAM.camParameter["exposureTime"]))
+            self.hSliderShutter.setMinimum(int(self.CAM.camParameter["expMin"]+1))
+            self.shutterBox.setMinimum(int(self.CAM.camParameter["expMin"]+1))
             
             
             
@@ -720,7 +720,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="cam1",fft='off',meas='on',affLight=True,aff='right',multi=False)  
+    e = CAMERA(cam="firstImgSource",fft='off',meas='on',affLight=True,aff='right',multi=False)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

@@ -53,6 +53,7 @@ except :
 def camAvailable():
     # print(Devices)
     DeviceDecode=[x.decode() for x in Devices]
+    print(DeviceDecode)
     return DeviceDecode
 
 def getCamID(index):
@@ -115,10 +116,12 @@ class IMGSOURCE (QtCore.QThread):
         return self.isConnected
     
     def openFirstCam(self):
+        
         try :
-            self.cam0.open(Devices[0])
+            self.cam0.open(Devices[0].decode())
+           
             self.isConnected=True
-            self.camID=Devices[0]
+            self.camID=Devices[0].decode()
             self.nbcam='camDefault'
         except:
             self.isConnected=False
@@ -140,9 +143,9 @@ class IMGSOURCE (QtCore.QThread):
         except:# if id number doesn't work we take the first one
             try:
                 print('Id not valid open the fisrt camera')
-                self.cam0.open(Devices[0])
+                self.cam0.open(Devices[0].decode())
                 self.isConnected=True
-                self.camID=Devices[0]
+                self.camID=Devices[0].decode()
                 self.nbcam='camDefault'
             except:
                     print('not ccd connected')
@@ -423,6 +426,8 @@ if __name__ == "__main__":
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
     e = IMGSOURCE(cam='cam0')  
+    camAvailable()
+    
    
         
         

@@ -42,11 +42,14 @@ GrabberHandle._fields_ = [('unused', C.c_int)]
 
 
 class TIS_GrabberDLL(object):
+    import pathlib
+    p = pathlib.Path(__file__)
+    sepa=os.sep
     
     if sys.maxsize > 2**32 :
         __tisgrabber = C.windll.LoadLibrary("tisgrabber_x64.dll")
     else:
-        __tisgrabber = C.windll.LoadLibrary("tisgrabber.dll")
+        __tisgrabber = C.windll.LoadLibrary(str(p.parent)+sepa+"tisgrabber.dll")
     
     def __init__(self, **keyargs):
         """Initialize the Albatross from the keyword arguments."""
@@ -929,11 +932,11 @@ class TIS_CAM(object):
             :returns: int -- frame number that was announced as ready.
             """
             if timeout:        
-                start = time.clock()
-                elapsed = (time.clock() - start) * 1000
+                start = time.time()
+                elapsed = (time.time() - start) * 1000
                 while not self._frame['ready'] and elapsed < timeout:
                     time.sleep(0.001)
-                    elapsed = (time.clock() - start) * 1000
+                    elapsed = (time.time() - start) * 1000
             else:
                 while not self._frame['ready']:
                     time.sleep(0.001)
