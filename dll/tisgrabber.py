@@ -47,7 +47,7 @@ class TIS_GrabberDLL(object):
     sepa=os.sep
     
     if sys.maxsize > 2**32 :
-        __tisgrabber = C.windll.LoadLibrary("tisgrabber_x64.dll")
+        __tisgrabber = C.windll.LoadLibrary(str(p.parent)+sepa+"tisgrabber_x64.dll")
     else:
         __tisgrabber = C.windll.LoadLibrary(str(p.parent)+sepa+"tisgrabber.dll")
     
