@@ -59,6 +59,7 @@ import pathlib,os
 import qdarkstyle
 import pylab
 from visu.WinCut import GRAPHCUT
+from scipy import ndimage
 import __init__
 
 __version__=__init__.__version__
@@ -135,9 +136,11 @@ class CAMERA(QWidget):
         self.version=str(__version__)
         self.Xmax=[]
         self.Ymax=[]
+        self.T=[]
+        self.t0=time.time()
         self.openCam()
-        self.graphXmax=GRAPHCUT()
-        self.graphYmax=GRAPHCUT()
+        self.graphXmax=GRAPHCUT(title='X')
+        self.graphYmax=GRAPHCUT(title='Y')
         self.setup()
         self.setCamPara()
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
@@ -555,8 +558,8 @@ class CAMERA(QWidget):
                 self.setLayout(hMainLayout)
                 
             self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
-            self.activateWindow()
-            self.raise_()
+            #self.activateWindow()
+            #self.raise_()
             self.showNormal()
             
             
@@ -607,9 +610,11 @@ class CAMERA(QWidget):
         self.visualisation.newDataReceived(self.data)
         self.imageReceived=True
         self.datareceived.emit(True)
-        (self.xmax,self.ymax )=pylab.unravel_index(self.data.argmax(),self.data.shape)
-        self.Xmax.append(self.xmax)
-        self.Ymax.append(self.ymax)
+        (self.xmax,self.ymax )=pylab.unravel_index(self.data.argmax(),self.data.shape)#ndimage.center_of_mass(self.data)#
+        self.Xmax.append(round((0.45/0.4)*self.xmax,3))
+        self.Ymax.append(round((0.45/0.4)*self.ymax,3))
+        t=time.time()-self.t0
+        self.T.append(t)
         
         if self.CAM.camIsRunnig==False:
             self.stopAcq()
@@ -727,14 +732,15 @@ class CAMERA(QWidget):
     def graphButtonAction(self):
         
         self.open_widget(self.graphXmax)
-        self.graphXmax.PLOT(self.Xmax)
+        self.graphXmax.PLOT(self.Xmax,axis=self.T,symbol=False,label='seconds',labelY='umrad')
         self.open_widget(self.graphYmax)
-        self.graphYmax.PLOT(self.Ymax)
+        self.graphYmax.PLOT(self.Ymax,axis=self.T,symbol=False,label='seconds',labelY='urad')
     
     def graphResetButtonAction(self):
         self.Xmax=[]
         self.Ymax=[]
-        
+        self.T=[]
+        self.t0=time.time()
     
     def open_widget(self,fene):
         """ ouverture widget suplementaire 
@@ -771,7 +777,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="firstImgSource",fft='off',meas='on',affLight=True,aff='right',multi=False)  
+    e = CAMERA(cam="firstImgSource",fft='off',meas='on',affLight=False,aff='right',multi=False)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
