@@ -38,7 +38,10 @@ import numpy as np
 import pathlib,os
 from PyQt5.QtCore import Qt,QMutex
 #https://github.com/TheImagingSource/IC-Imaging-Control-Samples
-from dll import tisgrabber as IC 
+try:
+    from dll import tisgrabber as IC 
+except:
+    print("")
 try :
     
     # print('import imgSource dll : ok')

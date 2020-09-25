@@ -56,7 +56,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5 import QtGui 
 import sys,time
 import pathlib,os
-import qdarkstyle
+#import qdarkstyle
 
 import __init__
 
@@ -109,11 +109,24 @@ class CAMERA(QWidget):
             self.multi=kwds["multi"]
         else:
             self.multi=False 
-        if "affLeft" in kwds:
-            self.affLeft=kwds["affLeft"]
+        
+        if "separate" in kwds:
+            self.separate=kwds["separate"]
         else: 
-            self.affLeft=True
-        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
+            self.separate=True
+            
+        if "aff" in kwds: #  affi of Visu
+            self.aff=kwds["aff"]
+        else: 
+            self.aff="right"    
+        
+        
+        
+        
+        
+        
+        
+        # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
         
         self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
         self.confPath=str(p.parent / confFile) # ini file path
@@ -136,7 +149,7 @@ class CAMERA(QWidget):
         self.openCam()
         self.setup()
         self.setCamPara()
-        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         
     def openID(self):
         '''
@@ -523,20 +536,31 @@ class CAMERA(QWidget):
                 
                 from visu import SEE
                 self.visualisation=SEE(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-                self.vbox2=QVBoxLayout() 
-                self.vbox2.addWidget(self.visualisation)
                 
-                hMainLayout.addWidget(self.cameraWidget)
-                hMainLayout.addLayout(self.vbox2)
+                if self.separate==True:
+                    print('ici')
+                    self.vbox2=QVBoxLayout() 
+                    self.vbox2.addWidget(self.visualisation)
+                    if self.aff=='left':
+                        hMainLayout.addLayout(self.vbox2)
+                        hMainLayout.addWidget(self.cameraWidget)
+                    else :
+                        hMainLayout.addWidget(self.cameraWidget)
+                        hMainLayout.addLayout(self.vbox2)
+                else:
+                    self.visualisation.hbox0.addWidget(self.cameraWidget)
+                    hMainLayout.addWidget(self.visualisation)
                 
-                self.setLayout(hMainLayout)
+                
                 
             else:
                 from visu import SEELIGHT
                 self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
                 self.visualisation.hbox0.addWidget(self.cameraWidget)
                 hMainLayout.addWidget(self.visualisation)
-                self.setLayout(hMainLayout)
+                
+                
+            self.setLayout(hMainLayout)
                 
             self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
             self.activateWindow()
@@ -718,9 +742,9 @@ class CAMERA(QWidget):
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
-    appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="firstImgSource",fft='off',meas='on',affLight=True,aff='right',multi=False)  
+    e = CAMERA(cam="firstBasler",fft='off',meas='on',affLight=True,aff='left',separate=True,multi=False)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
