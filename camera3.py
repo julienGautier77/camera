@@ -45,7 +45,7 @@ version : 2019.4
 """
 
 __author__='julien Gautier'
-__version__='2020.10'
+__version__='2020.04'
 
 
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
@@ -57,7 +57,7 @@ from PyQt5 import QtGui
 import sys,time
 import pathlib,os
 import qdarkstyle
-
+from visu import SEE2
 import __init__
 
 __version__=__init__.__version__
@@ -427,25 +427,18 @@ class CAMERA(QWidget):
         
             """ user interface definition 
             """
-            self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            #self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             
-            self.cameraWidget=QWidget()
-            
-            self.vbox1=QVBoxLayout() 
-            
-            self.camName=QLabel(self.ccdName,self)
-            self.camName.setAlignment(Qt.AlignCenter)
-            self.camName.setStyleSheet('font :bold  8pt;color: white')
-            self.vbox1.addWidget(self.camName)
             
             hbox1=QHBoxLayout() # horizontal layout pour run snap stop
-            
+            self.sizebuttonMax=30
+            self.sizebuttonMin=30
             self.runButton=QToolButton(self)
-            self.runButton.setMaximumWidth(40)
-            self.runButton.setMinimumWidth(20)
-            self.runButton.setMaximumHeight(70)
-            self.runButton.setMinimumHeight(20)
-            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}""QToolButton:!hover{border-image: url(%s);background-color: gray ""QToolButton:hover{border-image: url(%s);background-color: blue "% (self.iconPlay,self.iconPlay,self.iconPlay,self.iconPlay) )
+            self.runButton.setMaximumWidth(self.sizebuttonMax)
+            self.runButton.setMinimumWidth(self.sizebuttonMax)
+            self.runButton.setMaximumHeight(self.sizebuttonMax)
+            self.runButton.setMinimumHeight(self.sizebuttonMax)
+            self.runButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconPlay,self.iconPlay) )
             
             self.snapButton=QToolButton(self)
             self.snapButton.setPopupMode(0)
@@ -453,18 +446,18 @@ class CAMERA(QWidget):
             #menu.addAction('acq',self.oneImage)
             menu.addAction('set nb of shot',self.nbShotAction)
             self.snapButton.setMenu(menu)
-            self.snapButton.setMaximumWidth(40)
-            self.snapButton.setMinimumWidth(20)
-            self.snapButton.setMaximumHeight(70)
-            self.snapButton.setMinimumHeight(20)
+            self.snapButton.setMaximumWidth(self.sizebuttonMax)
+            self.snapButton.setMinimumWidth(self.sizebuttonMax)
+            self.snapButton.setMaximumHeight(self.sizebuttonMax)
+            self.snapButton.setMinimumHeight(self.sizebuttonMax)
             self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconSnap,self.iconSnap) )
             
             self.stopButton=QToolButton(self)
             
-            self.stopButton.setMaximumWidth(40)
-            self.stopButton.setMinimumWidth(20)
-            self.stopButton.setMaximumHeight(70)
-            self.stopButton.setMinimumHeight(20)
+            self.stopButton.setMaximumWidth(self.sizebuttonMax)
+            self.stopButton.setMinimumWidth(self.sizebuttonMax)
+            self.stopButton.setMaximumHeight(self.sizebuttonMax)
+            self.stopButton.setMinimumHeight(self.sizebuttonMax)
             self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconStop,self.iconStop) )
             self.stopButton.setEnabled(False)
           
@@ -472,101 +465,158 @@ class CAMERA(QWidget):
             hbox1.addWidget(self.runButton)
             hbox1.addWidget(self.snapButton)
             hbox1.addWidget(self.stopButton)
+            hbox1.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            hbox1.setContentsMargins(0, 15, 0, 10)
             
-            self.vbox1.addLayout(hbox1)
+            
+            self.widgetControl=QWidget(self)
+            
+            self.widgetControl.setLayout(hbox1)
+            
             
             self.trigg=QComboBox()
             self.trigg.setMaximumWidth(80)
             self.trigg.addItem('OFF')
             self.trigg.addItem('ON')
-            self.trigg.setStyleSheet('font :bold  6pt;color: white')
+            self.trigg.setStyleSheet('font :bold  12pt;color: white')
             self.labelTrigger=QLabel('Trigger')
-            self.labelTrigger.setMaximumWidth(45)
-            self.labelTrigger.setStyleSheet('font :bold  5pt')
+            self.labelTrigger.setMaximumWidth(70)
+            self.labelTrigger.setStyleSheet('font :bold  12pt')
             self.itrig=self.trigg.currentIndex()
             hbox2=QHBoxLayout()
+            hbox2.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            hbox2.setContentsMargins(5, 10, 0, 0)
             hbox2.addWidget(self.labelTrigger)
             
             hbox2.addWidget(self.trigg)
-            self.vbox1.addLayout(hbox2)
+            self.widgetTrig=QWidget(self)
+            
+            self.widgetTrig.setLayout(hbox2)
+            
             
             self.labelExp=QLabel('Exposure (ms)')
-            self.labelExp.setStyleSheet('font :bold  6pt')
+            self.labelExp.setStyleSheet('font :bold  10pt')
             self.labelExp.setMaximumWidth(120)
             self.labelExp.setAlignment(Qt.AlignCenter)
-            self.vbox1.addWidget(self.labelExp)
+            
             self.hSliderShutter=QSlider(Qt.Horizontal)
             self.hSliderShutter.setMaximumWidth(80)
             self.shutterBox=QSpinBox()
-            self.shutterBox.setStyleSheet('font :bold  6pt')
-            self.shutterBox.setMaximumWidth(60)
+            self.shutterBox.setStyleSheet('font :bold  8pt')
+            self.shutterBox.setMaximumWidth(120)
+            
             hboxShutter=QHBoxLayout()
+            hboxShutter.setContentsMargins(5, 0, 0, 0)
+            hboxShutter.setSpacing(10)
+            vboxShutter=QVBoxLayout()
+            vboxShutter.setSpacing(0)
+            vboxShutter.addWidget(self.labelExp)#,Qt.AlignLef)
+            
             hboxShutter.addWidget(self.hSliderShutter)
             hboxShutter.addWidget(self.shutterBox)
-            self.vbox1.addLayout(hboxShutter)
+            vboxShutter.addLayout(hboxShutter)
+            vboxShutter.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            vboxShutter.setContentsMargins(5, 5, 0, 0)
+            
+            self.widgetShutter=QWidget(self)
+            
+            self.widgetShutter.setLayout(vboxShutter)
             
             
             self.labelGain=QLabel('Gain')
-            self.labelGain.setStyleSheet('font :bold  6pt')
+            self.labelGain.setStyleSheet('font :bold  10pt')
             self.labelGain.setMaximumWidth(120)
             self.labelGain.setAlignment(Qt.AlignCenter)
-            self.vbox1.addWidget(self.labelGain)
-            hboxGain=QHBoxLayout()
+            
             self.hSliderGain=QSlider(Qt.Horizontal)
             self.hSliderGain.setMaximumWidth(80)
             self.gainBox=QSpinBox()
             self.gainBox.setMaximumWidth(60)
-            self.gainBox.setStyleSheet('font :bold  6pt')
+            self.gainBox.setStyleSheet('font :bold  8pt')
+            self.gainBox.setMaximumWidth(120)
+            
+            hboxGain=QHBoxLayout()
+            hboxGain.setContentsMargins(5, 0, 0, 0)
+            hboxGain.setSpacing(10)
+            vboxGain=QVBoxLayout()
+            vboxGain.setSpacing(0)
+            vboxGain.addWidget(self.labelGain)
+    
             hboxGain.addWidget(self.hSliderGain)
             hboxGain.addWidget(self.gainBox)
-            self.vbox1.addLayout(hboxGain)
+            vboxGain.addLayout(hboxGain)
+            vboxGain.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            vboxGain.setContentsMargins(5, 5, 0, 0)
+            
+            self.widgetGain=QWidget(self)
+            self.widgetGain.setLayout(vboxGain)
             
             # self.TrigSoft=QPushButton('Trig Soft',self)
             # self.TrigSoft.setMaximumWidth(100)
             # self.vbox1.addWidget(self.TrigSoft)
-            
-            self.vbox1.addStretch(1)
-            self.cameraWidget.setLayout(self.vbox1)
-            self.cameraWidget.setMinimumSize(150,200)
-            self.cameraWidget.setMaximumSize(200,900)
+        
+            # self.vbox1.addStretch(1)
+            # self.cameraWidget.setLayout(self.vbox1)
+            # self.cameraWidget.setMinimumSize(150,200)
+            # self.cameraWidget.setMaximumSize(200,900)
             
             hMainLayout=QHBoxLayout()
             
-            if self.light==False:
-                #from visu.visual2 import SEE
-                from visu import SEE
-                self.visualisation=SEE(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-                
-                if self.separate==True:
-                    print('ici')
-                    self.vbox2=QVBoxLayout() 
-                    self.vbox2.addWidget(self.visualisation)
-                    if self.aff=='left':
-                        hMainLayout.addLayout(self.vbox2)
-                        hMainLayout.addWidget(self.cameraWidget)
-                    else :
-                        hMainLayout.addWidget(self.cameraWidget)
-                        hMainLayout.addLayout(self.vbox2)
-                else:
-                    self.visualisation.hbox0.addWidget(self.cameraWidget)
-                    hMainLayout.addWidget(self.visualisation)
-                    
-                    
-                
-                
-            else:
-                from visu import SEELIGHT
-                self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
-                self.visualisation.hbox0.addWidget(self.cameraWidget)
-                hMainLayout.addWidget(self.visualisation)
-                
-                
+            hMainLayout.addWidget(self.widgetControl)
+            hMainLayout.addWidget(self.widgetTrig)
+            hMainLayout.addWidget(self.widgetShutter)
+            hMainLayout.addWidget(self.widgetGain)
+            hMainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+            hMainLayout.setContentsMargins(10, 0, 10,0)
             self.setLayout(hMainLayout)
+            self.setContentsMargins(0, 0, 0, 0)
+            
+            # if self.light==False:
+            #     #from visu.visual2 import SEE
+            #     from visu import SEE2
+            #     self.visualisation=SEE2(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
+            #     self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            #     if self.separate==True:
+            #         print('ici')
+            #         self.vbox2=QVBoxLayout() 
+            #         self.vbox2.addWidget(self.visualisation)
+            #         if self.aff=='left':
+            #             hMainLayout.addLayout(self.vbox2)
+            #             hMainLayout.addWidget(self.cameraWidget)
+            #         else :
+            #             hMainLayout.addWidget(self.cameraWidget)
+            #             hMainLayout.addLayout(self.vbox2)
+            #     else:
+                    
+            #         self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
+                    
+            #         #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
+            #         self.dockTrig.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
+            #         self.dockShutter.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
+            #         self.dockGain.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
+            #         hMainLayout.addWidget(self.visualisation)
+            #         self.setContentsMargins(0, 0, 0, 0)
+                    
+                    
                 
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
-            self.activateWindow()
-            self.raise_()
-            self.showNormal()
+                
+            # else:
+            #     from visu import SEELIGHT
+            #     self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
+            #     self.visualisation.hbox0.addWidget(self.cameraWidget)
+            #     hMainLayout.addWidget(self.visualisation)
+                
+                
+            # #self.setLayout(hMainLayout)
+                
+            # #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
+            # #self.activateWindow()
+            # #self.raise_()
+            # #self.showNormal()
             
     def actionButton(self): 
         '''action when button are pressed
@@ -738,15 +788,55 @@ class CAMERA(QWidget):
              time.sleep(0.1)
              self.close()
             
-            
+class MainWindow()  :
+    
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        
+        print('ici')
+        self.visualisation=SEE2() ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
+        self.dockCamera=QDockWidget()
+        self.widgetCamera=CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
+        self.widgetCamera.setContentsMargins(0,0,0,0)
+        #self.dockCamera.SetFixedSize()
+        self.dockCamera.setWidget(self.widgetCamera)
+        
+        self.dockCamera.setTitleBarWidget(QWidget())
+        self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockCamera)
+        self.visualisation.show()
+        #     self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            #     if self.separate==True:
+            #         print('ici')
+            #         self.vbox2=QVBoxLayout() 
+            #         self.vbox2.addWidget(self.visualisation)
+            #         if self.aff=='left':
+            #             hMainLayout.addLayout(self.vbox2)
+            #             hMainLayout.addWidget(self.cameraWidget)
+            #         else :
+            #             hMainLayout.addWidget(self.cameraWidget)
+            #             hMainLayout.addLayout(self.vbox2)
+            #     else:
+                    
+            #         self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
+                    
+            #         #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
+            #         self.dockTrig.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
+            #         self.dockShutter.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
+            #         self.dockGain.setTitleBarWidget(QWidget())
+            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
+            #         hMainLayout.addWidget(self.visualisation)
+            #         self.setContentsMargins(0, 0, 0, 0)
             
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
-    e.show()
+    e = MainWindow()#CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
+    
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
     appli.exec_()       
