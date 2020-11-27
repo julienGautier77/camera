@@ -41,6 +41,7 @@ def camAvailable() :
     items=()
     for i ,  cam in enumerate(cameras):
         items=items+(str(cameras[i].CameraSerialNum),)
+    print(items)
     return items
     
 def getCamID (index=0):
@@ -111,6 +112,7 @@ class PIXELINK (QtCore.QThread):
         
         try:
             self.id=getCamID(index=0)
+            print('id first camera',self.id)
             self.cam0=PIXELINK_CAM(self.id)
             self.ccdName='CamDefault'
             self.isConnected=True
@@ -128,10 +130,11 @@ class PIXELINK (QtCore.QThread):
         # if
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-        self.id=camID
-        
+        self.id=int(camID)
+        # print('id to open:',self.id)
         try:
             self.cam0=PIXELINK_CAM(self.id)
+            
             self.isConnected=True
         
                 
@@ -140,7 +143,7 @@ class PIXELINK (QtCore.QThread):
                 
         if self.isConnected==True:
             self.setCamParameter()          
-        
+            
             
             
     def setCamParameter(self): 
@@ -157,6 +160,7 @@ class PIXELINK (QtCore.QThread):
         self.cam0.setTriggering(value='off')
         
         self.camParameter["expMax"]=self.cam0.getExposureRange()[1]
+        
         self.camParameter["expMin"]=self.cam0.getExposureRange()[0]
         
         self.camParameter["gainMax"]=self.cam0.getGainRange()[1]
