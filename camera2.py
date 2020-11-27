@@ -477,10 +477,10 @@ class CAMERA(QWidget):
             self.trigg.setMaximumWidth(80)
             self.trigg.addItem('OFF')
             self.trigg.addItem('ON')
-            self.trigg.setStyleSheet('font :bold  12pt;color: white')
+            self.trigg.setStyleSheet('font :bold  10pt;color: white')
             self.labelTrigger=QLabel('Trigger')
             self.labelTrigger.setMaximumWidth(70)
-            self.labelTrigger.setStyleSheet('font :bold  12pt')
+            self.labelTrigger.setStyleSheet('font :bold  10pt')
             self.itrig=self.trigg.currentIndex()
             hbox2=QHBoxLayout()
             hbox2.setSizeConstraint(QtGui.QLayout.SetFixedSize)
@@ -496,7 +496,7 @@ class CAMERA(QWidget):
             
             self.labelExp=QLabel('Exposure (ms)')
             self.labelExp.setStyleSheet('font :bold  10pt')
-            self.labelExp.setMaximumWidth(120)
+            self.labelExp.setMaximumWidth(140)
             self.labelExp.setAlignment(Qt.AlignCenter)
             
             self.hSliderShutter=QSlider(Qt.Horizontal)
@@ -570,7 +570,7 @@ class CAMERA(QWidget):
             if self.light==False:
                 #from visu.visual2 import SEE
                 from visu import SEE2
-                self.visualisation=SEE2(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
+                self.visualisation=SEE2(name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
                 self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
                 if self.separate==True:
                     print('ici')
@@ -790,8 +790,8 @@ if __name__ == "__main__":
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
+    pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
+    e = CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
