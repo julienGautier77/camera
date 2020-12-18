@@ -127,10 +127,11 @@ class CAMERA(QWidget):
         
         
         # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
-        
-        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
         self.confPath=str(p.parent / confFile) # ini file path
+        self.conf=QtCore.QSettings(str(p.parent / self.confPath), QtCore.QSettings.IniFormat) # ini file 
+        self.kwds["confpath"]=self.confPath
         sepa=os.sep
+        
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.iconPlay=self.icon+'Play.png'
@@ -791,7 +792,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-    e = CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    e = CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
