@@ -392,8 +392,8 @@ class CAMERA(QWidget):
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
             else :
-                self.hSliderShutter.setMaximum(self.CAM.camParameter["expMax"])
-                self.shutterBox.setMaximum(self.CAM.camParameter["expMax"])
+                self.hSliderShutter.setMaximum(int(self.CAM.camParameter["expMax"]))
+                self.shutterBox.setMaximum(int(self.CAM.camParameter["expMax"]))
             self.hSliderShutter.setValue(int(self.CAM.camParameter["exposureTime"]))
             self.shutterBox.setValue(int(self.CAM.camParameter["exposureTime"]))
             self.hSliderShutter.setMinimum(int(self.CAM.camParameter["expMin"]+1))
@@ -401,12 +401,12 @@ class CAMERA(QWidget):
             
             
             
-            self.hSliderGain.setMinimum(self.CAM.camParameter["gainMin"])
-            self.hSliderGain.setMaximum(self.CAM.camParameter["gainMax"])
-            self.hSliderGain.setValue(self.CAM.camParameter["gain"])
-            self.gainBox.setMinimum(self.CAM.camParameter["gainMin"])
-            self.gainBox.setMaximum(self.CAM.camParameter["gainMax"])
-            self.gainBox.setValue(self.CAM.camParameter["gain"])
+            self.hSliderGain.setMinimum(int(self.CAM.camParameter["gainMin"]))
+            self.hSliderGain.setMaximum(int(self.CAM.camParameter["gainMax"]))
+            self.hSliderGain.setValue(int(self.CAM.camParameter["gain"]))
+            self.gainBox.setMinimum(int(self.CAM.camParameter["gainMin"]))
+            self.gainBox.setMaximum(int(self.CAM.camParameter["gainMax"]))
+            self.gainBox.setValue(int(self.CAM.camParameter["gain"]))
             
             self.actionButton()
             
@@ -574,7 +574,7 @@ class CAMERA(QWidget):
                 self.visualisation=SEE2(name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
                 self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
                 if self.separate==True:
-                    print('ici')
+                    
                     self.vbox2=QVBoxLayout() 
                     self.vbox2.addWidget(self.visualisation)
                     if self.aff=='left':
@@ -792,7 +792,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-    e = CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    e = CAMERA(cam="firstGuppy",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
     e.show()
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

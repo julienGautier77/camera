@@ -155,8 +155,8 @@ class GUPPY (QWidget):
         #self.cam0.feature('TriggerSelector').value='FrameStart'
         self.cam0.feature('TriggerSource').value='Software'
         self.camParameter["trigger"]=self.cam0.feature('TriggerMode').value
-        self.cam0.feature('ExposureAuto').value='Off'
-        self.cam0.feature('GainAuto').value='Off'
+        #self.cam0.feature('ExposureAuto').value='Off'
+        #self.cam0.feature('GainAuto').value='Off'
         
         self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
         self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
