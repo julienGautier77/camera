@@ -51,7 +51,7 @@ __version__='2020.04'
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
 from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
 from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtGui 
 import sys,time
@@ -127,11 +127,10 @@ class CAMERA(QWidget):
         
         
         # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
-        self.confPath=str(p.parent / confFile) # ini file path
-        self.conf=QtCore.QSettings(str(p.parent / self.confPath), QtCore.QSettings.IniFormat) # ini file 
-        self.kwds["confpath"]=self.confPath
-        sepa=os.sep
         
+        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
+        self.confPath=str(p.parent / confFile) # ini file path
+        sepa=os.sep
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.iconPlay=self.icon+'Play.png'
@@ -392,8 +391,8 @@ class CAMERA(QWidget):
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
             else :
-                self.hSliderShutter.setMaximum(int(self.CAM.camParameter["expMax"]))
-                self.shutterBox.setMaximum(int(self.CAM.camParameter["expMax"]))
+                self.hSliderShutter.setMaximum(self.CAM.camParameter["expMax"])
+                self.shutterBox.setMaximum(self.CAM.camParameter["expMax"])
             self.hSliderShutter.setValue(int(self.CAM.camParameter["exposureTime"]))
             self.shutterBox.setValue(int(self.CAM.camParameter["exposureTime"]))
             self.hSliderShutter.setMinimum(int(self.CAM.camParameter["expMin"]+1))
@@ -401,12 +400,12 @@ class CAMERA(QWidget):
             
             
             
-            self.hSliderGain.setMinimum(int(self.CAM.camParameter["gainMin"]))
-            self.hSliderGain.setMaximum(int(self.CAM.camParameter["gainMax"]))
-            self.hSliderGain.setValue(int(self.CAM.camParameter["gain"]))
-            self.gainBox.setMinimum(int(self.CAM.camParameter["gainMin"]))
-            self.gainBox.setMaximum(int(self.CAM.camParameter["gainMax"]))
-            self.gainBox.setValue(int(self.CAM.camParameter["gain"]))
+            self.hSliderGain.setMinimum(self.CAM.camParameter["gainMin"])
+            self.hSliderGain.setMaximum(self.CAM.camParameter["gainMax"])
+            self.hSliderGain.setValue(self.CAM.camParameter["gain"])
+            self.gainBox.setMinimum(self.CAM.camParameter["gainMin"])
+            self.gainBox.setMaximum(self.CAM.camParameter["gainMax"])
+            self.gainBox.setValue(self.CAM.camParameter["gain"])
             
             self.actionButton()
             
@@ -574,7 +573,7 @@ class CAMERA(QWidget):
                 self.visualisation=SEE2(name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
                 self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
                 if self.separate==True:
-                    
+                    print('ici')
                     self.vbox2=QVBoxLayout() 
                     self.vbox2.addWidget(self.visualisation)
                     if self.aff=='left':
@@ -792,8 +791,8 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-    e = CAMERA(cam="firstGuppy",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    e = CAMERA(cam="cam13",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
     e.show()
-    # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
-    # x.show()
+    x= CAMERA(cam="cam111",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    x.show()
     appli.exec_()       

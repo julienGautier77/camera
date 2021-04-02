@@ -24,6 +24,7 @@ BASLER class : class to control basler camera
 from PyQt5.QtWidgets import QApplication,QWidget
 from PyQt5.QtWidgets import QInputDialog
 from pyqtgraph.Qt import QtCore
+from PyQt5.QtCore import pyqtSlot
 import sys,time
 import numpy as np
 from PyQt5.QtCore import Qt,QMutex
@@ -134,7 +135,7 @@ class BASLER (QtCore.QThread):
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.camID=camID
-        
+        # print(self.camID)
         for i in devices:
             if i.GetSerialNumber()==self.camID:
                 camConnected=i
@@ -145,7 +146,7 @@ class BASLER (QtCore.QThread):
                 break
             else: 
                 self.isConnected=False
-        print('la',self.isConnected)       
+        # print('la',self.isConnected)       
         if self.isConnected==True:
             
             self.setCamParameter()          
@@ -276,7 +277,8 @@ class BASLER (QtCore.QThread):
         #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
-            
+   
+    @pyqtSlot (object)        
     def newImageReceived(self,data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
         '''
@@ -325,7 +327,7 @@ class ThreadRunAcq(QtCore.QThread):
             except :
                 self.cam0.StopGrabbing()
                 data=self.cam0.GrabOne(20000000)
-            data=self.converter.Convert(data)
+            # data=self.converter.Convert(data)
             data = data.GetArray()#, dtype=np.double)
             data.squeeze()
             

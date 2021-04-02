@@ -17,12 +17,11 @@ Modified on Tue july 17  10:49:32 2018
 
 
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication,QToolButton
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QPushButton,QGridLayout,QDoubleSpinBox,QSpinBox
+from PyQt5.QtWidgets import QVBoxLayout,QHBoxLayout,QPushButton,QGridLayout,QDoubleSpinBox
 from PyQt5.QtWidgets import QComboBox,QLabel
-from PyQt5.QtCore import Qt,pyqtSlot
 import qdarkstyle
 import pathlib
 import time
@@ -52,7 +51,7 @@ class TILTMOTORGUI(QWidget) :
     fichier de config des moteurs : 'configMoteurRSAI.ini' 'configMoteurA2V.ini' 'configMoteurNewFocus.ini' 'configMoteurSmartAct.ini'
     """
   
-    def __init__(self, motLat=None,motorTypeName0=None, motVert=None,motorTypeName1=None,nomWin='',nomTilt='',unit=1,jogValue=100,parent=None):
+    def __init__(self, motLat='',motorTypeName0='', motVert='',motorTypeName1='',nomWin='',nomTilt='',unit=1,jogValue=1,background='gray',parent=None):
         
         super(TILTMOTORGUI, self).__init__()
         p = pathlib.Path(__file__)
@@ -60,6 +59,7 @@ class TILTMOTORGUI(QWidget) :
         self.icon=str(p.parent) + sepa + 'icons' +sepa
         self.motor=[str(motLat),str(motVert)]
         self.motorTypeName=[motorTypeName0,motorTypeName1]
+        
         self.motorType=[0,0]
         self.MOT=[0,0]
         self.configMotName=[0,0]
@@ -71,7 +71,7 @@ class TILTMOTORGUI(QWidget) :
         self.jogValue=jogValue
         self.nomTilt=nomTilt
         
-        
+        self.setStyleSheet("background-color:"+background)
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.version=__version__
         
@@ -81,10 +81,10 @@ class TILTMOTORGUI(QWidget) :
                 self.configMotName[zi]=self.configPath+'configMoteurRSAI.ini'
                 import moteurRSAI as RSAI
                 self.motorType[zi]=RSAI
-                
                 self.MOT[zi]=self.motorType[zi].MOTORRSAI(self.motor[zi])
                 
-            elif self.motorTypeName=='SmartAct':
+            elif self.motorTypeName[zi]=='SmartAct':
+                 
                  self.configMotName[zi]=self.configPath+'configMoteurSmartAct.ini'
                  import smartactmot as SmartAct
                  self.motorType[zi]=SmartAct
@@ -98,11 +98,10 @@ class TILTMOTORGUI(QWidget) :
                  
             elif self.motorTypeName[zi]=='NewFocus':
                  self.configMotName[zi]=self.configPath+'configMoteurNewFocus.ini'
-                 # print(self.configMotName[zi])
                  import moteurNewFocus as NewFoc
                  self.motorType[zi]=NewFoc
                  self.MOT[zi]=self.motorType[zi].MOTORNEWFOCUS(self.motor[zi])
-#                 self.stopConnexion=NewFoc.self.stopConnexion()
+                 
                  
             elif self.motorTypeName[zi]=='newport':
                  self.configMotName[zi]=self.configPath+'confNewport.ini'
@@ -116,12 +115,12 @@ class TILTMOTORGUI(QWidget) :
                  self.motorType[zi]=servo
                  self.MOT[zi]=self.motorType[zi].MOTORSERVO(self.motor[zi])
             else:
-                
+                print('Error config motor Type name')
                 self.configMotName[zi]=self.configPath+'configMoteurTest.ini'
                 import moteurtest as test
                 self.motorType[zi]=test
                 self.MOT[zi]=self.motorType[zi].MOTORTEST(self.motor[zi])
-#                print ('no motor connected')
+                
             self.conf[zi]=QtCore.QSettings(self.configMotName[zi], QtCore.QSettings.IniFormat) # fichier config motor fichier .ini
         
         
@@ -129,33 +128,19 @@ class TILTMOTORGUI(QWidget) :
         self.butePos=[0,0]
         self.buteNeg=[0,0]
         self.name=[0,0,0]
-        self.inv=[0,0]
         
         for zzi in range(0,2):
-            
             self.stepmotor[zzi]=float(self.conf[zzi].value(self.motor[zzi]+"/stepmotor")) #list of stepmotor values for unit conversion
             self.butePos[zzi]=float(self.conf[zzi].value(self.motor[zzi]+"/buteePos")) # list 
             self.buteNeg[zzi]=float(self.conf[zzi].value(self.motor[zzi]+"/buteeneg"))
             self.name[zzi]=str(self.conf[zzi].value(self.motor[zzi]+"/Name"))
-            self.inv[zzi]=str(self.conf[zzi].value(self.motor[zzi]+"/inv"))
-            if self.inv[zzi]=='True':
-                self.inv[zzi]=True
-            elif self.inv[zzi]=='False':
-                self.inv[zzi]=False
-            else :
-                self.inv[zzi]=False
-            # print('inverse',self.inv)
-            
         
         self.unitChangeLat=self.indexUnit
-         
         self.unitChangeVert=self.indexUnit
         self.setWindowTitle(nomWin+' : '+'                     V.'+str(self.version))
-        
         self.threadLat=PositionThread(mot=self.MOT[0],motorType=self.motorType[0]) # thread pour afficher position Lat
         self.threadLat.POS.connect(self.PositionLat)
-        
-        time.sleep(0.7)
+        time.sleep(0.1)
         
         self.threadVert=PositionThread(mot=self.MOT[1],motorType=self.motorType[1]) # thread pour afficher position Vert
         self.threadVert.POS.connect(self.PositionVert)
@@ -187,57 +172,69 @@ class TILTMOTORGUI(QWidget) :
         vbox1=QVBoxLayout() 
         
         hbox1=QHBoxLayout()
-      
+        hboxTitre=QHBoxLayout()
+        self.nomTilt=QLabel(self.nomTilt)
+        self.nomTilt.setStyleSheet("font: bold 20pt;color:yellow")
+        hboxTitre.addWidget(self.nomTilt)
         
-        nameBox=QLabel(self)
-        nameBox.setText(self.conf[0].value(self.motor[0]+"/Name"))
-        nameBox.setAlignment(Qt.AlignCenter)
-        nameBox.setStyleSheet('font: bold 14px;color: purple')
-        vbox1.addWidget(nameBox)
+        self.unitTransBouton=QComboBox()
+        self.unitTransBouton.setMaximumWidth(100)
+        self.unitTransBouton.setMinimumWidth(100)
+        self.unitTransBouton.setStyleSheet("font: bold 12pt")
+        self.unitTransBouton.addItem('Step')
+        self.unitTransBouton.addItem('um')
+        self.unitTransBouton.addItem('mm')
+        self.unitTransBouton.addItem('ps')
+        self.unitTransBouton.setCurrentIndex(self.indexUnit)
+        
+        
+        hboxTitre.addWidget(self.unitTransBouton)
+        hboxTitre.addStretch(1)
+        
+        vbox1.addLayout(hboxTitre)
         
         
         grid_layout = QGridLayout()
         grid_layout.setVerticalSpacing(0)
-        grid_layout.setHorizontalSpacing(5)
+        grid_layout.setHorizontalSpacing(10)
+        self.haut=QPushButton()
+        self.haut.setStyleSheet("QPushButton:!pressed{border-image: url(./Iconeslolita/flechehaut.png) ;background-color: transparent;border-color: green;}""QPushButton:pressed{image: url(./IconesLolita/flechehaut.png) ;background-color: transparent;border-color: blue}")
         
-        self.haut=QToolButton()
-        self.haut.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.haut.setMaximumHeight(50)
-        self.haut.setMinimumWidth(50)
-        self.haut.setMaximumWidth(50)
-        self.haut.setMinimumHeight(50)
-        self.haut.setAutoRepeat(True)
+        self.haut.setMaximumHeight(70)
+        self.haut.setMinimumWidth(70)
+        self.haut.setMaximumWidth(70)
+        self.haut.setMinimumHeight(70)
         
+        self.bas=QPushButton()
+        self.bas.setStyleSheet("QPushButton:!pressed{border-image: url(./Iconeslolita/flechebas.png) ;background-color: transparent;border-color: green;}""QPushButton:pressed{image: url(./IconesLolita/flechebas.png) ;background-color: transparent;border-color: blue}")
+        self.bas.setMaximumHeight(70)
+        self.bas.setMinimumWidth(70)
+        self.bas.setMaximumWidth(70)
+        self.bas.setMinimumHeight(70)
         
-        self.bas=QToolButton()
-        self.bas.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.bas.setMaximumHeight(50)
-        self.bas.setMinimumWidth(50)
-        self.bas.setMaximumWidth(50)
-        self.bas.setMinimumHeight(50)
-        self.bas.setAutoRepeat(True)
+        self.droite=QPushButton()
+        self.droite.setStyleSheet("QPushButton:!pressed{border-image: url(./Iconeslolita/flechedroite.png);background-color: transparent;border-color: green;}""QPushButton:pressed{image: url(./IconesLolita/flechedroite.png) ;background-color: transparent;border-color: blue}")
+        self.droite.setMaximumHeight(70)
+        self.droite.setMinimumWidth(70)
+        self.droite.setMaximumWidth(70)
+        self.droite.setMinimumHeight(70)
         
-        self.gauche=QToolButton()
-        self.gauche.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
+        self.gauche=QPushButton()
+        self.gauche.setStyleSheet("QPushButton:!pressed{border-image: url(./Iconeslolita/flechegauche.png);background-color: transparent;border-color: green;}""QPushButton:pressed{image: url(./IconesLolita/flechegauche.png) ;background-color: transparent;border-color: blue}")
         
-        self.gauche.setMaximumHeight(50)
-        self.gauche.setMinimumWidth(50)
-        self.gauche.setMaximumWidth(50)
-        self.gauche.setMinimumHeight(50)
-        self.droite=QToolButton()
-        self.droite.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.droite.setMaximumHeight(50)
-        self.droite.setMinimumWidth(50)
-        self.droite.setMaximumWidth(50)
-        self.droite.setMinimumHeight(50)
+        self.gauche.setMaximumHeight(70)
+        self.gauche.setMinimumWidth(70)
+        self.gauche.setMaximumWidth(70)
+        self.gauche.setMinimumHeight(70)
         
         
-        self.jogStep=QSpinBox()
-        self.jogStep.setMaximum(1000000)
-        self.jogStep.setStyleSheet("font: bold 8pt")
+        
+        self.jogStep=QDoubleSpinBox()
+        self.jogStep.setMaximum(1000)
+        self.jogStep.setStyleSheet("font: bold 12pt")
         self.jogStep.setValue(self.jogValue)
-        self.jogStep.setMaximumWidth(70)
-        self.jogStep.setMaximumHeight(20)
+        self.jogStep.setMaximumWidth(120)
+        
         
         center=QHBoxLayout()
         center.addWidget(self.jogStep)
@@ -257,26 +254,18 @@ class TILTMOTORGUI(QWidget) :
         vbox1.addLayout(hbox1)
         
         posLAT=QLabel('Lateral:')
-        posLAT.setStyleSheet("font: bold 5pt")
-        posLAT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        posLAT.setMaximumHeight(10)
+        posLAT.setMaximumHeight(20)
         posVERT=QLabel('Vertical :')
-        posVERT.setStyleSheet("font: bold 5pt")
-        posVERT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        posVERT.setMaximumHeight(10)
+        posVERT.setMaximumHeight(20)
         hbox2=QHBoxLayout()
         hbox2.addWidget(posLAT)
         hbox2.addWidget(posVERT)
         vbox1.addLayout(hbox2)
         
         self.position_Lat=QLabel('pos')
-        self.position_Lat.setMaximumHeight(12)
-        self.position_Lat.setStyleSheet("font: bold 5pt")
-        self.position_Lat.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.position_Lat.setMaximumHeight(20)
         self.position_Vert=QLabel('pos')
-        self.position_Vert.setMaximumHeight(12)
-        self.position_Vert.setStyleSheet("font: bold 5pt")
-        self.position_Vert.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.position_Vert.setMaximumHeight(20)
         hbox3=QHBoxLayout()
         hbox3.addWidget(self.position_Lat)
         
@@ -285,18 +274,14 @@ class TILTMOTORGUI(QWidget) :
         
         hbox4=QHBoxLayout()
         self.zeroButtonLat=QPushButton('Zero Lat')
-        self.zeroButtonLat.setStyleSheet("font: bold 5pt")
         self.zeroButtonVert=QPushButton('Zero Vert')
-        self.zeroButtonVert.setStyleSheet("font: bold 5pt")
-        self.zeroButtonLat.setMaximumHeight(14)
-        self.zeroButtonVert.setMaximumHeight(14)
+        
         hbox4.addWidget(self.zeroButtonLat)
         hbox4.addWidget(self.zeroButtonVert)
         vbox1.addLayout(hbox4)
         
         self.stopButton=QPushButton('STOP')
-        self.stopButton.setStyleSheet("background-color: red;font: bold 5pt")
-        self.stopButton.setMaximumHeight(14)
+        self.stopButton.setStyleSheet("background-color: red")
         hbox5=QHBoxLayout()
         hbox5.addWidget(self.stopButton)
         vbox1.addLayout(hbox5)
@@ -317,7 +302,7 @@ class TILTMOTORGUI(QWidget) :
         '''
            Definition des boutons 
         '''
-
+        self.unitTransBouton.currentIndexChanged.connect(self.unitTrans) # Trans unit change
         
         self.haut.clicked.connect(self.hMove) # jog haut
         self.haut.setAutoRepeat(False)
@@ -358,10 +343,7 @@ class TILTMOTORGUI(QWidget) :
             print( "STOP : Butée Négative")
             self.MOT[0].stopMotor()
         else :
-            if self.inv[0]==True:
-                self.MOT[0].rmove(a)
-            else :
-                self.MOT[0].rmove(-a)
+            self.MOT[0].rmove(-a)
             
     def dMove(self):
         '''
@@ -377,10 +359,7 @@ class TILTMOTORGUI(QWidget) :
             print( "STOP : Butée Négative")
             self.MOT[0].stopMotor()
         else :
-            if self.inv[0]==True:
-                self.MOT[0].rmove(-a)
-            else :
-                self.MOT[0].rmove(a)
+            self.MOT[0].rmove(a)
         
     def hMove(self): 
         '''
@@ -396,10 +375,7 @@ class TILTMOTORGUI(QWidget) :
             print( "STOP : Butée Négative")
             self.MOT[1].stopMotor()
         else :
-            if self.inv[1]==True:
-                self.MOT[1].rmove(-a)
-            else :
-                self.MOT[1].rmove(a)
+            self.MOT[1].rmove(a)   
         
         
     def bMove(self):
@@ -416,11 +392,7 @@ class TILTMOTORGUI(QWidget) :
             print( "STOP : Butée Négative")
             self.MOT[1].stopMotor()
         else :
-            if self.inv[1]==True:
-                self.MOT[1].rmove(a)
-                # print('inv?',self.inv[1])
-            else :
-                self.MOT[1].rmove(-a)             
+            self.MOT[1].rmove(-a)           
         
     def ZeroLat(self): # remet le compteur a zero 
         self.MOT[0].setzero()
@@ -438,14 +410,13 @@ class TILTMOTORGUI(QWidget) :
         '''
          unit change mot foc
         '''
-        
+        self.indexUnit=self.unitTransBouton.currentIndex()
         valueJog=self.jogStep.value()*self.unitChangeLat
         if self.indexUnit==0: # step
             self.unitChangeLat=1
             self.unitChangeVert=1
             self.unitNameTrans='step'
         if self.indexUnit==1: # micron
-            
             self.unitChangeLat=float((1*self.stepmotor[0]))  
             self.unitChangeVert=float((1*self.stepmotor[1]))  
             self.unitNameTrans='um'
@@ -472,17 +443,16 @@ class TILTMOTORGUI(QWidget) :
         '''
         for zzi in range(0,2):
             self.MOT[zzi].stopMotor();
-    @pyqtSlot (float)
+
     def PositionLat(self,Posi):
         ''' 
         affichage de la position a l aide du second thread
         '''
         a=float(Posi)
-        
+       
         a=a/self.unitChangeLat # valeur tenant compte du changement d'unite
         self.position_Lat.setText(str(round(a,2))) 
-        
-    @pyqtSlot (float)  
+       
     def PositionVert(self,Posi): 
         ''' 
         affichage de la position a l aide du second thread
@@ -499,12 +469,9 @@ class TILTMOTORGUI(QWidget) :
         self.threadLat.stopThread()
         self.threadVert.stopThread()
         self.isWinOpen=False
-        time.sleep(0.1) 
-        # self.MOT[0].()
-#        self.stopConnexion
+        time.sleep(0.1)    
 
-    def close(self):
-        self.fini
+
 
 
 
@@ -522,22 +489,21 @@ class PositionThread(QtCore.QThread):
         self.stop=False
         
     def run(self):
-        
         while True:
-            
             if self.stop==True:
                 break
             else:
                 
-                time.sleep(0.1)
+                
                 Posi=(self.MOT.position())
+                time.sleep(0.3)
                 try :
-                    time.sleep(0.1)
-                    self.POS.emit(Posi)
                     
+                    self.POS.emit(Posi)
+                    time.sleep(0.2)
                 except:
                     print('error emit')
-                
+                  
                 
     def ThreadINIT(self):
         self.stop=False         
@@ -550,10 +516,10 @@ class PositionThread(QtCore.QThread):
     
 
 if __name__ =='__main__':
-    motor0='NF_Lat_P1'
-    motor1='NF_Vert_P1'
+    motor0='PinholeLat'
+    motor1='PinholeVert'
     appli=QApplication(sys.argv)
-    mot5=TILTMOTORGUI(motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI')
+    mot5=TILTMOTORGUI( motLat=motor0,motorTypeName0='SmartAct' , motVert=motor1,motorTypeName1='SmartAct',nomWin='Tilts Pinhole')
     mot5.show()
     mot5.startThread2()
     appli.exec_()

@@ -48,21 +48,25 @@ __author__='julien Gautier'
 __version__='2020.04'
 
 
-from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
-from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
+from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QPushButton
+from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget,QCheckBox
 from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtGui 
 import sys,time
 import pathlib,os
 import qdarkstyle
-from visu import SEE2
+from TiltGuiLight import TILTMOTORGUI
 import __init__
-
+import pyqtgraph as pg
+import numpy as np
+from pypylon import pylon
+from scipy.ndimage.filters import gaussian_filter
+from scipy import ndimage
 __version__=__init__.__version__
 version=str(__version__)
-
+import pylab
 class CAMERA(QWidget):
     datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
     
@@ -99,6 +103,12 @@ class CAMERA(QWidget):
         
         p = pathlib.Path(__file__)
         self.nbcam=cam
+        self.maxMvtY=500
+        self.maxMvtX=500
+        self.nbImageMax=3
+        self.nbImage=0
+        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
+        self.confPath=str(p.parent / confFile) # ini file path
         
         self.kwds=kwds
         if "affLight" in kwds:
@@ -119,17 +129,43 @@ class CAMERA(QWidget):
             self.aff=kwds["aff"]
         else: 
             self.aff="right"    
+        if "loop" in kwds: #  affi of Visu
+            self.loop=kwds["loop"]
+            self.kwds["roiCross"]=True # set circle on visu cross
+        else: 
+            self.loop=False   
+            
         
         
+       
+        # Si les moteurs ne sont pas renseignés on prend ceux renseigné dans le fichier ini de la cam
+        if "motLat" in kwds:
+            self.motLat=kwds["motLat"]
+        else :
+            self.motLat=(self.conf.value(self.nbcam+"/motLat"))
+        if "motVert"in kwds:
+            self.motVert=kwds["motVert"]
+        else:
+            self.motVert=(self.conf.value(self.nbcam+"/motVert")   ) 
+        if "motorTypeName0" in kwds:
+            self.motorTypeName0=kwds["motorTypeName0"]
+        else: 
+            self.motorTypeName0=(self.conf.value(self.nbcam+"/motorTypeName0"))
+        if "motorTypeName1" in kwds:
+            self.motorTypeName1=kwds["motorTypeName1"]
+        else:
+            self.motorTypeName1=(self.conf.value(self.nbcam+"/motorTypeName1"))
         
         
+            
         
+        self.motor=TILTMOTORGUI(motLat=self.motLat,motorTypeName0=self.motorTypeName0, motVert=self.motVert,motorTypeName1=self.motorTypeName1,nomWin='',nomTilt='',unit=1,jogValue=100)
+        self.motor.startThread2()
         
         
         # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
         
-        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
-        self.confPath=str(p.parent / confFile) # ini file path
+        
         sepa=os.sep
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
@@ -145,11 +181,20 @@ class CAMERA(QWidget):
         self.nbShot=1
         self.isConnected=False
         self.version=str(__version__)
-        
+        self.pasY=float(self.conf.value(self.nbcam+"/pasY"))
+        self.pasX=float(self.conf.value(self.nbcam+"/pasX"))
         self.openCam()
         self.setup()
         self.setCamPara()
         #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        self.xr=int(self.CAM.conf.value(self.CAM.nbcam+"/xc"))
+        self.yr=int(self.CAM.conf.value(self.CAM.nbcam+"/yc"))
+        self.xlim=int(self.conf.value(self.nbcam+"/rx"))/2
+        self.ylim=int(self.conf.value(self.nbcam+"/ry"))/2
+        self.Xec=[]
+        self.Yec=[]
+        self.vLine = pg.InfiniteLine(angle=90, movable=True,pen='b')
+        self.hLine = pg.InfiniteLine(angle=0, movable=True,pen='b')
         
     def openID(self):
         '''
@@ -195,11 +240,14 @@ class CAMERA(QWidget):
             
             try :
                 import pixelinkCam
+                
                 self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+                
                 self.CAM.openCamByID(self.camID)
+                
                 self.isConnected=self.CAM.isConnected
             except:
-                print("no imaging source camera detected or Tisgrabber is not installed")
+                print("no pixellink camera detected or pillelink dll  is not installed")
                 pass
         else:
             print('no camera')
@@ -379,7 +427,7 @@ class CAMERA(QWidget):
                 self.openID()
             except :
                 self.isConnected=False 
-        print('la')
+      
         
     def setCamPara(self):
         '''set min max gain and exp value of cam in the widget
@@ -427,7 +475,7 @@ class CAMERA(QWidget):
         
             """ user interface definition 
             """
-            #self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             
             
             hbox1=QHBoxLayout() # horizontal layout pour run snap stop
@@ -466,37 +514,37 @@ class CAMERA(QWidget):
             hbox1.addWidget(self.snapButton)
             hbox1.addWidget(self.stopButton)
             hbox1.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-            hbox1.setContentsMargins(0, 15, 0, 10)
-            
-            
+            hbox1.setContentsMargins(0, 10, 0, 10)
             self.widgetControl=QWidget(self)
             
             self.widgetControl.setLayout(hbox1)
-            
-            
+            self.dockControl=QDockWidget(self)
+            self.dockControl.setWidget(self.widgetControl)
+            self.dockControl.resize(80,80)
             self.trigg=QComboBox()
             self.trigg.setMaximumWidth(80)
             self.trigg.addItem('OFF')
             self.trigg.addItem('ON')
-            self.trigg.setStyleSheet('font :bold  12pt;color: white')
+            self.trigg.setStyleSheet('font :bold  10pt;color: white')
             self.labelTrigger=QLabel('Trigger')
             self.labelTrigger.setMaximumWidth(70)
-            self.labelTrigger.setStyleSheet('font :bold  12pt')
+            self.labelTrigger.setStyleSheet('font :bold  10pt')
             self.itrig=self.trigg.currentIndex()
             hbox2=QHBoxLayout()
             hbox2.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-            hbox2.setContentsMargins(5, 10, 0, 0)
+            hbox2.setContentsMargins(5, 15, 0, 0)
             hbox2.addWidget(self.labelTrigger)
             
             hbox2.addWidget(self.trigg)
             self.widgetTrig=QWidget(self)
             
             self.widgetTrig.setLayout(hbox2)
-            
+            self.dockTrig=QDockWidget(self)
+            self.dockTrig.setWidget(self.widgetTrig)
             
             self.labelExp=QLabel('Exposure (ms)')
             self.labelExp.setStyleSheet('font :bold  10pt')
-            self.labelExp.setMaximumWidth(120)
+            self.labelExp.setMaximumWidth(140)
             self.labelExp.setAlignment(Qt.AlignCenter)
             
             self.hSliderShutter=QSlider(Qt.Horizontal)
@@ -521,6 +569,9 @@ class CAMERA(QWidget):
             self.widgetShutter=QWidget(self)
             
             self.widgetShutter.setLayout(vboxShutter)
+            self.dockShutter=QDockWidget(self)
+            self.dockShutter.setWidget(self.widgetShutter)
+            
             
             
             self.labelGain=QLabel('Gain')
@@ -550,6 +601,8 @@ class CAMERA(QWidget):
             
             self.widgetGain=QWidget(self)
             self.widgetGain.setLayout(vboxGain)
+            self.dockGain=QDockWidget(self)
+            self.dockGain.setWidget(self.widgetGain)
             
             # self.TrigSoft=QPushButton('Trig Soft',self)
             # self.TrigSoft.setMaximumWidth(100)
@@ -562,61 +615,50 @@ class CAMERA(QWidget):
             
             hMainLayout=QHBoxLayout()
             
-            hMainLayout.addWidget(self.widgetControl)
-            hMainLayout.addWidget(self.widgetTrig)
-            hMainLayout.addWidget(self.widgetShutter)
-            hMainLayout.addWidget(self.widgetGain)
-            hMainLayout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-            hMainLayout.setContentsMargins(10, 0, 10,0)
+            if self.light==False:
+                #from visu.visual2 import SEE
+                from visu import SEE2
+                self.visualisation=SEE2(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
+                self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+                  
+                self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
+                
+                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
+                self.dockTrig.setTitleBarWidget(QWidget())
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
+                self.dockShutter.setTitleBarWidget(QWidget())
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
+                self.dockGain.setTitleBarWidget(QWidget())
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
+                hMainLayout.addWidget(self.visualisation)
+             
+            else:
+                from visu import SEELIGHT
+                self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
+                self.cameraWidget=QWidget()
+                
+                self.visualisation.vbox1.addWidget(self.cameraWidget)
+                hMainLayout.addWidget(self.visualisation)
+                
+            MotorLayout=QVBoxLayout()
+            MotorLayout.addStretch(2)
+            MotorLayout.addWidget(self.motor)
+            MotorLayout.addStretch(1)    
+            
+            if self.loop==True:
+                self.closeLoop=QCheckBox('Close Loop')
+                MotorLayout.addWidget(self.closeLoop)
+            
+            hMainLayout.addLayout(MotorLayout)  
+            
+            
             self.setLayout(hMainLayout)
             self.setContentsMargins(0, 0, 0, 0)
-            
-            # if self.light==False:
-            #     #from visu.visual2 import SEE
-            #     from visu import SEE2
-            #     self.visualisation=SEE2(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-            #     self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
-            #     if self.separate==True:
-            #         print('ici')
-            #         self.vbox2=QVBoxLayout() 
-            #         self.vbox2.addWidget(self.visualisation)
-            #         if self.aff=='left':
-            #             hMainLayout.addLayout(self.vbox2)
-            #             hMainLayout.addWidget(self.cameraWidget)
-            #         else :
-            #             hMainLayout.addWidget(self.cameraWidget)
-            #             hMainLayout.addLayout(self.vbox2)
-            #     else:
-                    
-            #         self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
-                    
-            #         #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
-            #         self.dockTrig.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
-            #         self.dockShutter.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
-            #         self.dockGain.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
-            #         hMainLayout.addWidget(self.visualisation)
-            #         self.setContentsMargins(0, 0, 0, 0)
-                    
-                    
-                
-                
-            # else:
-            #     from visu import SEELIGHT
-            #     self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
-            #     self.visualisation.hbox0.addWidget(self.cameraWidget)
-            #     hMainLayout.addWidget(self.visualisation)
-                
-                
-            # #self.setLayout(hMainLayout)
-                
-            # #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
-            # #self.activateWindow()
-            # #self.raise_()
-            # #self.showNormal()
+            #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
+            #self.activateWindow()
+            #self.raise_()
+            #self.showNormal()
             
     def actionButton(self): 
         '''action when button are pressed
@@ -632,6 +674,18 @@ class CAMERA(QWidget):
         self.trigg.currentIndexChanged.connect(self.trigger)
         self.CAM.newData.connect(self.Display)#,QtCore.Qt.DirectConnection)
         # self.TrigSoft.clicked.connect(self.softTrigger)
+        if self.loop==True:
+            self.closeLoop.stateChanged.connect(self.closeLoopState)
+    
+    
+    
+    def closeLoopState(self):
+        if self.closeLoop.isChecked():
+            self.visualisation.p1.addItem(self.vLine)
+            self.visualisation.p1.addItem(self.hLine)
+        else :
+            self.visualisation.p1.removeItem(self.vLine)
+            self.visualisation.p1.removeItem(self.hLine)
     
     
     def oneImage(self):
@@ -652,26 +706,105 @@ class CAMERA(QWidget):
         time_end=time.time()+seconds
         while time.time()<time_end:
             QtGui.QApplication.processEvents()    
-    
+            
+    @pyqtSlot (object) 
     def Display(self,data):
         '''Display data with visualisation module
         
         '''
         if self.multi==True:
             self.wait(0.1)
-            
+           
         self.data=data
         self.visualisation.newDataReceived(self.data)
         self.imageReceived=True
         self.datareceived.emit(True)
+        time.sleep(0.01)
         if self.CAM.camIsRunnig==False:
             self.stopAcq()
-              
+        if self.loop==True:    
+            if self.closeLoop.isChecked():
+                # position de la croix de reference:
+                self.xr=self.visualisation.xc#int(self.conf.value(self.CAM.nbcam+"/xc")) # point vise
+                self.yr=self.visualisation.yc#int(self.conf.value(self.CAM.nbcam+"/yc"))
+                #taille du cercle
+                self.xlim=self.visualisation.rx/2#int(self.conf.value(self.nbcam+"/rx"))/2 # taille cercle
+                self.ylim=self.visualisation.ry/2#int(self.conf.value(self.nbcam+"/ry"))/2
+                self.dimy=np.shape(self.data)[1]
+                self.dimx=np.shape(self.data)[0]
+                self.summ=round(data.sum(),3)
+                self.maxSum=self.dimy*self.dimx*255/3 # si un trier de la camera sature
+                self.maxx=round(self.data.max(),3)
+                
+                dataF=gaussian_filter(self.data,5)
+                thresholded_image = np.copy(dataF) 
+                threshold=0.1
+                # remove possible offset
+                minn = thresholded_image.min() # remove any offset        
+                thresholded_image -= minn
+                
+                # remove all values less than threshold*max
+                minn = int(self.maxx*threshold)
+                np.place(thresholded_image, thresholded_image<minn, 0)
+    
+                #self.xec, self.yec= ndimage.center_of_mass(thresholded_image)
+                (self.xec,self.yec)=pylab.unravel_index(thresholded_image.argmax(),self.data.shape)
+                
+                self.vLine.setPos(self.xec)
+                
+                self.hLine.setPos(self.yec)
+    
+                self.deltaX=int(self.xr)-int(self.xec)
+                self.deltaY=int(self.yr)-int(self.yec)
+                
+                if self.maxx<30 or self.summ>self.maxSum:
+                    print('signal too low or too high') 
+                    self.nbImage=0
+                else:
+                    
+                    if ( abs(self.deltaX)>=self.xlim or abs(self.deltaY)>self.ylim) and self.nbImage==self.nbImageMax:
+                        
+                        # print('xec',self.xec,self.yec,self.xr,self.yr)
+                        self.deltaXMoy=int(self.xr)-int(np.mean(self.Xec))
+                        
+                        if abs(self.deltaXMoy)>=self.xlim and (abs(self.deltaXMoy)<self.maxMvtX):
+                            
+                            print('X move the',time.strftime("%Y %m %d %H %M %S"), 'of ',self.deltaXMoy*self.pasX)
+                            if self.motor.inv[0]==True:
+                                self.motor.MOT[0].rmove(-self.deltaXMoy*self.pasX)
+                            else:
+                                self.motor.MOT[0].rmove(self.deltaXMoy*self.pasX)
+                        
+                        self.deltaYMoy=int(self.yr)-int(np.mean(self.Yec))
+                        
+                        if abs(self.deltaYMoy)>self.ylim and (abs(self.deltaYMoy)<self.maxMvtY):
+                           
+                            print('Y move the',time.strftime("%Y %m %d %H %M %S"), 'of',self.deltaYMoy*self.pasY)
+                            if self.motor.inv[1]==True:
+                                self.motor.MOT[1].rmove(-self.deltaMoy*self.pasY)
+                            else :
+                                self.motor.MOT[1].rmove(self.deltaYMoy*self.pasY)
+                        self.nbImage=0
+                        self.Xec=[]
+                        self.Yec=[]       
+                    elif( abs(self.deltaX)>=self.xlim or abs(self.deltaY)>self.ylim)and self.nbImage<self.nbImageMax:
+                        self.Xec.append(self.xec)
+                        self.Yec.append(self.yec)
+                        
+                        self.nbImage=self.nbImage+1
+                    else :
+                        self.nbImage=0
+                        self.Xec=[]
+                        self.Yec=[]
+                    
+        
+            
+            
+            
     def shutter (self):
         '''
         set exposure time 
         '''
-        
         sh=self.shutterBox.value() # 
         self.hSliderShutter.setValue(sh) # set value of slider
         time.sleep(0.1)
@@ -774,11 +907,11 @@ class CAMERA(QWidget):
         self.trigg.setEnabled(True)  
     
     
-    
+   
     def close(self):
         if self.isConnected==True:
             self.CAM.closeCamera()
-        
+        # self.motor.close()
         
     def closeEvent(self,event):
         ''' closing window event (cross button)
@@ -788,55 +921,13 @@ class CAMERA(QWidget):
              time.sleep(0.1)
              self.close()
             
-class MainWindow()  :
-    
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        
-        self.visualisation=SEE2() ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-        self.dockCamera=QDockWidget()
-        self.widgetCamera=CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
-        
-        self.widgetCamera.setContentsMargins(0,0,0,0)
-        #self.dockCamera.SetFixedSize()
-        self.dockCamera.setWidget(self.widgetCamera)
-        
-        self.dockCamera.setTitleBarWidget(QWidget())
-        self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockCamera)
-        self.visualisation.show()
-        #     self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
-            #     if self.separate==True:
-            #         print('ici')
-            #         self.vbox2=QVBoxLayout() 
-            #         self.vbox2.addWidget(self.visualisation)
-            #         if self.aff=='left':
-            #             hMainLayout.addLayout(self.vbox2)
-            #             hMainLayout.addWidget(self.cameraWidget)
-            #         else :
-            #             hMainLayout.addWidget(self.cameraWidget)
-            #             hMainLayout.addLayout(self.vbox2)
-            #     else:
-                    
-            #         self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
-                    
-            #         #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
-            #         self.dockTrig.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
-            #         self.dockShutter.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
-            #         self.dockGain.setTitleBarWidget(QWidget())
-            #         self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
-            #         hMainLayout.addWidget(self.visualisation)
-            #         self.setContentsMargins(0, 0, 0, 0)
-            
+
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = MainWindow()#CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
-    
+    e = CAMERA(cam='cam5',fft='off',meas='on',affLight=False,loop=True)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()
     appli.exec_()       
