@@ -57,16 +57,24 @@ from PyQt5 import QtGui
 import sys,time
 import pathlib,os
 import qdarkstyle
+
 from TiltGuiLight import TILTMOTORGUI
+
 import __init__
+
 import pyqtgraph as pg
+
 import numpy as np
-from pypylon import pylon
+
+# from pypylon import pylon
 from scipy.ndimage.filters import gaussian_filter
 from scipy import ndimage
+
+import pylab
+
 __version__=__init__.__version__
 version=str(__version__)
-import pylab
+
 class CAMERA(QWidget):
     datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
     
@@ -926,7 +934,11 @@ if __name__ == "__main__":
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    e = CAMERA(cam='cam5',fft='off',meas='on',affLight=False,loop=True)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    p = pathlib.Path(__file__)
+    sepa=os.sep
+    pathVisu=str(p.parent) + sepa +'confCamera.ini'
+    
+    e = CAMERA(cam='cam5',fft='off',meas='on',affLight=False,loop=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
     e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

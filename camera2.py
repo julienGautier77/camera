@@ -571,40 +571,44 @@ class CAMERA(QWidget):
                 #from visu.visual2 import SEE
                 from visu import SEE2
                 self.visualisation=SEE2(name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-                self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
-                if self.separate==True:
-                    print('ici')
-                    self.vbox2=QVBoxLayout() 
-                    self.vbox2.addWidget(self.visualisation)
-                    if self.aff=='left':
-                        hMainLayout.addLayout(self.vbox2)
-                        hMainLayout.addWidget(self.cameraWidget)
-                    else :
-                        hMainLayout.addWidget(self.cameraWidget)
-                        hMainLayout.addLayout(self.vbox2)
-                else:
-                    
-                    self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
-                    
-                    #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
-                    self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
-                    self.dockTrig.setTitleBarWidget(QWidget())
-                    self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
-                    self.dockShutter.setTitleBarWidget(QWidget())
-                    self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
-                    self.dockGain.setTitleBarWidget(QWidget())
-                    self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
-                    hMainLayout.addWidget(self.visualisation)
-                    
-                    
-                    
-                
                 
             else:
-                from visu import SEELIGHT
-                self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
-                self.visualisation.hbox0.addWidget(self.cameraWidget)
-                hMainLayout.addWidget(self.visualisation)
+                from visu import visualLigth2
+                self.visualisation=visualLigth2.SEELIGHT(name=self.nbcam,**self.kwds)
+            
+            #self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            self.dockControl.setTitleBarWidget(QWidget())
+            self.dockTrig.setTitleBarWidget(QWidget())
+            self.dockShutter.setTitleBarWidget(QWidget())
+            self.dockGain.setTitleBarWidget(QWidget())
+            
+            if self.separate==True:
+                hbox1.setContentsMargins(20, 10, 0, 10)
+                if self.aff=='left':
+                     # to avoid tittle
+                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockControl)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockTrig)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockShutter)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockGain)
+                else :
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockControl)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockTrig)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockShutter)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockGain)
+            else:
+                
+                 # to avoid tittle
+                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
+                
+            hMainLayout.addWidget(self.visualisation)
+        
+            
+                
                 
                 
             self.setLayout(hMainLayout)
@@ -647,8 +651,9 @@ class CAMERA(QWidget):
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QtGui.QApplication.processEvents()    
-    
+            QtGui.QApplication.processEvents() 
+            
+    @pyqtSlot (object)   
     def Display(self,data):
         '''Display data with visualisation module
         
@@ -790,9 +795,12 @@ if __name__ == "__main__":
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-    e = CAMERA(cam="cam13",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    p = pathlib.Path(__file__)
+    sepa=os.sep
+    pathVisu=str(p.parent) + sepa +'confCamera.ini'
+    
+    e = CAMERA(cam="cam13",fft='off',meas='on',affLight=True,aff='right',separate=True,multi=False,confpath=pathVisu)  
     e.show()
-    x= CAMERA(cam="cam111",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-    x.show()
+    # x= CAMERA(cam="cam111",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    # x.show()
     appli.exec_()       
