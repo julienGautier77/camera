@@ -291,14 +291,19 @@ class ThreadRunAcq(QtCore.QThread):
             if self.parent.itrig=='off':
                 
                 self.cam0.run_feature_command('TriggerSoftware')
-            data=dat1.buffer_data_numpy()    
-            if np.max(data)>0:
+            data=dat1.buffer_data_numpy() 
+            
+            if np.max(data)>0 and dat1.data.receiveStatus==0:
                 
                 data=np.rot90(data,3)
                 if self.stopRunAcq==True:
                     pass
                 else :
+                    time.sleep(0.01)
                     self.newDataRun.emit(data)
+#            self.cam0.revoke_all_frames()
+#            self.cam0.flush_capture_queue()
+#            
             self.cam0.disarm()
             
     def stopThreadRunAcq(self):

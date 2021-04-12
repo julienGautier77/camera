@@ -51,7 +51,7 @@ __version__='2020.04'
 from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
 from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
 from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,pyqtSlot
 from PyQt5.QtGui import QIcon
 from PyQt5 import QtGui 
 import sys,time
@@ -127,11 +127,10 @@ class CAMERA(QWidget):
         
         
         # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
-        self.confPath=str(p.parent / confFile) # ini file path
-        self.conf=QtCore.QSettings(str(p.parent / self.confPath), QtCore.QSettings.IniFormat) # ini file 
-        self.kwds["confpath"]=self.confPath
-        sepa=os.sep
         
+        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
+        self.confPath=str(p.parent / confFile) # ini file path
+        sepa=os.sep
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.iconPlay=self.icon+'Play.png'
@@ -792,8 +791,8 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-    e = CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    e = CAMERA(cam="cam13",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
     e.show()
-    # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
-    # x.show()
+    x= CAMERA(cam="cam111",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+    x.show()
     appli.exec_()       
