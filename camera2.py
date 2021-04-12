@@ -573,8 +573,8 @@ class CAMERA(QWidget):
                 self.visualisation=SEE2(name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
                 
             else:
-                from visu import visualLigth2
-                self.visualisation=visualLigth2.SEELIGHT(name=self.nbcam,**self.kwds)
+                from visu import visualLight2
+                self.visualisation=visualLight2.SEELIGHT(name=self.nbcam,**self.kwds)
             
             #self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             self.dockControl.setTitleBarWidget(QWidget())
