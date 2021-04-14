@@ -75,7 +75,7 @@ import pylab
 __version__=__init__.__version__
 version=str(__version__)
 
-class CAMERA(QWidget):
+class CAMERAMOTOR(QWidget):
     datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
     
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
@@ -107,7 +107,7 @@ class CAMERA(QWidget):
         '''
         
         
-        super(CAMERA, self).__init__()
+        super(CAMERAMOTOR, self).__init__()
         
         p = pathlib.Path(__file__)
         self.nbcam=cam
@@ -115,10 +115,24 @@ class CAMERA(QWidget):
         self.maxMvtX=500
         self.nbImageMax=3
         self.nbImage=0
-        self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
-        self.confPath=str(p.parent / confFile) # ini file path
-        
         self.kwds=kwds
+        
+        if "confPath" in kwds:
+            self.conf=QtCore.QSettings(kwds["confPath"], QtCore.QSettings.IniFormat)
+        
+        else : 
+            print('path',str(p.parent / confFile))
+            self.conf=QtCore.QSettings(str(p.parent / confFile), QtCore.QSettings.IniFormat) # ini file 
+        # self.confPath=str(p.parent / confFile) # ini file path
+        
+        
+        if "conf" in kwds:
+            self.conf=kwds["conf"]
+        
+        
+        self.kwds["conf"]=self.conf
+        
+        
         if "affLight" in kwds:
             self.light=kwds["affLight"]
         else:
@@ -136,7 +150,8 @@ class CAMERA(QWidget):
         if "aff" in kwds: #  affi of Visu
             self.aff=kwds["aff"]
         else: 
-            self.aff="right"    
+            self.aff="right"
+            
         if "loop" in kwds: #  affi of Visu
             self.loop=kwds["loop"]
             self.kwds["roiCross"]=True # set circle on visu cross
@@ -165,8 +180,6 @@ class CAMERA(QWidget):
             self.motorTypeName1=(self.conf.value(self.nbcam+"/motorTypeName1"))
         
         
-            
-        
         self.motor=TILTMOTORGUI(motLat=self.motLat,motorTypeName0=self.motorTypeName0, motVert=self.motVert,motorTypeName1=self.motorTypeName1,nomWin='',nomTilt='',unit=1,jogValue=100)
         self.motor.startThread2()
         
@@ -192,11 +205,12 @@ class CAMERA(QWidget):
         self.pasY=float(self.conf.value(self.nbcam+"/pasY"))
         self.pasX=float(self.conf.value(self.nbcam+"/pasX"))
         self.openCam()
+        self.kwds["name"]=self.nbcam
         self.setup()
         self.setCamPara()
         #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-        self.xr=int(self.CAM.conf.value(self.CAM.nbcam+"/xc"))
-        self.yr=int(self.CAM.conf.value(self.CAM.nbcam+"/yc"))
+        self.xr=int(self.conf.value(self.nbcam+"/xc"))
+        self.yr=int(self.conf.value(self.nbcam+"/yc"))
         self.xlim=int(self.conf.value(self.nbcam+"/rx"))/2
         self.ylim=int(self.conf.value(self.nbcam+"/ry"))/2
         self.Xec=[]
@@ -329,7 +343,7 @@ class CAMERA(QWidget):
                     self.cameraType="guppy"
                     self.camID=guppyCam.getCamID(indexItem)
                     
-                    self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+                    self.CAM=guppyCam.GUPPY(cam=self.nbcam,**self.kwds)
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID
@@ -337,7 +351,7 @@ class CAMERA(QWidget):
                     indexItem=indexItem-self.lenGuppy
                     self.cameraType="basler"
                     self.camID=baslerCam.getCamID(indexItem)
-                    self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
+                    self.CAM=baslerCam.BASLER(cam=self.nbcam,**self.kwds)
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID
@@ -347,7 +361,7 @@ class CAMERA(QWidget):
                     self.cameraType="imgSource"
                     self.camID=ImgSourceCamCallBack.getCamID(indexItem)
                     self.camID=self.camID.decode()
-                    self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
+                    self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,**self.kwds)
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID
@@ -357,7 +371,7 @@ class CAMERA(QWidget):
                     self.cameraType="pixelink"
                     self.camID=pixelinkCam.getCamID(indexItem)
                     
-                    self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+                    self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,**self.kwds)
                     self.CAM.openCamByID(self.camID)
                     self.isConnected=self.CAM.isConnected
                     self.ccdName=self.camID    
@@ -529,6 +543,7 @@ class CAMERA(QWidget):
             self.dockControl=QDockWidget(self)
             self.dockControl.setWidget(self.widgetControl)
             self.dockControl.resize(80,80)
+           
             self.trigg=QComboBox()
             self.trigg.setMaximumWidth(80)
             self.trigg.addItem('OFF')
@@ -538,6 +553,7 @@ class CAMERA(QWidget):
             self.labelTrigger.setMaximumWidth(70)
             self.labelTrigger.setStyleSheet('font :bold  10pt')
             self.itrig=self.trigg.currentIndex()
+            
             hbox2=QHBoxLayout()
             hbox2.setSizeConstraint(QtGui.QLayout.SetFixedSize)
             hbox2.setContentsMargins(5, 15, 0, 0)
@@ -626,39 +642,83 @@ class CAMERA(QWidget):
             if self.light==False:
                 #from visu.visual2 import SEE
                 from visu import SEE2
-                self.visualisation=SEE2(confpath=self.confPath,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
-                self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
-                  
-                self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
                 
-                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
-                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
-                self.dockTrig.setTitleBarWidget(QWidget())
-                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
-                self.dockShutter.setTitleBarWidget(QWidget())
-                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
-                self.dockGain.setTitleBarWidget(QWidget())
-                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
-                hMainLayout.addWidget(self.visualisation)
-             
+                
+                self.visualisation=SEE2(**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
+                
             else:
-                from visu import SEELIGHT
-                self.visualisation=SEELIGHT(confpath=self.confPath,name=self.nbcam,**self.kwds)
-                self.cameraWidget=QWidget()
-                
-                self.visualisation.vbox1.addWidget(self.cameraWidget)
-                hMainLayout.addWidget(self.visualisation)
-                
+                from visu import visualLight2
+                self.visualisation=visualLight2.SEELIGHT(**self.kwds)
+            
+            
+            self.visualisation.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            
+            self.dockControl.setTitleBarWidget(QWidget())
+            self.dockTrig.setTitleBarWidget(QWidget())
+            self.dockShutter.setTitleBarWidget(QWidget())
+            self.dockGain.setTitleBarWidget(QWidget())
+            
+            
             MotorLayout=QVBoxLayout()
             MotorLayout.addStretch(2)
             MotorLayout.addWidget(self.motor)
             MotorLayout.addStretch(1)    
             
+            
+            if self.separate==True:
+                
+                self.dockMotor=QDockWidget(self)
+                self.dockMotor.setTitleBarWidget(QWidget())
+                self.WidgetMotor=QWidget()
+                self.WidgetMotor.setLayout(MotorLayout)
+                
+                self.dockMotor.setWidget(self.WidgetMotor)
+                
+                hbox1.setContentsMargins(60, 10, 0, 10)
+                hbox2.setContentsMargins(60, 15, 0, 0)
+                hboxShutter.setContentsMargins(60, 15, 0, 0)
+                hboxGain.setContentsMargins(60, 15, 0, 0)
+                
+                if self.aff=='left':
+                     # to avoid tittle
+                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockControl)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockTrig)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockShutter)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockGain)
+                    self.visualisation.addDockWidget(Qt.LeftDockWidgetArea,self.dockMotor)
+                else :
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockControl)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockTrig)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockShutter)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockGain)
+                    self.visualisation.addDockWidget(Qt.RightDockWidgetArea,self.dockMotor)
+                    
+                hMainLayout.addWidget(self.visualisation)    
+            else:
+                
+                 # to avoid tittle
+                #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockControl)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockTrig)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockShutter)
+                self.visualisation.addDockWidget(Qt.TopDockWidgetArea,self.dockGain)
+                hMainLayout.addWidget(self.visualisation)
+                hMainLayout.addLayout(MotorLayout)  
+                
+                
+                
+                
+                
+            
+                
+            
+            
             if self.loop==True:
                 self.closeLoop=QCheckBox('Close Loop')
                 MotorLayout.addWidget(self.closeLoop)
             
-            hMainLayout.addLayout(MotorLayout)  
+            
             
             
             self.setLayout(hMainLayout)
@@ -938,7 +998,7 @@ if __name__ == "__main__":
     sepa=os.sep
     pathVisu=str(p.parent) + sepa +'confCamera.ini'
     
-    e = CAMERA(cam='cam5',fft='off',meas='on',affLight=False,loop=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    e = CAMERAMOTOR(cam='cam5',fft='off',meas='on',affLight=True,loop=True,separate=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
     e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

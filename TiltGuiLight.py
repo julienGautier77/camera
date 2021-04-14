@@ -52,7 +52,7 @@ class TILTMOTORGUI(QWidget) :
     fichier de config des moteurs : 'configMoteurRSAI.ini' 'configMoteurA2V.ini' 'configMoteurNewFocus.ini' 'configMoteurSmartAct.ini'
     """
   
-    def __init__(self, motLat=None,motorTypeName0=None, motVert=None,motorTypeName1=None,nomWin='',nomTilt='',unit=1,jogValue=100,parent=None):
+    def __init__(self, motLat=None,motorTypeName0=None, motVert=None,motorTypeName1=None,nomWin='',nomTilt='',unit=1,jogValue=100,configMotorPath="./fichiersConfig/",parent=None):
         
         super(TILTMOTORGUI, self).__init__()
         p = pathlib.Path(__file__)
@@ -64,7 +64,7 @@ class TILTMOTORGUI(QWidget) :
         self.MOT=[0,0]
         self.configMotName=[0,0]
         self.conf=[0,0]
-        self.configPath="./fichiersConfig/"
+        self.configPath=configMotorPath
         self.isWinOpen=False
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         self.indexUnit=unit
@@ -75,7 +75,7 @@ class TILTMOTORGUI(QWidget) :
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.version=__version__
         
-        
+        print('fichier configation motor',self.configPath )
         for zi in range (0,2): #• creation list configuration et type de moteurs
             if self.motorTypeName[zi]=='RSAI':
                 self.configMotName[zi]=self.configPath+'configMoteurRSAI.ini'
@@ -122,6 +122,8 @@ class TILTMOTORGUI(QWidget) :
                 self.motorType[zi]=test
                 self.MOT[zi]=self.motorType[zi].MOTORTEST(self.motor[zi])
 #                print ('no motor connected')
+
+
             self.conf[zi]=QtCore.QSettings(self.configMotName[zi], QtCore.QSettings.IniFormat) # fichier config motor fichier .ini
         
         
@@ -201,7 +203,7 @@ class TILTMOTORGUI(QWidget) :
         grid_layout.setHorizontalSpacing(5)
         
         self.haut=QToolButton()
-        self.haut.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
+        self.haut.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
         self.haut.setMaximumHeight(50)
         self.haut.setMinimumWidth(50)
         self.haut.setMaximumWidth(50)
@@ -210,7 +212,7 @@ class TILTMOTORGUI(QWidget) :
         
         
         self.bas=QToolButton()
-        self.bas.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
+        self.bas.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechebas.png);background-color: rgb(0,0,0,0) ;border-color: green;}""QToolButton:pressed{image: url(./iconsflechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
         self.bas.setMaximumHeight(50)
         self.bas.setMinimumWidth(50)
         self.bas.setMaximumWidth(50)
@@ -218,14 +220,14 @@ class TILTMOTORGUI(QWidget) :
         self.bas.setAutoRepeat(True)
         
         self.gauche=QToolButton()
-        self.gauche.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
+        self.gauche.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
         
         self.gauche.setMaximumHeight(50)
         self.gauche.setMinimumWidth(50)
         self.gauche.setMaximumWidth(50)
         self.gauche.setMinimumHeight(50)
         self.droite=QToolButton()
-        self.droite.setStyleSheet("QToolButton:!pressed{border-image: url(./Iconeslolita/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./Iconeslolita/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
+        self.droite.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
         self.droite.setMaximumHeight(50)
         self.droite.setMinimumWidth(50)
         self.droite.setMaximumWidth(50)

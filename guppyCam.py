@@ -61,16 +61,16 @@ class GUPPY (QWidget):
     
     newData=QtCore.pyqtSignal(object)
     
-    def __init__(self,cam='camDefault',conf=None):
+    def __init__(self,cam='camDefault',**kwds):
         
         super(GUPPY,self).__init__()
         
         self.nbcam=cam
         self.itrig='off'
-        if conf==None:
+        if "conf"  in kwds :
+            self.conf=kwds["conf"]
+        else :
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
-        else:
-            self.conf=conf
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1

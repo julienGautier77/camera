@@ -57,17 +57,19 @@ class BASLER (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
-    def __init__(self,cam='camDefault',conf=None,**kwds):
+    def __init__(self,cam='camDefault',**kwds):
         
         super(BASLER,self).__init__()
         
         self.nbcam=cam
         self.itrig='off'
         
-        if conf==None:
+        if "conf"  in kwds :
+            self.conf=kwds["conf"]
+        else :
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
-        else:
-            self.conf=conf
+        
+            
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:

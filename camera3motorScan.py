@@ -93,8 +93,11 @@ class CAMERAMOTOR(QWidget):
         hMainLayout.addWidget(self.camWidget)
         
         vmainLayout=QVBoxLayout()
+        vmainLayout.addStretch(2)
         vmainLayout.addWidget(motorTilt)
+        vmainLayout.addWidget(self.motorFoc)
         vmainLayout.addWidget(self.scanButton)
+        vmainLayout.addStretch(1)
         hMainLayout.addLayout(vmainLayout)
         
         self.setLayout(hMainLayout)
