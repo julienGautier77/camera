@@ -68,7 +68,7 @@ def startConnexion():
     argoutetat = PilMot.rEtatConnexion( ctypes.c_int16(0) ) # numero equipement
     if argoutetat != 3:
         argout = PilMot.Start(ctypes.c_int(4), IPs_C) # nb equipement , liste IP
-        print (argout,argoutetat)
+        # print (argout,argoutetat)
         if argout == 1 :
             print('RSAI connection : OK RSAI connected @\n', IP)
         else:

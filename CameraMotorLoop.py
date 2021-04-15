@@ -158,7 +158,7 @@ class CAMERAMOTOR(QWidget):
         else: 
             self.loop=False   
             
-        self.openCam()
+        
         
        
         # Si les moteurs ne sont pas renseignés on prend ceux renseigné dans le fichier ini de la cam
@@ -205,11 +205,11 @@ class CAMERAMOTOR(QWidget):
         self.pasY=float(self.conf.value(self.nbcam+"/pasY"))
         self.pasX=float(self.conf.value(self.nbcam+"/pasX"))
         
-        
+        self.openCam()
         self.kwds["name"]=self.nbcam
         self.setup()
         self.setCamPara()
-        #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         self.xr=int(self.conf.value(self.nbcam+"/xc"))
         self.yr=int(self.conf.value(self.nbcam+"/yc"))
         self.xlim=int(self.conf.value(self.nbcam+"/rx"))/2
@@ -231,7 +231,7 @@ class CAMERAMOTOR(QWidget):
         if self.cameraType=="guppy" :
             try :
                 import guppyCam
-                self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+                self.CAM=guppyCam.GUPPY(cam=self.nbcam,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except :
@@ -241,7 +241,7 @@ class CAMERAMOTOR(QWidget):
         elif self.cameraType=="basler":
             try:
                 import baslerCam
-                self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM=baslerCam.BASLER(cam=self.nbcam,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
@@ -252,7 +252,7 @@ class CAMERAMOTOR(QWidget):
             
             try :
                 import ImgSourceCamCallBack
-                self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 # print('openID',self.camID)
                 self.isConnected=self.CAM.isConnected
@@ -264,7 +264,7 @@ class CAMERAMOTOR(QWidget):
             try :
                 import pixelinkCam
                 
-                self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,**self.kwds)
                 
                 self.CAM.openCamByID(self.camID)
                 
@@ -403,7 +403,7 @@ class CAMERAMOTOR(QWidget):
             self.cameraType="guppy"
             self.ccdName='First guppy Cam'
             import guppyCam 
-            self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+            self.CAM=guppyCam.GUPPY(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected
             
@@ -412,7 +412,7 @@ class CAMERAMOTOR(QWidget):
             self.nbcam='camDefault'
             self.cameraType="basler"
             import baslerCam 
-            self.CAM=baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
+            self.CAM=baslerCam.BASLER(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected   
             
@@ -421,7 +421,7 @@ class CAMERAMOTOR(QWidget):
             self.nbcam='camDefault'
             self.cameraType="imgSource"
             import ImgSourceCamCallBack 
-            self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
+            self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected 
             
@@ -430,7 +430,7 @@ class CAMERAMOTOR(QWidget):
             self.nbcam='camDefault'
             self.cameraType="pixelink"
             import pixelinkCam
-            self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
+            self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected      
             
@@ -455,7 +455,7 @@ class CAMERAMOTOR(QWidget):
     def setCamPara(self):
         '''set min max gain and exp value of cam in the widget
         '''
-        
+        # print("connected",self.isConnected)
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
             # print('camshutter',self.CAM.camParameter["exposureTime"])
             if self.CAM.camParameter["expMax"] >1500: # we limit exposure time at 1500ms
@@ -552,7 +552,7 @@ class CAMERAMOTOR(QWidget):
             self.trigg.setStyleSheet('font :bold  8pt;color: white')
             self.labelTrigger=QLabel('Trig')
             self.labelTrigger.setMaximumWidth(60)
-            self.labelTrigger.setStyleSheet('font :bold  10pt')
+            self.labelTrigger.setStyleSheet('font :bold  8pt')
             self.itrig=self.trigg.currentIndex()
             
             hbox2=QHBoxLayout()
@@ -677,9 +677,9 @@ class CAMERAMOTOR(QWidget):
                 self.dockMotor.setWidget(self.WidgetMotor)
                 
                 hbox1.setContentsMargins(0, 10, 0, 0)
-                hbox2.setContentsMargins(0, 25, 0, 5)
-                hboxShutter.setContentsMargins(0, 5, 0, 0)
-                hboxGain.setContentsMargins(0, 5, 0, 0)
+                hbox2.setContentsMargins(0, 10, 0, 5)
+                hboxShutter.setContentsMargins(0, 5, 0, 5)
+                hboxGain.setContentsMargins(0, 5, 0, 5)
                 
                 if self.aff=='left':
                      # to avoid tittle
@@ -1001,7 +1001,7 @@ if __name__ == "__main__":
     sepa=os.sep
     pathVisu=str(p.parent) + sepa +'confCamera.ini'
     
-    e = CAMERAMOTOR(cam='cam5',fft='off',meas='on',affLight=True,loop=True,separate=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    e = CAMERAMOTOR(cam="cam5",fft='off',meas='on',affLight=True,loop=True,separate=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
     e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

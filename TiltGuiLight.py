@@ -261,13 +261,13 @@ class TILTMOTORGUI(QWidget) :
         vbox1.addLayout(hbox1)
         
         posLAT=QLabel('Lateral:')
-        posLAT.setStyleSheet("font: bold 8pt")
+        posLAT.setStyleSheet("font: bold 6pt")
         posLAT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        posLAT.setMaximumHeight(10)
+        posLAT.setMaximumHeight(12)
         posVERT=QLabel('Vertical :')
-        posVERT.setStyleSheet("font: bold 8pt")
+        posVERT.setStyleSheet("font: bold 6pt")
         posVERT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        posVERT.setMaximumHeight(10)
+        posVERT.setMaximumHeight(12)
         hbox2=QHBoxLayout()
         hbox2.addWidget(posLAT)
         hbox2.addWidget(posVERT)
@@ -275,16 +275,17 @@ class TILTMOTORGUI(QWidget) :
         
         self.position_Lat=QLabel('pos')
         self.position_Lat.setMaximumHeight(12)
-        self.position_Lat.setStyleSheet("font: bold 10pt")
+        self.position_Lat.setStyleSheet("font: bold 6pt")
         self.position_Lat.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.position_Vert=QLabel('pos')
         self.position_Vert.setMaximumHeight(12)
-        self.position_Vert.setStyleSheet("font: bold 10pt")
+        self.position_Vert.setStyleSheet("font: bold 6pt")
         self.position_Vert.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         hbox3=QHBoxLayout()
         hbox3.addWidget(self.position_Lat)
         
         hbox3.addWidget(self.position_Vert)
+        
         vbox1.addLayout(hbox3)
         
         hbox4=QHBoxLayout()
