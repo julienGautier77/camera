@@ -163,7 +163,7 @@ class SCAN(QWidget):
         self.val_step.editingFinished.connect(self.changeFinal)
         self.but_start.clicked.connect(self.startScan)
         self.but_stop.clicked.connect(self.stopScan)
-        #self.but_Shoot.clicked.connect(self.startShoot)
+        #git self.but_Shoot.clicked.connect(self.startShoot)
         
         
     def startShoot(self):

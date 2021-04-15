@@ -20,7 +20,7 @@ from scanMotorCamera import SCAN
 
 class CAMERAMOTOR(QWidget):
     
-    def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
+    def __init__(self,cam='choose',confFile='confCamera.ini',motLat='camLat',motorTypeName0='RSAI',motVert='camVert',motorTypeName1='RSAI',configMotorPath="./fichiersConfig/",**kwds):
         super(CAMERAMOTOR, self).__init__()
         self.cam=cam
         
@@ -52,9 +52,9 @@ class CAMERAMOTOR(QWidget):
         self.kwds["conf"]=self.conf
         sepa=os.sep
         
-        self.configPath=str(p.parent)+"/fichiersConfig/"
+        self.configPathMotor=configMotorPath#str(p.parent)+"/fichiersConfig/"
         self.configMotName='configMoteurRSAI.ini'
-        self.confMotorPath=self.configPath+self.configMotName
+        self.confMotorPath=self.configPathMotor+self.configMotName
         self.confMot=QtCore.QSettings(str(p.parent / self.confMotorPath), QtCore.QSettings.IniFormat)
         
         
@@ -72,7 +72,7 @@ class CAMERAMOTOR(QWidget):
         
         self.camWidget=CAMERA(cam=self.cam,confMot=self.confMot,**self.kwds)
         
-        motorTilt=TILTMOTORGUI(motLat='camLat',motorTypeName0='RSAI',motVert='camVert',motorTypeName1='RSAI',configMotorPath=self.configPath)
+        motorTilt=TILTMOTORGUI(motLat='camLat',motorTypeName0='RSAI',motVert='camVert',motorTypeName1='RSAI',configMotorPath=self.configPathMotor)
         
         motorTilt.startThread2()
         

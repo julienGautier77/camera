@@ -78,7 +78,7 @@ version=str(__version__)
 class CAMERAMOTOR(QWidget):
     datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
     
-    def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
+    def __init__(self,cam=None,confFile='confCamera.ini',**kwds):
         '''
         Parameters
         ----------
@@ -158,7 +158,7 @@ class CAMERAMOTOR(QWidget):
         else: 
             self.loop=False   
             
-        
+        self.openCam()
         
        
         # Si les moteurs ne sont pas renseignés on prend ceux renseigné dans le fichier ini de la cam
@@ -204,7 +204,8 @@ class CAMERAMOTOR(QWidget):
         self.version=str(__version__)
         self.pasY=float(self.conf.value(self.nbcam+"/pasY"))
         self.pasX=float(self.conf.value(self.nbcam+"/pasX"))
-        self.openCam()
+        
+        
         self.kwds["name"]=self.nbcam
         self.setup()
         self.setCamPara()
@@ -545,18 +546,18 @@ class CAMERAMOTOR(QWidget):
             self.dockControl.resize(80,80)
            
             self.trigg=QComboBox()
-            self.trigg.setMaximumWidth(80)
+            self.trigg.setMaximumWidth(70)
             self.trigg.addItem('OFF')
             self.trigg.addItem('ON')
-            self.trigg.setStyleSheet('font :bold  10pt;color: white')
-            self.labelTrigger=QLabel('Trigger')
-            self.labelTrigger.setMaximumWidth(70)
+            self.trigg.setStyleSheet('font :bold  8pt;color: white')
+            self.labelTrigger=QLabel('Trig')
+            self.labelTrigger.setMaximumWidth(60)
             self.labelTrigger.setStyleSheet('font :bold  10pt')
             self.itrig=self.trigg.currentIndex()
             
             hbox2=QHBoxLayout()
             hbox2.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-            hbox2.setContentsMargins(5, 15, 0, 0)
+            hbox2.setContentsMargins(5, 10, 0, 0)
             hbox2.addWidget(self.labelTrigger)
             
             hbox2.addWidget(self.trigg)
@@ -566,13 +567,13 @@ class CAMERAMOTOR(QWidget):
             self.dockTrig=QDockWidget(self)
             self.dockTrig.setWidget(self.widgetTrig)
             
-            self.labelExp=QLabel('Exposure (ms)')
+            self.labelExp=QLabel('Exp(ms)')
             self.labelExp.setStyleSheet('font :bold  10pt')
             self.labelExp.setMaximumWidth(140)
             self.labelExp.setAlignment(Qt.AlignCenter)
             
             self.hSliderShutter=QSlider(Qt.Horizontal)
-            self.hSliderShutter.setMaximumWidth(80)
+            self.hSliderShutter.setMaximumWidth(50)
             self.shutterBox=QSpinBox()
             self.shutterBox.setStyleSheet('font :bold  8pt')
             self.shutterBox.setMaximumWidth(120)
@@ -588,7 +589,7 @@ class CAMERAMOTOR(QWidget):
             hboxShutter.addWidget(self.shutterBox)
             vboxShutter.addLayout(hboxShutter)
             vboxShutter.setSizeConstraint(QtGui.QLayout.SetFixedSize)
-            vboxShutter.setContentsMargins(5, 5, 0, 0)
+            vboxShutter.setContentsMargins(5, 0, 0, 0)
             
             self.widgetShutter=QWidget(self)
             
@@ -600,15 +601,15 @@ class CAMERAMOTOR(QWidget):
             
             self.labelGain=QLabel('Gain')
             self.labelGain.setStyleSheet('font :bold  10pt')
-            self.labelGain.setMaximumWidth(120)
+            self.labelGain.setMaximumWidth(100)
             self.labelGain.setAlignment(Qt.AlignCenter)
             
             self.hSliderGain=QSlider(Qt.Horizontal)
-            self.hSliderGain.setMaximumWidth(80)
+            self.hSliderGain.setMaximumWidth(50)
             self.gainBox=QSpinBox()
             self.gainBox.setMaximumWidth(60)
             self.gainBox.setStyleSheet('font :bold  8pt')
-            self.gainBox.setMaximumWidth(120)
+            self.gainBox.setMaximumWidth(60)
             
             hboxGain=QHBoxLayout()
             hboxGain.setContentsMargins(5, 0, 0, 0)
@@ -670,14 +671,15 @@ class CAMERAMOTOR(QWidget):
                 self.dockMotor=QDockWidget(self)
                 self.dockMotor.setTitleBarWidget(QWidget())
                 self.WidgetMotor=QWidget()
+                #self.WidgetMotor.setStyleSheet("border : blue ")
                 self.WidgetMotor.setLayout(MotorLayout)
                 
                 self.dockMotor.setWidget(self.WidgetMotor)
                 
-                hbox1.setContentsMargins(60, 10, 0, 10)
-                hbox2.setContentsMargins(60, 15, 0, 0)
-                hboxShutter.setContentsMargins(60, 15, 0, 0)
-                hboxGain.setContentsMargins(60, 15, 0, 0)
+                hbox1.setContentsMargins(0, 10, 0, 0)
+                hbox2.setContentsMargins(0, 25, 0, 5)
+                hboxShutter.setContentsMargins(0, 5, 0, 0)
+                hboxGain.setContentsMargins(0, 5, 0, 0)
                 
                 if self.aff=='left':
                      # to avoid tittle
@@ -718,11 +720,12 @@ class CAMERAMOTOR(QWidget):
                 self.closeLoop=QCheckBox('Close Loop')
                 MotorLayout.addWidget(self.closeLoop)
             
+            MotorLayout.setContentsMargins(0, 0, 0, 0)
             
-            
-            
+            hMainLayout.setContentsMargins(1, 0, 0, 0)
             self.setLayout(hMainLayout)
-            self.setContentsMargins(0, 0, 0, 0)
+            self.setContentsMargins(0, 0, 2, 0)
+            
             #self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint) # set window on the top 
             #self.activateWindow()
             #self.raise_()

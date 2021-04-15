@@ -76,6 +76,8 @@ class TILTMOTORGUI(QWidget) :
         self.version=__version__
         
         print('fichier configation motor',self.configPath )
+        
+        
         for zi in range (0,2): #• creation list configuration et type de moteurs
             if self.motorTypeName[zi]=='RSAI':
                 self.configMotName[zi]=self.configPath+'configMoteurRSAI.ini'
@@ -118,9 +120,9 @@ class TILTMOTORGUI(QWidget) :
             else:
                 
                 self.configMotName[zi]=self.configPath+'configMoteurTest.ini'
-                import moteurtest as test
+                import moteurRSAI as test
                 self.motorType[zi]=test
-                self.MOT[zi]=self.motorType[zi].MOTORTEST(self.motor[zi])
+                self.MOT[zi]=self.motorType[zi].MOTORRSAI(self.motor[zi])
 #                print ('no motor connected')
 
 
@@ -204,37 +206,37 @@ class TILTMOTORGUI(QWidget) :
         
         self.haut=QToolButton()
         self.haut.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechehaut.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.haut.setMaximumHeight(50)
-        self.haut.setMinimumWidth(50)
-        self.haut.setMaximumWidth(50)
-        self.haut.setMinimumHeight(50)
+        self.haut.setMaximumHeight(15)
+        self.haut.setMinimumWidth(15)
+        self.haut.setMaximumWidth(15)
+        self.haut.setMinimumHeight(15)
         self.haut.setAutoRepeat(True)
         
         
         self.bas=QToolButton()
         self.bas.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechebas.png);background-color: rgb(0,0,0,0) ;border-color: green;}""QToolButton:pressed{image: url(./iconsflechebas.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.bas.setMaximumHeight(50)
-        self.bas.setMinimumWidth(50)
-        self.bas.setMaximumWidth(50)
-        self.bas.setMinimumHeight(50)
+        self.bas.setMaximumHeight(15)
+        self.bas.setMinimumWidth(15)
+        self.bas.setMaximumWidth(15)
+        self.bas.setMinimumHeight(15)
         self.bas.setAutoRepeat(True)
         
         self.gauche=QToolButton()
         self.gauche.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechegauche.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
         
-        self.gauche.setMaximumHeight(50)
-        self.gauche.setMinimumWidth(50)
-        self.gauche.setMaximumWidth(50)
-        self.gauche.setMinimumHeight(50)
+        self.gauche.setMaximumHeight(15)
+        self.gauche.setMinimumWidth(15)
+        self.gauche.setMaximumWidth(15)
+        self.gauche.setMinimumHeight(15)
         self.droite=QToolButton()
         self.droite.setStyleSheet("QToolButton:!pressed{border-image: url(./icons/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: green;}""QToolButton:pressed{image: url(./icons/flechedroite.png);background-color: rgb(0, 0, 0,0) ;border-color: blue}")
-        self.droite.setMaximumHeight(50)
-        self.droite.setMinimumWidth(50)
-        self.droite.setMaximumWidth(50)
-        self.droite.setMinimumHeight(50)
+        self.droite.setMaximumHeight(15)
+        self.droite.setMinimumWidth(15)
+        self.droite.setMaximumWidth(15)
+        self.droite.setMinimumHeight(15)
         
         
-        self.jogStep=QSpinBox()
+        self.jogStep=QDoubleSpinBox()
         self.jogStep.setMaximum(1000000)
         self.jogStep.setStyleSheet("font: bold 8pt")
         self.jogStep.setValue(self.jogValue)
@@ -259,11 +261,11 @@ class TILTMOTORGUI(QWidget) :
         vbox1.addLayout(hbox1)
         
         posLAT=QLabel('Lateral:')
-        posLAT.setStyleSheet("font: bold 5pt")
+        posLAT.setStyleSheet("font: bold 8pt")
         posLAT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         posLAT.setMaximumHeight(10)
         posVERT=QLabel('Vertical :')
-        posVERT.setStyleSheet("font: bold 5pt")
+        posVERT.setStyleSheet("font: bold 8pt")
         posVERT.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         posVERT.setMaximumHeight(10)
         hbox2=QHBoxLayout()
@@ -273,11 +275,11 @@ class TILTMOTORGUI(QWidget) :
         
         self.position_Lat=QLabel('pos')
         self.position_Lat.setMaximumHeight(12)
-        self.position_Lat.setStyleSheet("font: bold 5pt")
+        self.position_Lat.setStyleSheet("font: bold 10pt")
         self.position_Lat.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.position_Vert=QLabel('pos')
         self.position_Vert.setMaximumHeight(12)
-        self.position_Vert.setStyleSheet("font: bold 5pt")
+        self.position_Vert.setStyleSheet("font: bold 10pt")
         self.position_Vert.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         hbox3=QHBoxLayout()
         hbox3.addWidget(self.position_Lat)
@@ -286,22 +288,30 @@ class TILTMOTORGUI(QWidget) :
         vbox1.addLayout(hbox3)
         
         hbox4=QHBoxLayout()
-        self.zeroButtonLat=QPushButton('Zero Lat')
+        self.zeroButtonLat=QToolButton()
+        self.zeroButtonLat.setText( 'Zero Lat')
         self.zeroButtonLat.setStyleSheet("font: bold 5pt")
-        self.zeroButtonVert=QPushButton('Zero Vert')
+        self.zeroButtonVert=QToolButton()
+        self.zeroButtonVert.setText( 'Zero Vert')
         self.zeroButtonVert.setStyleSheet("font: bold 5pt")
         self.zeroButtonLat.setMaximumHeight(14)
         self.zeroButtonVert.setMaximumHeight(14)
+        self.zeroButtonLat.setMaximumWidth(40)
+        self.zeroButtonVert.setMaximumWidth(40)
         hbox4.addWidget(self.zeroButtonLat)
         hbox4.addWidget(self.zeroButtonVert)
         vbox1.addLayout(hbox4)
         
         self.stopButton=QPushButton('STOP')
-        self.stopButton.setStyleSheet("background-color: red;font: bold 5pt")
+        self.stopButton.setStyleSheet("background-color: red;font: bold 8pt")
         self.stopButton.setMaximumHeight(14)
+        
         hbox5=QHBoxLayout()
         hbox5.addWidget(self.stopButton)
         vbox1.addLayout(hbox5)
+        vbox1.setContentsMargins(1,1,1,1)
+        
+        
         self.setLayout(vbox1)       
         
         self.actionButton()
@@ -466,7 +476,7 @@ class TILTMOTORGUI(QWidget) :
         
        
         self.jogStep.setSuffix(" %s" % self.unitNameTrans)
-        self.jogStep.setValue(valueJog/self.unitChangeLat)
+        self.jogStep.setValue(int(valueJog/self.unitChangeLat))
         
     def StopMot(self):
         '''
@@ -555,7 +565,7 @@ if __name__ =='__main__':
     motor0='NF_Lat_P1'
     motor1='NF_Vert_P1'
     appli=QApplication(sys.argv)
-    mot5=TILTMOTORGUI(motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI')
+    mot5=TILTMOTORGUI(motLat='camVert',motorTypeName0='RSAI', motVert='camVert',motorTypeName1='RSAI')
     mot5.show()
     mot5.startThread2()
     appli.exec_()
