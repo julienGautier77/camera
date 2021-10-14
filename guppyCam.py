@@ -407,7 +407,9 @@ class ThreadOneAcq(QtCore.QThread):
 
 
 
-if __name__ == "__main__":       
+if __name__ == "__main__":
+    
     appli = QApplication(sys.argv) 
     e = GUPPY(cam=None)
+    
     appli.exec_()          

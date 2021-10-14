@@ -1001,7 +1001,7 @@ if __name__ == "__main__":
     sepa=os.sep
     pathVisu=str(p.parent) + sepa +'confCamera.ini'
     
-    e = CAMERAMOTOR(cam="cam5",fft='off',meas='on',affLight=True,loop=True,separate=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    e = CAMERAMOTOR(cam="cam5",fft='off',meas='on',affLight=True,loop=True,separate=False)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
     e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

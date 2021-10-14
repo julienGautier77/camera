@@ -379,7 +379,7 @@ class CAMERA(QWidget):
                 self.openID()
             except :
                 self.isConnected=False 
-        print('la')
+      
         
     def setCamPara(self):
         '''set min max gain and exp value of cam in the widget
@@ -793,10 +793,10 @@ class MainWindow()  :
     def __init__(self):
         super(MainWindow, self).__init__()
         
+        print('ici')
         self.visualisation=SEE2() ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
         self.dockCamera=QDockWidget()
-        self.widgetCamera=CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
-        
+        self.widgetCamera=CAMERA(cam="firstBasler",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False)  
         self.widgetCamera.setContentsMargins(0,0,0,0)
         #self.dockCamera.SetFixedSize()
         self.dockCamera.setWidget(self.widgetCamera)

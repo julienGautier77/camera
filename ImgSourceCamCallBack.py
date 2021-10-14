@@ -65,7 +65,7 @@ def getCamID(index):
 class IMGSOURCE (QtCore.QThread):
     newData=QtCore.pyqtSignal(object)
     
-    def __init__(self,cam='camDefault',**kwds):
+    def __init__(self,cam='camDefault',conf=None,**kwds):
         '''
         Parameters
         ----------
@@ -92,10 +92,10 @@ class IMGSOURCE (QtCore.QThread):
         p = pathlib.Path(__file__)
         self.nbcam=cam
         self.itrig='off'
-        if "conf"  in kwds :
-            self.conf=kwds["conf"]
-        else :
+        if conf==None:
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+        else:
+            self.conf=conf
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:

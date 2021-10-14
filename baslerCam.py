@@ -24,7 +24,6 @@ BASLER class : class to control basler camera
 from PyQt5.QtWidgets import QApplication,QWidget
 from PyQt5.QtWidgets import QInputDialog
 from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import pyqtSlot
 import sys,time
 import numpy as np
 from PyQt5.QtCore import Qt,QMutex
@@ -57,19 +56,17 @@ class BASLER (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     
-    def __init__(self,cam='camDefault',**kwds):
+    def __init__(self,cam='camDefault',conf=None,**kwds):
         
         super(BASLER,self).__init__()
         
         self.nbcam=cam
         self.itrig='off'
         
-        if "conf"  in kwds :
-            self.conf=kwds["conf"]
-        else :
+        if conf==None:
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
-        
-            
+        else:
+            self.conf=conf
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:
@@ -137,7 +134,7 @@ class BASLER (QtCore.QThread):
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.camID=camID
-        # print(self.camID)
+        
         for i in devices:
             if i.GetSerialNumber()==self.camID:
                 camConnected=i
@@ -148,7 +145,7 @@ class BASLER (QtCore.QThread):
                 break
             else: 
                 self.isConnected=False
-        # print('la',self.isConnected)       
+        print('la',self.isConnected)       
         if self.isConnected==True:
             
             self.setCamParameter()          
@@ -279,8 +276,7 @@ class BASLER (QtCore.QThread):
         #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
-   
-    @pyqtSlot (object)        
+            
     def newImageReceived(self,data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
         '''
