@@ -11,6 +11,7 @@ Works with :
 -Pixelink (pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper.  
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
 -Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  
+- IDS imaging camera (pip install pyueye https://ids-imaging.com/)
 
   
   
