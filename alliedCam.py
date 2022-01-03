@@ -38,7 +38,8 @@ import numpy as np
 from PyQt5 import QtGui 
 
 
-import vimba  ## 
+import vimba  ## pip install git+https://github.com/alliedvision/VimbaPython
+
 with vimba.Vimba.get_instance() as vmb:
     cameraIds=vmb.get_all_cameras()
     nbCamera=len(cameraIds)
@@ -92,7 +93,7 @@ def camAvailable():
 class ALLIEDVISION (QWidget):
     
     newData=QtCore.pyqtSignal(object)
-    
+    endAcq=QtCore.pyqtSignal(bool)
     def __init__(self,cam='camDefault',**kwds):
         
         super(ALLIEDVISION,self).__init__()
@@ -201,7 +202,7 @@ class ALLIEDVISION (QWidget):
                 
 #              self.cam0.TriggerSource.set('Software')
               
-              self.cam0.AcquisitionMode.set('Continuous')
+              self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
             
             
         ## init cam parameter##
@@ -342,9 +343,10 @@ class ALLIEDVISION (QWidget):
         # if self.cam0.is_streaming()==True:
         #     print('rest')
         #     self.cam0._close()
-       
-        # stop=self.cam0.get_feature_by_name('AcquisitionStop')
-        # stop.run()
+        # with vmb:
+        #    with self.cam0:
+        #        stop=self.cam0.get_feature_by_name('AcquisitionStop')
+        #        stop.run()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):
@@ -359,7 +361,9 @@ class ALLIEDVISION (QWidget):
     def closeCamera(self):
         self.stopAcq()
         # self.cam0.close()
-
+    
+    def endAcquisition(self):
+        self.endAcq.emit(True)
 
 
 
@@ -410,8 +414,10 @@ class ThreadRunAcq(QtCore.QThread):
 
                 
                 if self.stopRunAcq ==True :
-                        print('stop')
+                        print('stop ici')
+                        
                         if self.parent.itrig=='on':
+                            
                             self.cam0._close()
                        
         
@@ -419,8 +425,9 @@ class ThreadRunAcq(QtCore.QThread):
     def stopThreadRunAcq(self):
         
         #self.cam0.send_trigger()
-        
         self.stopRunAcq=True
+        
+        
 #        self.cam0.run_feature_command ('AcquisitionAbort')
 #        self.cam0.end_capture()
 #        self.cam0.feature('TriggerSource').value='Software'

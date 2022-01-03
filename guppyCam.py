@@ -42,7 +42,7 @@ try:
     Vimba().startup()
     system=Vimba().system()
     cameraIds=Vimba().camera_ids()
-    # print( "Cam available:",cameraIds)
+    print( "Cam available:",cameraIds)
     
   #  Encrease timeout :
   #change in File "C:\ProgramData\Anaconda3\lib\site-packages\pymba\camera.py
@@ -60,6 +60,7 @@ def getCamID(index):
 class GUPPY (QWidget):
     
     newData=QtCore.pyqtSignal(object)
+    endAcq=QtCore.pyqtSignal(bool)
     
     def __init__(self,cam='camDefault',**kwds):
         
@@ -260,6 +261,8 @@ class GUPPY (QWidget):
     def closeCamera(self):
         self.cam0.close()
         
+    def endAcquisition(self):
+        self.endAcq.emit(True)   
     
 class ThreadRunAcq(QtCore.QThread):
     
@@ -292,15 +295,15 @@ class ThreadRunAcq(QtCore.QThread):
                 
                 self.cam0.run_feature_command('TriggerSoftware')
             data=dat1.buffer_data_numpy() 
-            
+            self.data=np.rot90(data,3)
             if np.max(data)>0 and dat1.data.receiveStatus==0:
                 
-                data=np.rot90(data,3)
+                
                 if self.stopRunAcq==True:
                     pass
                 else :
                     time.sleep(0.01)
-                    self.newDataRun.emit(data)
+                    self.newDataRun.emit(self.data)
 #            self.cam0.revoke_all_frames()
 #            self.cam0.flush_capture_queue()
 #            
@@ -376,15 +379,17 @@ class ThreadOneAcq(QtCore.QThread):
                     self.newStateCam.emit(False)
                     
                     time.sleep(0.1)
-                data=dat1.buffer_data_numpy()    
-                if np.max(data)>0:
+                data=dat1.buffer_data_numpy()
+                self.data=np.rot90(data,3)
+                
+                if np.max(self.data)>0:
                     
-                    data=np.rot90(data,3)    
+                        
                     if self.stopRunAcq==True:
                         pass
                     else :
                         
-                        self.newDataRun.emit(data)
+                        self.newDataRun.emit(self.data)
                 time.sleep(0.1)  
                 self.cam0.disarm()
                 

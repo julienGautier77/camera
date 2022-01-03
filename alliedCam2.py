@@ -93,9 +93,12 @@ class ALLIEDVISION (QWidget):
     
     newData=QtCore.pyqtSignal(object)
     
+    endAcq=QtCore.pyqtSignal(bool)
+    
     def __init__(self,cam='camDefault',**kwds):
         
         super(ALLIEDVISION,self).__init__()
+        
         
         self.nbcam=cam
         self.itrig='off'
@@ -357,6 +360,9 @@ class ALLIEDVISION (QWidget):
     def stateCam(self,state):
         self.camIsRunnig=state
     
+    def endAcquisition(self):
+        self.endAcq.emit(True) # emit signal when acquisition is done
+        
     def closeCamera(self):
         self.stopAcq()
         # self.cam0.close()
@@ -401,7 +407,7 @@ class ThreadRunAcq(QtCore.QThread):
         
     def run(self):
         handler = Handler()
-       print('aa')
+        print('aa')
         with vmb:
             with self.parent.cam0:
                 # self.parent.cam0.start_streaming()
