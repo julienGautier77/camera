@@ -21,7 +21,7 @@ if __name__ == "__main__":
     confCameraPath=str(p.parent) + sepa +'confCamera.ini'
     
   
-    e = CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confPath=confCameraPath)  
+    e = CAMERA(cam="cam13",fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confPath=confCameraPath)  
     e.show()
    
     appli.exec_()      

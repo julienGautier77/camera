@@ -10,7 +10,7 @@ import sys
 import os
 import pathlib
 import qdarkstyle
-from camera2 import CAMERA
+from camera import CAMERA
 
 if __name__ == "__main__":       
     

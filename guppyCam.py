@@ -42,7 +42,7 @@ try:
     Vimba().startup()
     system=Vimba().system()
     cameraIds=Vimba().camera_ids()
-    print( "Cam available:",cameraIds)
+    # print( "Cam available:",cameraIds)
     
   #  Encrease timeout :
   #change in File "C:\ProgramData\Anaconda3\lib\site-packages\pymba\camera.py
@@ -61,6 +61,7 @@ class GUPPY (QWidget):
     
     newData=QtCore.pyqtSignal(object)
     endAcq=QtCore.pyqtSignal(bool)
+    
     
     def __init__(self,cam='camDefault',**kwds):
         
@@ -112,11 +113,12 @@ class GUPPY (QWidget):
         ''' read cam serial number
         '''
         self.camID=camID
-        
+        print(self.camID,'icff')
         try :
             self.cam0=Vimba().camera(self.camID)
-            self.isConnected=True
             
+            self.isConnected=True
+            print(self.camID,'ceee')
         except:# if id number doesn't work we take the first one
             try:
                 print('Id not valid open the fisrt camera')
@@ -128,6 +130,7 @@ class GUPPY (QWidget):
                     self.isConnected=False
                     self.ccdName='no camera'            
         if self.isConnected==True:
+            
             self.setCamParameter()
             
             
@@ -149,6 +152,7 @@ class GUPPY (QWidget):
         #     print(" ")
         #     print(" ")
         ## init cam parameter##
+        
         self.LineTrigger=str(self.conf.value(self.nbcam+"/LineTrigger")) # line2 for Mako Line 1 for guppy (not tested)
         
         self.cam0.feature('TriggerMode').value='Off'
@@ -165,6 +169,7 @@ class GUPPY (QWidget):
         self.cam0.feature('Width').value=self.cam0.feature('WidthMax').value
         
         
+        
         self.camParameter["expMax"]=float(self.cam0.feature('ExposureTime').range[1])/1000
         self.camParameter["expMin"]=float(self.cam0.feature('ExposureTime').range[0])/1000
         #if exposure time save in the ini file is not in the range we put the minimum
@@ -172,7 +177,7 @@ class GUPPY (QWidget):
             self.cam0.feature('ExposureTime').value=float(self.conf.value(self.nbcam+"/shutter"))*1000
         else :
             self.cam0.feature('ExposureTime').value=float(self.camParameter["expMin"])
-            
+         
         self.camParameter["exposureTime"]=int(self.cam0.feature('ExposureTime').value)/1000
         
         self.camParameter["gainMax"]=self.cam0.feature('Gain').range[1]
@@ -191,7 +196,7 @@ class GUPPY (QWidget):
         self.threadOneAcq=ThreadOneAcq(self)
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)#,QtCore.Qt.DirectConnection)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
-            
+        
             
     def setExposure(self,sh):
         ''' 
@@ -295,10 +300,10 @@ class ThreadRunAcq(QtCore.QThread):
                 
                 self.cam0.run_feature_command('TriggerSoftware')
             data=dat1.buffer_data_numpy() 
-            self.data=np.rot90(data,3)
+            
             if np.max(data)>0 and dat1.data.receiveStatus==0:
                 
-                
+                self.data=np.rot90(data,3)
                 if self.stopRunAcq==True:
                     pass
                 else :
@@ -379,17 +384,15 @@ class ThreadOneAcq(QtCore.QThread):
                     self.newStateCam.emit(False)
                     
                     time.sleep(0.1)
-                data=dat1.buffer_data_numpy()
-                self.data=np.rot90(data,3)
-                
-                if np.max(self.data)>0:
+                data=dat1.buffer_data_numpy()    
+                if np.max(data)>0:
                     
-                        
+                    data=np.rot90(data,3)    
                     if self.stopRunAcq==True:
                         pass
                     else :
                         
-                        self.newDataRun.emit(self.data)
+                        self.newDataRun.emit(data)
                 time.sleep(0.1)  
                 self.cam0.disarm()
                 
@@ -412,9 +415,7 @@ class ThreadOneAcq(QtCore.QThread):
 
 
 
-if __name__ == "__main__":
-    
+if __name__ == "__main__":       
     appli = QApplication(sys.argv) 
     e = GUPPY(cam=None)
-    
     appli.exec_()          

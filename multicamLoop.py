@@ -14,7 +14,7 @@ from PyQt5.QtGui import QIcon
 import sys,time
 import pathlib,os
 import qdarkstyle
-import camera
+import camera2 
 from PyQt5 import QtGui 
 
 class MULTICAM(QWidget):
@@ -45,9 +45,9 @@ class MULTICAM(QWidget):
         i=1
         for cams in self.names:
             if i%2!= 0:
-                self.cam.append(camera.CAMERA(cam=cams,aff='left',**self.kwds))
+                self.cam.append(camera2.CAMERA(cam=cams,aff='left',**self.kwds))
             else :
-                self.cam.append(camera.CAMERA(cam=cams,aff='right',**self.kwds))
+                self.cam.append(camera2.CAMERA(cam=cams,aff='right',**self.kwds))
             i+=1
         
         self.setup()

@@ -132,8 +132,6 @@ class ALLIEDVISION (QWidget):
     
     def openFirstCam(self,ID=0):
         
-        
-        
         with vmb :
             try:
                 self.camID=getCamID(ID)
@@ -205,7 +203,7 @@ class ALLIEDVISION (QWidget):
               self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
             
             
-        ## init cam parameter##
+        ## init cam parameter## differnt command name depend on camera type 
         if self.modelCam=="GT1290":
             self.camLanguage['exposure']='ExposureTimeAbs'
             self.LineTrigger='Line1'#☺str(self.conf.value(self.nbcam+"/LineTrigger")) # line2 for Mako Line 1 for guppy (not tested)
@@ -213,10 +211,8 @@ class ALLIEDVISION (QWidget):
             self.camLanguage['exposure']='ExposureTimeAbs'
             self.LineTrigger='Line1'
         if self.modelCam=='AVT Guppy PRO F031B': 
-            print('guppy')
             self.camLanguage['exposure']='ExposureTime'
             self.LineTrigger='InputLines'
-            
         if self.modelCam=='Allied Vision 1800 U-050m' :
             self.camLanguage['exposure']='ExposureTime'
             self.LineTrigger='Line1'
@@ -316,9 +312,9 @@ class ALLIEDVISION (QWidget):
                     self.cam0.TriggerSource.set(self.LineTrigger)
                     self.itrig='on'
                 else:
-                    self.cam0.TriggerSource.set('Software')
-                    sofTrig=self.cam0.get_feature_by_name('TriggerSoftware')
-                    sofTrig.run()
+                    # self.cam0.TriggerSource.set('Software')
+                    # sofTrig=self.cam0.get_feature_by_name('TriggerSoftware')
+                    # sofTrig.run()
                     self.cam0.TriggerMode.set('Off')
                     
                     self.itrig='off'
@@ -340,6 +336,29 @@ class ALLIEDVISION (QWidget):
         
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
+        
+        # if self.itrig=='on':
+        #     with vmb:
+        #         with self.cam0:   
+        #             self.cam0.AcquisitionStatusSelector.set('AcquisitionActive')
+        #             print(self.cam0.AcquisitionStatus.get())
+        #             self.cam0.AcquisitionStop.run()
+        #             print(self.cam0.AcquisitionStatus.get())
+        #             self.cam0.DeviceReset.run().stop
+        #             print('device reset')
+        #             self.cam0.stop_streaming()
+        #             # print(self.cam0.AcquisitionStatus.get())
+        #             self.threadRunAcq.terminate()
+        #             print('termine le thread')
+            # with vmb:
+            #     with self.cam0: 
+            #         self.cam0.set_access_mode(access_mode="VmbAccessMode.Full")
+                    
+            #         self.cam0.get_frame()
+        
+        
+        
+        
         # if self.cam0.is_streaming()==True:
         #     print('rest')
         #     self.cam0._close()
@@ -386,39 +405,63 @@ class ThreadRunAcq(QtCore.QThread):
         
     def newRun(self):
         self.stopRunAcq=False
+    
         
+    def frame_handler(self,cam, frame):
+    
+        cam.queue_frame(frame)
+    
     def run(self):
         
-       
         with vmb:
             with self.parent.cam0:
-                # self.parent.cam0.start_streaming()
+                # self.parent.cam0.start_streaming()#self.frame_handler)
                 while self.stopRunAcq is not True :
-                    if self.parent.itrig=='off':
-                        self.parent.cam0.TriggerSource.set('Software')
-                        
-                        sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
-                        sofTrig.run()
-                    else :
-                        self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
-                    frame=self.parent.cam0.get_frame(timeout_ms=300000000)
-                    data=(frame.as_numpy_ndarray())
-                    data=data[:,:,0]
-                    data=np.rot90(data,3)
+                    #print("streaming")
+                # frame=vimba.frame.Frame()
+                # handler=self.frame_handler(cam=self.parent.cam0,frame=frame)
                 
-                    if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
+                    
+                    
+                    # if self.parent.itrig=='off':
+                    #     self.parent.cam0.TriggerSource.set('Software')
+                        
+                    #     sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
+                    #     sofTrig.run()
+                    # else :
+                    #     self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
+                    # # self.parent.cam0.stop_streaming()
+                    try: 
+                        frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
+                        data=(frame.as_numpy_ndarray())
+                        data=data[:,:,0]
+                        data=np.rot90(data,3)
+                
+                        if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
                     
 #                        data=np.rot90(data,3)    
                 
-                        self.newDataRun.emit(data)
+                            self.newDataRun.emit(data)
 
-                
+                    except:
+                        pass
+                    
+                    
                 if self.stopRunAcq ==True :
-                        print('stop ici')
-                        
-                        if self.parent.itrig=='on':
-                            
-                            self.cam0._close()
+                    pass
+                    # print('threadstop')
+                    # self.parent.cam0.stop_streaming()
+                    # if self.parent.itrig=='on':
+                    #     with vmb:
+                    #         with self.parent.cam0:   
+                    #             self.cam0.AcquisitionStop.run()
+                    #             print('iii')
+                    #             self.cam0.set_access_mode(access_mode="VmbAccessMode.Full")
+                                
+                    #             self.cam0.get_frame()
+                                
+                                # self.cam0._close()
+                                # self.cam0.__enter__()
                        
         
             
@@ -426,27 +469,6 @@ class ThreadRunAcq(QtCore.QThread):
         
         #self.cam0.send_trigger()
         self.stopRunAcq=True
-        
-        
-#        self.cam0.run_feature_command ('AcquisitionAbort')
-#        self.cam0.end_capture()
-#        self.cam0.feature('TriggerSource').value='Software'
-#        self.cam0.run_feature_command('TriggerSoftware')
-#            
-            
-        #self.cam0.feature('TriggerSource').value=self.LineTrigger
-        #self.cam0.run_feature_command ('AcquisitionAbort')
-        #self.cam0.disarm()
-        # if self.itrig=='on': # in hardward trig mode disarm to get out
-             
-        #     self.cam0.end_capture()
-        #     self.cam0.stop_frame_acquisition()
-        
-
-        
-# class Handler:
-#     def __init__(self):
-        
 
 
 class ThreadOneAcq(QtCore.QThread):
@@ -477,53 +499,45 @@ class ThreadOneAcq(QtCore.QThread):
         print('run one')
         self.newStateCam.emit(True)
         
-                   
-        
         with vmb:
             with self.parent.cam0:
                 
                 for i in range (self.parent.nbShot):
                     if self.stopRunAcq is not True :
-                        if self.parent.itrig=='off':
-                            self.parent.cam0.TriggerSource.set('Software')
-                            print('softTi')
-                        else :
-                            self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
+                        # if self.parent.itrig=='off':
+                        #     self.parent.cam0.TriggerSource.set('Software')
+                        # else :
+                        #     print('softTi')
+                        #  # print            self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
                     
-                        if self.parent.itrig=='off':
-                            sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
-                            print('softTirun')
-                            sofTrig.run()
-                            
-                        frame=self.parent.cam0.get_frame(timeout_ms=30000000000)
-                        
-                        data=(frame.as_numpy_ndarray())
-                        
-                        data=data[:,:,0]
-                        data=np.rot90(data,3)
-                
-                       
-                # print(dat1.data.receiveStatus,dat1.data.receiveFlags)# == -1
-                        if i<self.parent.nbShot-1:
-                            self.newStateCam.emit(True)
-                    
-                            time.sleep(0.05)
-                        else:
-                            self.newStateCam.emit(False)
-                    
-                
-                        if str(frame.get_status()) == "FrameStatus.Complete": #np.max(data)>0 or 
-                            # print(frame.get_status())
-#                            data=np.rot90(data,3)    
-                
-                            self.newDataRun.emit(data)
-
-                    else:
-                        sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
-                        sofTrig.run()
-                        break
-        self.newStateCam.emit(False)
+                        # if self.parent.itrig=='off':
+                        #     sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
+                        #     print('softTirun')
+                        #     sofTrig.run()
         
+                        try :    
+                            frame=self.parent.cam0.get_frame(timeout_ms=3000)
+                            data=(frame.as_numpy_ndarray())
+                            
+                            data=data[:,:,0]
+                            data=np.rot90(data,3)
+                            
+                            if i<self.parent.nbShot-1:
+                                self.newStateCam.emit(True)
+                    
+                                time.sleep(0.01)
+                            else:
+                                self.newStateCam.emit(False)
+                                
+                            if str(frame.get_status()) == "FrameStatus.Complete": #np.max(data)>0 o  
+                                self.newDataRun.emit(data)
+                    
+                        except:
+                            pass
+                    else: 
+                        break
+                self.newStateCam.emit(False)
+
         
         
     def stopThreadOneAcq(self):

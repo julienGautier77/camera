@@ -10,8 +10,6 @@ from PyQt5.QtWidgets import QApplication
 import sys,os,pathlib
 import qdarkstyle
 from CameraMotorLoop import CAMERAMOTOR
-
-
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
@@ -20,7 +18,7 @@ if __name__ == "__main__":
     sepa=os.sep
     pathVisu=str(p.parent) + sepa +'confCamera.ini'
     
-    e = CAMERAMOTOR(cam="cam5",fft='off',meas='on',affLight=False,loop=True,separate=True)#,confpath=pathVisu)#,motLat='NF_Lat_P1',motorTypeName0='NewFocus', motVert='Lolita_P1_Vert',motorTypeName1='RSAI',loop=True)  
+    e = CAMERAMOTOR(cam="cam2",fft='off',meas='on',affLight=False,loop=True,separate=True)  
     e.show()#
     # x= CAMERA(cam="cam2",fft='off',meas='on',affLight=True,multi=False)  
     # x.show()

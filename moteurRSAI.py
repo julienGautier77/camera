@@ -50,12 +50,12 @@ except AttributeError as s:
 
 #%% ENTREE
 # liste adresse IP des modules
-IP    = b"10.0.1.30\0      10.0.1.31\0      10.0.4.30\0      " 
-IPs_C = ctypes.create_string_buffer(IP, 48) # permet d avoir la liste comme demander dans la dll
+IP    = b"10.0.2.30\0      10.0.2.31\0      " 
+IPs_C = ctypes.create_string_buffer(IP, 32) # permet d avoir la liste comme demander dans la dll
 
 
 #conf = QSettings(QSettings.IniFormat, QSettings.UserScope, "configMoteur", "configMoteurRSAI")
-confRSAI = QSettings('fichiersConfig/configMoteurRSAI.ini', QSettings.IniFormat)
+confRSAI = QSettings('./fichiersConfig/configMoteurRSAI.ini', QSettings.IniFormat)
 
 
 
@@ -67,7 +67,8 @@ def startConnexion():
     argout = 0
     argoutetat = PilMot.rEtatConnexion( ctypes.c_int16(0) ) # numero equipement
     if argoutetat != 3:
-        argout = PilMot.Start(ctypes.c_int(3), IPs_C) # nb equipement , liste IP
+        argout = PilMot.Start(ctypes.c_int(4), IPs_C) # nb equipement , liste IP
+        # print (argout,argoutetat)
         if argout == 1 :
             print('RSAI connection : OK RSAI connected @\n', IP)
         else:
@@ -100,7 +101,14 @@ class MOTORRSAI():
         self.moteurname=mot1
         self.numEsim=ctypes.c_int16(int(confRSAI.value(self.moteurname+'/numESim')))
         self.numMoteur=ctypes.c_int16(int(confRSAI.value(self.moteurname+'/numMoteur')) )
-
+        #print('Esim:',self.numEsim,'num Mot',self.numMoteur)
+        self.hyst=confRSAI.value(self.moteurname+'/hyst')
+        self.hystValue=int(confRSAI.value(self.moteurname+'/hystValue'))
+        if self.hyst==None:
+            self.hyst='+'
+        if self.hystValue==None:
+            self.hystValue=0
+        # print(self.hyst,self.hystValue)    
     def stopMotor(self): # stop le moteur motor
         """ stopMotor(motor): stop le moteur motor """
         regCde = ctypes.c_uint(8) # 8 commande pour arreter le moteur
@@ -128,6 +136,16 @@ class MOTORRSAI():
         posActuel = self.position()
         print(time.strftime("%A %d %B %Y %H:%M:%S"))
         print(self.moteurname,"position before ",posActuel,"(step)")
+        if self.hyst=='+' and posrelatif<0:
+            posrelatif=posrelatif-self.hystValue
+        if self.hyst=='-' and posrelatif>0:
+            posrelatif=posrelatif+self.hystValue
+        print('posrel',posrelatif)    
+        if posrelatif>0:
+            self.hyst='+'
+        else :
+            self.hyst='-'
+        confRSAI.setValue(self.moteurname+'/hyst',self.hyst)    
         pos  = int(posActuel+posrelatif)
         posi = ctypes.c_int(pos)
         vit  = ctypes.c_int(int(vitesse))
@@ -160,7 +178,7 @@ class MOTORRSAI():
         print(self.moteurname,a,etat)
 
     def position(self):
-        """ position (self.moteurname) : donne la postion de motor """
+        """ position (self.moteurname) : donne la position de motor """
         pos=PilMot.rPositionMot(self.numEsim , self.numMoteur) # lecture position theorique en nb pas
         return pos
  

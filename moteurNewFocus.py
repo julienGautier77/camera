@@ -9,7 +9,8 @@ Created on Wed Feb 28 11:59:41 2018
 import socket
 import time
 from PyQt5.QtCore import QSettings
-
+from PyQt5 import QtCore
+mutexA=QtCore.QMutex()
 #%% initialisation and connexion
 IP='10.0.2.60' # controleur 0
 IP1='10.0.2.61' # controleur 1
@@ -19,10 +20,10 @@ bufferSize=1024
 s0=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s1=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-try :
-    s0.connect((IP,Port))
-except:
-    print('connexion newFocus error IP',IP)
+# try :
+#     s0.connect((IP,Port))
+# except:
+#     print('connexion newFocus error IP',IP)
 
 time.sleep(0.1)
 try :
@@ -31,13 +32,13 @@ except:
     print('connexion newFocus error IP',IP1)
        
 time.sleep(0.1)
-try :
-    s0.send(('*IDN?'+'\n').encode())
-    nameFocus=s0.recv(bufferSize)
-    nameFocus=s0.recv(bufferSize)
-#    print(nameFocus.decode())
-except:
-    print('connexion newFocus0 error: swtich off/on the controller')
+# try :
+#     s0.send(('*IDN?'+'\n').encode())
+#     nameFocus=s0.recv(bufferSize)
+#     nameFocus=s0.recv(bufferSize)
+# #    print(nameFocus.decode())
+# except:
+#     print('connexion newFocus0 error: swtich off/on the controller')
 try :
     s1.send(('*IDN?'+'\n').encode())
     nameFocus1=s1.recv(bufferSize)
@@ -88,17 +89,19 @@ class MOTORNEWFOCUS():
         """
         position (motor) : donne la position de motor
         """
-        
+        mutexA.lock()
         self.s.send((self.numMoteur+'TP?'+'\n').encode())
         pos=self.s.recv(bufferSize)
         #pos1=pos.decode('utf-8')#.upper()
+        mutexA.unlock()
         return int(pos)
 
     def stopMotor(self): # stop le moteur motor
         """stopMotor(motor): stop le moteur motor
         """
-        
+        mutexA.lock()
         self.s.send((self.numMoteur+'ST'+'\n').encode())
+        mutexA.unlock()
         print ("stop", self.moteurname )
         print (self.moteurname, "stopped @", self.position())
 
@@ -107,8 +110,9 @@ class MOTORNEWFOCUS():
         move(motor,pos): mouvement absolu du moteur (motor) a la position pos 
         """
         # print (self.moteurname,"position before ",self.position(),"(step)")
-       
+        mutexA.lock()
         self.s.send((self.numMoteur+'PA'+str(pos) +'\n').encode())
+        mutexA.unlock()
         # print (self.moteurname, "absolu move  to",pos,"(step)")
 
     def rmove(self,posrelatif,vitesse=10000):
@@ -118,10 +122,10 @@ class MOTORNEWFOCUS():
         posActuel=self.position()
         # print (time.strftime("%A %d %B %Y %H:%M:%S"))
         # print (self.moteurname,"position before ",posActuel,"(step)")
-        
+        mutexA.lock()
         self.s.send((self.numMoteur+'PR'+str(int(posrelatif)) +'\n').encode())
         # print (self.moteurname , "relative move of",posrelatif,"(step)")
-
+        mutexA.unlock()
     def setzero(self):
         """
         setzero(motor):Set Zero

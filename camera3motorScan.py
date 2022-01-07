@@ -55,7 +55,6 @@ class CAMERAMOTOR(QWidget):
         self.configPathMotor=configMotorPath#str(p.parent)+"/fichiersConfig/"
         self.configMotName='configMoteurRSAI.ini'
         self.confMotorPath=self.configPathMotor+self.configMotName
-        print(self.confMotorPath)
         self.confMot=QtCore.QSettings(str(p.parent / self.confMotorPath), QtCore.QSettings.IniFormat)
         
         
@@ -73,14 +72,14 @@ class CAMERAMOTOR(QWidget):
         
         self.camWidget=CAMERA(cam=self.cam,confMot=self.confMot,**self.kwds)
         
-        motorTilt=TILTMOTORGUI(motLat='CAM_Lat',motorTypeName0='RSAI',motVert='CAM_Vert',motorTypeName1='RSAI',configMotorPath=self.configPathMotor)
+        motorTilt=TILTMOTORGUI(motLat='camLat',motorTypeName0='RSAI',motVert='camVert',motorTypeName1='RSAI',configMotorPath=self.configPathMotor)
         
         motorTilt.startThread2()
         
-        self.motorFoc=ONEMOTOR(mot0='CAM_Foc',motorTypeName0='RSAI',nomWin='Foc',unit=1,jogValue=100)
+        self.motorFoc=ONEMOTOR(mot0='Axicon_Trans_Lat',motorTypeName0='RSAI',nomWin='Foc',unit=1,jogValue=100)
         self.motorFoc.startThread2()
         
-        self.scanWidget=SCAN(self,mot0='CAM_Foc',motorTypeName0='RSAI',confMot=self.confMot)
+        self.scanWidget=SCAN(self,mot0='Axicon_Trans_Lat',motorTypeName0='RSAI',confMot=self.confMot)
         self.scanWidget.acqMain.connect(self.camWidget.acquireOneImage)
         self.scanButton=QToolButton()
         self.scanButton.setText('Scan Foc')
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     p = pathlib.Path(__file__)
     sepa=os.sep
     pathVisu=str(p.parent) + sepa +'confCamera.ini'
-    e = CAMERAMOTOR(cam='firstGuppy',affLight=False,multi=False,fft='off',confPath=pathVisu,separate=False)
+    e = CAMERAMOTOR(cam="cam5",affLight=False,multi=False,fft='off',confPath=pathVisu,separate=False)
     e.show()
    
     appli.exec_()       

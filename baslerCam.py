@@ -24,6 +24,7 @@ BASLER class : class to control basler camera
 from PyQt5.QtWidgets import QApplication,QWidget
 from PyQt5.QtWidgets import QInputDialog
 from pyqtgraph.Qt import QtCore
+from PyQt5.QtCore import pyqtSlot
 import sys,time
 import numpy as np
 from PyQt5.QtCore import Qt,QMutex
@@ -32,7 +33,9 @@ try :
 
     tlFactory = pylon.TlFactory.GetInstance()
     devices = tlFactory.EnumerateDevices()
-    cameras = pylon.InstantCameraArray(min(len(devices), 12))
+    
+    cameras = pylon.InstantCameraArray(min(len(devices), 20))
+    
 except:
     print('pyplon is not installed')
 
@@ -55,18 +58,20 @@ def getCamID (index):
 class BASLER (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
-    
-    def __init__(self,cam='camDefault',conf=None,**kwds):
+    endAcq=QtCore.pyqtSignal(bool)
+    def __init__(self,cam='camDefault',**kwds):
         
         super(BASLER,self).__init__()
         
         self.nbcam=cam
         self.itrig='off'
         
-        if conf==None:
+        if "conf"  in kwds :
+            self.conf=kwds["conf"]
+        else :
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
-        else:
-            self.conf=conf
+        
+            
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:
@@ -136,16 +141,18 @@ class BASLER (QtCore.QThread):
         self.camID=camID
         
         for i in devices:
+            
+            
             if i.GetSerialNumber()==self.camID:
                 camConnected=i
-                
+                # print(('ici'))
                 self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
                 
                 self.isConnected=True
                 break
             else: 
                 self.isConnected=False
-        print('la',self.isConnected)       
+        # print('la',self.isConnected)       
         if self.isConnected==True:
             
             self.setCamParameter()          
@@ -276,7 +283,8 @@ class BASLER (QtCore.QThread):
         #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
-            
+   
+    @pyqtSlot (object)        
     def newImageReceived(self,data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
         '''
@@ -290,7 +298,10 @@ class BASLER (QtCore.QThread):
         '''
         
         self.camIsRunnig=state
-    
+        
+    def endAcquisition(self):
+        self.endAcq.emit(True)
+        
     def closeCamera(self):
         print('close basler')
         self.cam0.Close()

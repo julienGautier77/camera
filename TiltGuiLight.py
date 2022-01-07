@@ -100,6 +100,7 @@ class TILTMOTORGUI(QWidget) :
                  
             elif self.motorTypeName[zi]=='NewFocus':
                  self.configMotName[zi]=self.configPath+'configMoteurNewFocus.ini'
+                 print(self.configPath)
                  # print(self.configMotName[zi])
                  import moteurNewFocus as NewFoc
                  self.motorType[zi]=NewFoc
@@ -563,10 +564,10 @@ class PositionThread(QtCore.QThread):
     
 
 if __name__ =='__main__':
-    motor0='NF_Lat_P1'
-    motor1='NF_Vert_P1'
+    motor0='NF_Lat_Spherique'
+    motor1='NF_Vert_Spherique'
     appli=QApplication(sys.argv)
-    mot5=TILTMOTORGUI(motLat='camVert',motorTypeName0='RSAI', motVert='camVert',motorTypeName1='RSAI')
+    mot5=TILTMOTORGUI(motLat='NF_Lat_Spherique',motorTypeName0='NewFocus', motVert='NF_Vert_Spherique',motorTypeName1='NewFocus')
     mot5.show()
     mot5.startThread2()
     appli.exec_()

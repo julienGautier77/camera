@@ -8,7 +8,9 @@ Modified on Fri March  11:06:56 2020
 
 4 cameras imaging source
 """
-from camera2 import CAMERA # class lecture 1 camera
+
+import camera2 # class lecture 1 camera
+import CameraMotorLoop
 import sys
 from PyQt5.QtWidgets import QGridLayout,QVBoxLayout,QWidget,QApplication,QGroupBox,QTabWidget
 from PyQt5.QtWidgets import QSizePolicy,QDockWidget
@@ -25,7 +27,7 @@ class App4Cam(QWidget):
         self.width=1000
         self.height=200
         self.setGeometry(self.left,self.top,self.width,self.height)
-        self.setWindowTitle('Laser Alignment' )
+        self.setWindowTitle('Lolita CAMERAS' )
        
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         p = pathlib.Path(__file__)
@@ -33,10 +35,10 @@ class App4Cam(QWidget):
         self.icon=str(p.parent) + sepa + 'icons' +sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.cam0 = CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam1 =CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam2 = CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam3 =CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam0 = camera2.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam1 =camera2.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam2 = camera2.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam3 =camera2.CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
    
         self.cam=[self.cam0,self.cam1,self.cam2,self.cam3]
         self.setup()
@@ -141,18 +143,18 @@ class MainWindows(QWidget):
         self.tabs=QTabWidget()
         self.tabs.setContentsMargins(1,1,1,1)
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.tab0=CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)
-        self.tab1=CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab2=CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab3=CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-   
+        self.tab0=CameraMotorLoop.CAMERAMOTOR(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu,loop=True)
+        self.tab1=camera2.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab2=camera2.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab3=camera2.CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab4=CameraMotorLoop.CAMERAMOTOR(cam='cam5',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu,loop=True)
 #        self.tab2=App4Cam()
 
         self.tabs.addTab(self.tab0,self.tab0.ccdName)
         self.tabs.addTab(self.tab1,self.tab1.ccdName)
         self.tabs.addTab(self.tab2,self.tab2.ccdName)
         self.tabs.addTab(self.tab3,self.tab3.ccdName)
-        
+        self.tabs.addTab(self.tab4,self.tab4.ccdName)
         #self.tabs.addTab(self.tab2,'    P3    ')
 
         self.layout.addWidget(self.tabs)
@@ -183,7 +185,7 @@ if __name__=='__main__':
     
     app=QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    multiTab=MainWindows()#App4Cam()
+    multiTab=App4Cam()
     multiTab.show()
     sys.exit(app.exec_() )
 

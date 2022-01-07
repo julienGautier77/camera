@@ -48,7 +48,7 @@ __author__='julien Gautier'
 __version__='2020.04'
 
 
-from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QPushButton
+from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QRadioButton
 from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget,QCheckBox
 from pyqtgraph.Qt import QtCore
 from PyQt5.QtCore import Qt,pyqtSlot
@@ -113,7 +113,7 @@ class CAMERAMOTOR(QWidget):
         self.nbcam=cam
         self.maxMvtY=500
         self.maxMvtX=500
-        self.nbImageMax=3
+        
         self.nbImage=0
         self.kwds=kwds
         
@@ -158,8 +158,10 @@ class CAMERAMOTOR(QWidget):
         else: 
             self.loop=False   
             
-        
-        
+        if "nbLoop" in kwds:
+            self.nbImageMax=kwds["nbLoop"]
+        else :
+            self.nbImageMax=3
        
         # Si les moteurs ne sont pas renseignés on prend ceux renseigné dans le fichier ini de la cam
         if "motLat" in kwds:
@@ -237,7 +239,17 @@ class CAMERAMOTOR(QWidget):
             except :
                 print("no allied vision camera detected or vimba is not installed")
                 pass
-          
+        if self.cameraType=="allied" :
+            try :
+                
+                import alliedCam
+                
+                self.CAM=alliedCam.ALLIEDVISION (cam=self.nbcam,conf=self.conf)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected=self.CAM.isConnected
+            except :
+                print("no allied vision camera detected or vimba is not installed")
+                pass  
         elif self.cameraType=="basler":
             try:
                 import baslerCam
@@ -272,6 +284,17 @@ class CAMERAMOTOR(QWidget):
             except:
                 print("no pixellink camera detected or pillelink dll  is not installed")
                 pass
+        
+        elif self.cameraType=="ids":
+            
+            try :
+                import idsCam
+                self.CAM=idsCam.IDS(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected=self.CAM.isConnected
+            except:
+                print("no imaging source camera detected or Tisgrabber is not installed")
+                pass 
         else:
             print('no camera')
             self.isConnected=False
@@ -406,7 +429,16 @@ class CAMERAMOTOR(QWidget):
             self.CAM=guppyCam.GUPPY(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected
+        elif self.nbcam=="firstAllied": # open the first guppy cam in the list
+            self.nbcam='camDefault'
             
+            self.cameraType="allied"
+            self.ccdName='First allied Cam'
+            import alliedCam3
+            
+            self.CAM=alliedCam3.ALLIEDVISION(cam=self.nbcam,conf=self.conf)
+            self.CAM.openFirstCam()
+            self.isConnected=self.CAM.isConnected    
         elif self.nbcam=="firstBasler": # open the first basler cam in the list
             self.ccdName='First basler Cam'
             self.nbcam='camDefault'
@@ -433,7 +465,17 @@ class CAMERAMOTOR(QWidget):
             self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected      
+        
+        elif self.nbcam=="firstIds": # open the first guppy cam in the list
+            self.nbcam='camDefault'
             
+            self.cameraType="ids"
+            self.ccdName='First ids Cam'
+            import idsCam
+            
+            self.CAM=idsCam.IDS(cam=self.nbcam,conf=self.conf)
+            self.CAM.openFirstCam()
+            self.isConnected=self.CAM.isConnected   
         elif self.nbcam=='menu': # Qdialog with a menu with all the camera name present in the inifile
             self.groupsName=[]
             self.groups=self.conf.childGroups()
@@ -661,7 +703,7 @@ class CAMERAMOTOR(QWidget):
             
             
             MotorLayout=QVBoxLayout()
-            MotorLayout.addStretch(2)
+            MotorLayout.addStretch(1)
             MotorLayout.addWidget(self.motor)
             MotorLayout.addStretch(1)    
             
@@ -717,9 +759,14 @@ class CAMERAMOTOR(QWidget):
             
             
             if self.loop==True:
+                self.hloopLayout=QHBoxLayout()
                 self.closeLoop=QCheckBox('Close Loop')
-                MotorLayout.addWidget(self.closeLoop)
-            
+                self.hloopLayout.addWidget(self.closeLoop)
+                self.closeLoopRadio=QRadioButton()
+                self.closeLoopRadio.setStyleSheet("QRadioButton::indicator:checked{background-color: red ;border-color: red }")
+                self.hloopLayout.addWidget(self.closeLoopRadio)
+                MotorLayout.addLayout(self.hloopLayout)
+                MotorLayout.addStretch(1) 
             MotorLayout.setContentsMargins(0, 0, 0, 0)
             
             hMainLayout.setContentsMargins(1, 0, 0, 0)
@@ -833,6 +880,7 @@ class CAMERAMOTOR(QWidget):
                     self.nbImage=0
                 else:
                     
+                    self.closeLoopRadio.setChecked(True)
                     if ( abs(self.deltaX)>=self.xlim or abs(self.deltaY)>self.ylim) and self.nbImage==self.nbImageMax:
                         
                         # print('xec',self.xec,self.yec,self.xr,self.yr)
@@ -867,8 +915,10 @@ class CAMERAMOTOR(QWidget):
                         self.nbImage=0
                         self.Xec=[]
                         self.Yec=[]
+                        self.closeLoopRadio.setChecked(False)
                     
-        
+            else:
+                self.closeLoopRadio.setChecked(False)
             
             
             

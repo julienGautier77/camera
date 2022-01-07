@@ -11,7 +11,6 @@ Works with :
 -Pixelink (pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper.  
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
 -Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  
-- IDS imaging camera (pip install pyueye https://ids-imaging.com/)
 
   
   
@@ -41,13 +40,12 @@ Works with :
           
         cam : TYPE str, optional  
             DESCRIPTION.   
-                cam='choose' : generate a input dialog box whith the list of all the camera connected (allied,basler,imagingSource)   
-                cam='cam1' : open camera by the ID and type saved in the confFile.ini  
+                cam='choose' : generate a input dialog box which the list of all the camera connected (allied,basler,imagingSource)   
+                cam='cam1' : open the camera by the ID and type save in the confFile.ini  
                 ncam='menu': generate a input dialog box with a menu with all the camera name present in the .ini file   
                 cam='firstGuppy' open the first allied vision camera  
                 cam='firstBasler' open the first Basler camera  
                 cam='firstImgSource' open the first ImagingSource camera  
-                cam=firstIds
             The default is 'choose'.  
         confFile : TYPE str, optional  
             DESCRIPTION.  

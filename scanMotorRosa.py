@@ -22,7 +22,7 @@ from PyQt5 import QtGui
 
 class SCAN(QWidget):
     acqMain=QtCore.pyqtSignal(bool)
-    def __init__(self,parent=None, mot0='camFoc',motorTypeName0='RSAI',configMotName='C:/Users:UPX/Desktop/python/camera/fichiersConfig/configMoteurRSAI.ini'):
+    def __init__(self,parent=None, mot0='camFoc',motorTypeName0='RSAI',configMotName=''):
         
         super(SCAN, self).__init__()
         
