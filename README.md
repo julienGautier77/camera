@@ -11,6 +11,7 @@ Works with :
 -Pixelink (pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper.  
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
 -Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  
+-IDS camera 
 
   
   
@@ -22,11 +23,11 @@ Works with :
 *   Numpy
 *   PyQt5
 *   pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git) 
-    * pip intall pyqtgraph
+    * pip intall pyqtgraph=O.11.1
 *   qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
     * pip install qdarkstyle. 
  * visu
-   * pip install visu
+   * pip install git+https://github.com/julieGautier77/visu
   
   ## Usages   
   appli = QApplication(sys.argv)    
