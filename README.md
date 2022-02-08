@@ -10,7 +10,8 @@ Works with :
 -Basler (pip install pypylon: https://github.com/basler/pypylon )  
 -Pixelink (pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper.  
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
--Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  
+-Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  or pip instal git+https://github.com/alliedvision/VimbaPython (official library works with vimba 2.5.)
+if you use pymba you have to cameraType="guppy" if you use vimba cameraType==allied"
 -IDS camera 
 
   
@@ -33,7 +34,7 @@ Works with :
   appli = QApplication(sys.argv)    
   appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())    
   #pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'    
-  e = CAMERA("cam='choose'",fft='off',meas='on',affLight=False)    
+  e = CAMERA("cam='FirstALlied'",fft='off',meas='on',affLight=False)    
   e.show()   
   appli.exec_()    
   
@@ -44,7 +45,7 @@ Works with :
                 cam='choose' : generate a input dialog box which the list of all the camera connected (allied,basler,imagingSource)   
                 cam='cam1' : open the camera by the ID and type save in the confFile.ini  
                 ncam='menu': generate a input dialog box with a menu with all the camera name present in the .ini file   
-                cam='firstGuppy' open the first allied vision camera  
+                cam='firstAllied' open the first allied vision camera  
                 cam='firstBasler' open the first Basler camera  
                 cam='firstImgSource' open the first ImagingSource camera  
             The default is 'choose'.  
