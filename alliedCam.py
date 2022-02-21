@@ -217,17 +217,21 @@ class ALLIEDVISION (QWidget):
             self.camLanguage['exposure']='ExposureTime'
             self.LineTrigger='Line1'
         
-        
+        if self.modelCam=='Allied Vision Mako U-029B' :
+            self.camLanguage['exposure']='ExposureTime'
+            self.LineTrigger='Line1'
         
                 
         with vmb:
             with self.cam0:
                 
                 self.camParameter["trigger"]=self.cam0.TriggerMode.get()
+                if self.modelCam=='Allied Vision Mako U-029B':
+                    pass
+                else:
+                    self.cam0.ExposureAuto.set('Off')
                 
-                self.cam0.ExposureAuto.set('Off')
-                
-                self.cam0.GainAuto.set('Off')
+                    self.cam0.GainAuto.set('Off')
                 
                 self.cam0.Height.set(self.cam0.HeightMax.get())
                 
