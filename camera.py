@@ -372,9 +372,9 @@ class CAMERA(QWidget):
             
             self.cameraType="allied"
             self.ccdName='First allied Cam'
-            import alliedCam3
+            import alliedCam
             
-            self.CAM=alliedCam3.ALLIEDVISION(cam=self.nbcam,conf=self.conf)
+            self.CAM=alliedCam.ALLIEDVISION(cam=self.nbcam,conf=self.conf)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected    
         
