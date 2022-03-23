@@ -86,7 +86,12 @@ def cameraFeatures(nbCam=1):
    
     
 def camAvailable(): 
-    return cameraIds    
+    nbCamera=len(cameraIds)
+    camA=[]
+    for i in range (0,nbCamera):
+        camA.append (cameraIds[i].get_id())
+    
+    return camA    
 
 
     
@@ -562,6 +567,6 @@ class ThreadOneAcq(QtCore.QThread):
 
 
 if __name__ == "__main__":       
-    appli = QApplication(sys.argv) 
+    #appli = QApplication(sys.argv) 
     e = ALLIEDVISION(cam=None)
-    appli.exec_()          
+    #appli.exec_()          
