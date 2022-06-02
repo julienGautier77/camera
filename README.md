@@ -5,13 +5,17 @@ Data acquistion with different type of camera based on pyQtgraph
 It use visu module to display the data received  
   
   
-Works with :
+Works with different cameras types:
 
 -Basler (pip install pypylon: https://github.com/basler/pypylon )  
+
 -Pixelink (pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper.  
+
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
+
 -Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  or pip instal git+https://github.com/alliedvision/VimbaPython (official library works with vimba 2.5.)
 if you use pymba you have to cameraType="guppy" if you use vimba cameraType==allied"
+
 -IDS camera use pyueye (pip install pyueye)
 
   
@@ -34,7 +38,7 @@ if you use pymba you have to cameraType="guppy" if you use vimba cameraType==all
   appli = QApplication(sys.argv)    
   appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())    
   #pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'    
-  e = CAMERA("cam='FirstALlied'",fft='off',meas='on',affLight=False)    
+  e = CAMERA("cam='FirstAllied'",fft='off',meas='on',affLight=False)    
   e.show()   
   appli.exec_()    
   
