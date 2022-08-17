@@ -5,5 +5,5 @@ Created on Thu Apr  2 11:01:44 2020
 @author: LOA
 """
 
-__version__=2022.01
+__version__=2022.08
 __author__='Julien Gautier LOA'
