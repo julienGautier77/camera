@@ -29,48 +29,44 @@ class Imaging :
             usefull to set init parameters (expTime and gain)
             The default is None.
 """
+
 try :
-    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+    from PyQt6.QtWidgets import QWidget,QInputDialog
     from PyQt6 import QtCore,QtGui
 except ImportError:
-
     from PyQt5.QtWidgets import QApplication,QWidget
-    from PyQt5.QtCore import Qt,QMutex
-    from pyqtgraph.Qt import QtCore
+
+from pyqtgraph.Qt import QtCore
 
 import sys,time
 import numpy as np
 import pathlib,os
 
 #https://github.com/TheImagingSource/IC-Imaging-Control-Samples
-try:
-    from dll import tisgrabber as IC 
-except:
-    print("")
+
 try :
-    
-    # print('import imgSource dll : ok')
+    from dll import tisgrabber as IC 
+    print('import imgSource dll : ok')
     Camera = IC.TIS_CAM()
     Devices = Camera.GetDevices()
 except :
     print ('librairy imaging source not found')
-    print('add path ...\camera\dll\ in environement variable path and reboot spyder ')
-    print('in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d environement')
+    #add path ...\camera\dll\ in environement variable path
+    # in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d'environement
     pass
     
 def camAvailable():
-    # print(Devices)
+    print(Devices)
     DeviceDecode=[x.decode() for x in Devices]
-    print(DeviceDecode)
     return DeviceDecode
 
 def getCamID(index):
     return(Devices[index]) 
     
-class IMGSOURCE (QtCore.QThread):
+class IMGSOURCE (QWidget):
     newData=QtCore.pyqtSignal(object)
     
-    def __init__(self,cam='camDefault',**kwds):
+    def __init__(self,cam='camDefault',conf=None):
         '''
         Parameters
         ----------
@@ -93,23 +89,18 @@ class IMGSOURCE (QtCore.QThread):
         '''
         
         super(IMGSOURCE,self).__init__()
-        # print('callback')
         p = pathlib.Path(__file__)
         self.nbcam=cam
         self.itrig='off'
-        if "conf"  in kwds :
-            self.conf=kwds["conf"]
-        else :
+        if conf==None:
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
-        if "multi"in kwds :
-            self.multi=kwds["multi"]
         else:
-            self.multi=False    
+            self.conf=conf
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
-        self.Camera = IC.TIS_CAM()
-        self.cam0=self.Camera
+    
+        self.cam0=Camera
     
         
     def openMenuCam(self):
@@ -124,12 +115,10 @@ class IMGSOURCE (QtCore.QThread):
         return self.isConnected
     
     def openFirstCam(self):
-        
         try :
-            self.cam0.open(Devices[0].decode())
-           
+            self.cam0.open(Devices[0])
             self.isConnected=True
-            self.camID=Devices[0].decode()
+            self.camID=Devices[0]
             self.nbcam='camDefault'
         except:
             self.isConnected=False
@@ -147,13 +136,13 @@ class IMGSOURCE (QtCore.QThread):
         try :
             self.cam0.open(self.camID)
             self.isConnected=True
-            # print('ICI connected@ ID:',self.camID)
+            print('connected@ ID:',self.camID)
         except:# if id number doesn't work we take the first one
             try:
                 print('Id not valid open the fisrt camera')
-                self.cam0.open(Devices[0].decode())
+                self.cam0.open(Devices[0])
                 self.isConnected=True
-                self.camID=Devices[0].decode()
+                self.camID=Devices[0]
                 self.nbcam='camDefault'
             except:
                     print('not ccd connected')
@@ -174,8 +163,8 @@ class IMGSOURCE (QtCore.QThread):
         # self.cam0.SetVideoFormat("RGB32 (640x480)")
         # self.camParameter["format"]=self.cam0.GetFormat()
         
-        print('trigger available :',self.cam0.is_triggerable())
-        self.camParameter["triggerAvailable"]=self.cam0.is_triggerable()
+        print('trigger',self.cam0.is_triggerable())
+        
         self.camParameter["gainMax"]=self.cam0.GetPropertyValueRange("Gain","Value")[1]
         self.camParameter["gainMin"]=self.cam0.GetPropertyValueRange("Gain","Value")[0]
         #self.camParameter["trigger"]=self.cam0.is_triggerable
@@ -194,7 +183,7 @@ class IMGSOURCE (QtCore.QThread):
         else :
             self.cam0.SetPropertyAbsoluteValue("Exposure","Value",float(self.camParameter["expMin"]))
        
-        # print(self.cam0.GetPropertyAbsoluteValue("Exposure","Value"))
+        print(self.cam0.GetPropertyAbsoluteValue("Exposure","Value"))
         
         self.cam0.SetPropertySwitch("Gain","Auto",0)
         
@@ -209,7 +198,7 @@ class IMGSOURCE (QtCore.QThread):
        
         self.camParameter["gain"]=self.cam0.GetPropertyValue("Gain","Value")
         
-        #print(self.camParameter)
+        print(self.camParameter)
         
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
         # self.cam0.feature('Height').value=self.cam0.feature('HeightMax').value
@@ -218,13 +207,10 @@ class IMGSOURCE (QtCore.QThread):
         
     
         
-        self.threadRunAcq=ThreadRunAcq(self)
-        if self.multi==True:
-            self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
-        else:  
-            self.threadRunAcq.newDataRun.connect(self.newImageReceived)
+        self.threadRunAcq=ThreadRunAcq(self,cam0=self.cam0,LineTrigger='self.LineTrigger')
+        self.threadRunAcq.newDataRun.connect(self.newImageReceived)
         
-        self.threadOneAcq=ThreadOneAcq(self)
+        self.threadOneAcq=ThreadOneAcq(self,cam0=self.cam0,LineTrigger='self.LineTrigger')
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
             
@@ -257,19 +243,17 @@ class IMGSOURCE (QtCore.QThread):
         '''
         
         if trig=='on':
-            self.cam0.enable_trigger(True)
+            self.cam0.enable.trigger(True)
             self.itrig='on'
         else:
-            self.cam0.enable_trigger(False)
+            self.cam0.enable.trigger(False)
             self.itrig='off'
             
     def startAcq(self):
-        
         self.camIsRunnig=True
-        self.threadRunAcq.newRun()# to set stopRunAcq=False
+        self.threadRunAcq.newRun() # to set stopRunAcq=False
         self.threadRunAcq.start()
-        
-        
+    
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
         self.camIsRunnig=True
@@ -279,17 +263,14 @@ class IMGSOURCE (QtCore.QThread):
     def stopAcq(self):
         
         self.threadRunAcq.stopThreadRunAcq()
-        if self.threadRunAcq.isRunning():
-            self.threadRunAcq.terminate()
-            
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
             
     def newImageReceived(self,data):
         
         self.data=data
-        self.newData.emit(self.data) # emit data to main program
-        
+        self.newData.emit(self.data)
+    
         
     def stateCam(self,state):
         self.camIsRunnig=state
@@ -304,65 +285,67 @@ class ThreadRunAcq(QtCore.QThread):
     '''
     newDataRun=QtCore.pyqtSignal(object)
     
-    def __init__(self, parent):
+    def __init__(self, parent,cam0=None,itrig=None,LineTrigger='Line2'):
         
         super(ThreadRunAcq,self).__init__(parent)
         self.parent=parent
-        self.cam0 = self.parent.cam0
+        self.cam0 = cam0
         self.stopRunAcq=False
-        # self.itrig= self.parent.itrig
-        self.mutex=QtCore.QMutex()
-    def __del__(self):
-        self.wait()   
+        self.itrig= self.parent.itrig
+        self.LineTrigger=LineTrigger
         
     def newRun(self):
-        
         self.stopRunAcq=False
         
     def run(self):
-        self.itrig= self.parent.itrig
-        self.cam0.reset_frame_ready()
+        def handle_frame(handle_ptr, p_data, frame_num, data):
+            print ('callback called!', frame_num)
+            print ('time.time()')
+    
+        self.cam0.enable_trigger(True) 
         self.cam0.SetContinuousMode(0)
+        self.cam0.reset_frame_ready()
         self.cam0.StartLive(0)
         
-        self.cam0.enable_trigger(True)
-        
-        
         if not self.cam0.callback_registered:
+            
             self.cam0.SetFrameReadyCallback()
-            
-        
-        while self.stopRunAcq is not True :
-            self.mutex.lock()
+                    
+        while self.stopRunAcq is not True : 
+           
+            self.cam0.enable_trigger(True)     
             self.cam0.reset_frame_ready()
-            if self.stopRunAcq:
-                break
-            if self.itrig=="off": # if no harware trigger we send a soft trigger
-                self.cam0.send_trigger()
-                # print('soft trig send')
-            # self.cam0.SnapImage()
+            self.cam0.send_trigger()
+            self.cam0.wait_til_frame_ready(2000)
+            dat1=0
+            while np.max(dat1)==0:
+                a=self.cam0.SnapImage()
+                dat1=self.cam0.GetImageEx()
+                print(a)
+            print(dat1.max())
+            if dat1 is not None:
+                
+                dat1 = np.array(dat1)#, dtype=np.double)
+                dat1.squeeze()
+                dat1=dat1[:,:,0]
+                
+                self.data=np.rot90(dat1,1)
+                print('start8')
+                if self.stopRunAcq==True:
+                    break
+                else :
+                    self.newDataRun.emit(self.data)
             
-            self.cam0.wait_til_frame_ready(20000000)
-            
-            data1 = self.cam0.GetImage() 
-            #data1 = np.array(data1)#☻, dtype=np.double)
-            data1.squeeze()
-            data=data1[:,:,0]
-            
-            self.data=np.rot90(data,1)
-            
-            if np.max(self.data)>0:
-                self.newDataRun.emit(self.data)
-               
-            self.mutex.unlock()  
-         
+        self.cam0.StopLive() 
             
     def stopThreadRunAcq(self):
         
-        self.stopRunAcq=True
-        self.cam0.StopLive()
-        self.cam0.send_trigger()   
+        #self.cam0.send_trigger()
         
+        self.stopRunAcq=True
+        
+        if self.itrig=='off' : # si cam pas en mode trig externe on envoi un trig soft...
+                self.cam0.send_trigger()
         
 class ThreadOneAcq(QtCore.QThread):
     
@@ -371,42 +354,39 @@ class ThreadOneAcq(QtCore.QThread):
     newDataRun=QtCore.pyqtSignal(object) # signal to send data 
     newStateCam=QtCore.pyqtSignal(bool) #signal to send the state of the camera (running or not)
     
-    def __init__(self, parent):
+    def __init__(self, parent,cam0=None,itrig=None,LineTrigger='Line2'):
         
         super(ThreadOneAcq,self).__init__(parent)
         self.parent=parent
-        self.cam0 = self.parent.cam0
+        self.cam0 = cam0
         self.stopRunAcq=False
-        self.itrig= self.parent.itrig
+        self.itrig= itrig
+        self.LineTrigger=LineTrigger
         
-        
+    
     def newRun(self):
         self.stopRunAcq=False
         
     def run(self):
         
+        self.cam0.feature('TriggerSource').value='Software'
         self.newStateCam.emit(True)
-        self.cam0.reset_frame_ready()
-        self.cam0.SetContinuousMode(0)
-        self.cam0.StartLive(0)
-        self.cam0.enable_trigger(True)
-        if not self.cam0.callback_registered:
-            self.cam0.SetFrameReadyCallback()
-            
+        
         for i in range (self.parent.nbShot):
-            if self.stopRunAcq:
-                break
             if self.stopRunAcq is not True :
+                self.cam0.reset_frame_ready()
+                self.cam0.start_live(show_display=False)
+                self.cam0.enable_trigger(True)
+                if not self.cam0.callback_registered:
+                    self.cam0.register_frame_ready_callback()
+        
                 
                 if self.itrig=='off' : # si cam pas en mode trig externe on envoi un trig soft...
                     self.cam0.send_trigger()
                
                 self.cam0.wait_til_frame_ready(2000000)
-                data1 = self.cam0.GetImage() 
-                data1 = np.array(data1, dtype=np.double)
-                data1.squeeze()
-                data=data1[:,:,0]
-                self.data=np.rot90(data,1)
+                dat1 = self.cam0.get_image_data() 
+                
                 
                 
                 if i<self.parent.nbShot-1:
@@ -414,17 +394,23 @@ class ThreadOneAcq(QtCore.QThread):
                 else:
                     self.newStateCam.emit(False)
                     time.sleep(0.1)
-                if np.max(self.data)>0:
+                if dat1 is not None:
+                    dat1 = np.array(dat1)#, dtype=np.double)
+                    dat1.squeeze()
+                    dat=dat1[:,:,0]
+                    self.data=np.rot90(dat,1)
                     self.newDataRun.emit(self.data)
-                time.sleep(0.5)
-            self.newStateCam.emit(False)
+            
+        self.newStateCam.emit(False)
         
         
         
     def stopThreadOneAcq(self):
         
+        #self.cam0.send_trigger()
+        
         self.stopRunAcq=True
-        self.cam0.StopLive()
+        
         self.cam0.send_trigger()       
         
       
@@ -433,9 +419,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     # appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'
-    e = IMGSOURCE(cam='cam0')  
-    camAvailable()
-    
+    e = IMGSOURCE(cam='camDefault')  
    
         
         

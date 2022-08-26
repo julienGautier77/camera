@@ -20,13 +20,17 @@ pixelink class : an easer class to control basler camera
 
 @author: Julien Gautier (LOA)
 '''
-
-from PyQt5.QtWidgets import QApplication,QWidget
-from PyQt5.QtWidgets import QInputDialog
-from pyqtgraph.Qt import QtCore
+try :
+    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+    from PyQt6 import QtCore
+except ImportError:
+    from PyQt5.QtWidgets import QApplication,QWidget
+    from PyQt5.QtWidgets import QInputDialog
+    from pyqtgraph.Qt import QtCore
+    from PyQt5.QtCore import Qt
 import sys,time
 import numpy as np
-from PyQt5.QtCore import Qt
+
 try :   
     import pixelinkWrapper as pixelink # pip install pixelinkWrapper: https://github.com/pixelink-support/pixelinkPythonWrapper
     from pyPixelink import PIXELINK_CAM
@@ -65,7 +69,7 @@ class PIXELINK (QtCore.QThread):
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:
@@ -283,7 +287,7 @@ class PIXELINK (QtCore.QThread):
 class ThreadRunAcq(QtCore.QThread):
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
@@ -337,8 +341,8 @@ class ThreadRunAcq(QtCore.QThread):
 class ThreadOneAcq(QtCore.QThread):
     '''Second thread for controling one or anumber of  acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
-    newStateCam=QtCore.Signal(bool) # signal to emit the state (running or not) of the camera
+    newDataRun=QtCore.pyqtSignal(object)
+    newStateCam=QtCore.pyqtSignal(bool) # signal to emit the state (running or not) of the camera
     
     def __init__(self, parent):
         

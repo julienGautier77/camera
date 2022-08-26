@@ -20,14 +20,22 @@ BASLER class : class to control basler camera
 
 @author: Julien Gautier (LOA)
 '''
+try :
+    from PyQt6.QtWidgets import QInputDialog
+    from PyQt6 import QtCore
+    
+    from PyQt6.QtCore import QMutex
+    from PyQt6.QtCore import pyqtSlot
+except ImportError:
+    print('error import PyQt6 ')
+    from PyQt5.QtWidgets import QInputDialog
+    from pyqtgraph.Qt import QtCore
+    from PyQt5.QtCore import QMutex
+    from PyQt5.QtCore import pyqtSlot
 
-from PyQt5.QtWidgets import QApplication,QWidget
-from PyQt5.QtWidgets import QInputDialog
-from pyqtgraph.Qt import QtCore
-from PyQt5.QtCore import pyqtSlot
-import sys,time
+import time
 import numpy as np
-from PyQt5.QtCore import Qt,QMutex
+
 try :   
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
@@ -69,7 +77,8 @@ class BASLER (QtCore.QThread):
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         
             
         if "multi"in kwds :
@@ -312,7 +321,7 @@ class BASLER (QtCore.QThread):
 class ThreadRunAcq(QtCore.QThread):
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
@@ -367,8 +376,8 @@ class ThreadRunAcq(QtCore.QThread):
 class ThreadOneAcq(QtCore.QThread):
     '''Second thread for controling one or anumber of  acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
-    newStateCam=QtCore.Signal(bool) # signal to emit the state (running or not) of the camera
+    newDataRun=QtCore.pyqtSignal(object)
+    newStateCam=QtCore.pyqtSignal(bool) # signal to emit the state (running or not) of the camera
     
     def __init__(self, parent):
         

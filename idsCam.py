@@ -11,13 +11,18 @@ IDS camera control :
 file:///C:/Program%20Files/IDS/uEye/help/uEye_Manual/index.html#index.html?&_suid=163540684054707250791231363218
 
 """
+try :
+    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+    from PyQt6 import QtCore,QtGui
+except ImportError:
 
 
-from PyQt5.QtWidgets import QApplication,QWidget
-from pyqtgraph.Qt import QtCore
+    from PyQt5.QtWidgets import QApplication,QWidget
+    from pyqtgraph.Qt import QtCore
+    from PyQt5 import QtGui 
 import time,sys
 import numpy as np
-from PyQt5 import QtGui 
+
 
 
 from pyueye import ueye  ## 
@@ -39,7 +44,7 @@ class IDS (QWidget):
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
@@ -354,7 +359,7 @@ class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
@@ -406,9 +411,9 @@ class ThreadOneAcq(QtCore.QThread):
     
     '''Second thread for controling one or more  acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
-    newStateCam=QtCore.Signal(bool)
-    endAcq=QtCore.Signal(bool) # for enable the stop button
+    newDataRun=QtCore.pyqtSignal(object)
+    newStateCam=QtCore.pyqtSignal(bool)
+    endAcq=QtCore.pyqtSignal(bool) # for enable the stop button
     def __init__(self, parent):
         
         super(ThreadOneAcq,self).__init__(parent)
@@ -421,7 +426,7 @@ class ThreadOneAcq(QtCore.QThread):
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QtGui.QApplication.processEvents()    
+            QApplication.processEvents()    
     
     def newRun(self):
         self.stopRunAcq=False
