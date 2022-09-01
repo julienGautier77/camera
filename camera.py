@@ -65,7 +65,6 @@ except ImportError:
 import sys,time
 import pathlib,os
 import qdarkstyle
-
 import __init__
 
 __version__=__init__.__version__
