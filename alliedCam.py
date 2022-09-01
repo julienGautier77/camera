@@ -30,12 +30,18 @@ class GUPPY :
             The default is None.
 """
 
+try :
+    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+    from PyQt6 import QtCore
+except ImportError:
 
-from PyQt5.QtWidgets import QApplication,QWidget,QInputDialog
-from pyqtgraph.Qt import QtCore
+    from PyQt5.QtWidgets import QWidget,QInputDialog
+    from pyqtgraph.Qt import QtCore
+    from PyQt5 import QtGui 
+    
 import time,sys
 import numpy as np
-from PyQt5 import QtGui 
+
 
 
 import vimba  ## pip install git+https://github.com/alliedvision/VimbaPython
@@ -108,7 +114,7 @@ class ALLIEDVISION (QWidget):
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         self.camParameter=dict()
         self.camIsRunnig=False
         self.nbShot=1
@@ -118,7 +124,7 @@ class ALLIEDVISION (QWidget):
         '''create a message box to choose a camera
         '''
         items=cameraIds
-        item, ok = QInputDialog.getItem(self, "Select allied camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+        item, ok = QInputDialog.getItem(self, "Select allied camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
         
         if ok and item:
             items=list(items)
@@ -401,7 +407,7 @@ class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
@@ -484,8 +490,8 @@ class ThreadOneAcq(QtCore.QThread):
     
     '''Second thread for controling one or more  acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
-    newStateCam=QtCore.Signal(bool)
+    newDataRun=QtCore.pyqtSignal(object)
+    newStateCam=QtCore.pyqtSignal(bool)
     
     def __init__(self, parent):
         
@@ -499,7 +505,7 @@ class ThreadOneAcq(QtCore.QThread):
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QtGui.QApplication.processEvents()    
+            QApplication.processEvents()    
     def newRun(self):
         self.stopRunAcq=False
         

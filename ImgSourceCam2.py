@@ -29,7 +29,12 @@ class Imaging :
             usefull to set init parameters (expTime and gain)
             The default is None.
 """
-from PyQt5.QtWidgets import QApplication,QWidget
+
+try :
+    from PyQt6.QtWidgets import QWidget,QInputDialog
+    from PyQt6 import QtCore,QtGui
+except ImportError:
+    from PyQt5.QtWidgets import QApplication,QWidget
 
 from pyqtgraph.Qt import QtCore
 
@@ -88,7 +93,7 @@ class IMGSOURCE (QWidget):
         self.nbcam=cam
         self.itrig='off'
         if conf==None:
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         else:
             self.conf=conf
         self.camParameter=dict()
@@ -278,7 +283,7 @@ class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent,cam0=None,itrig=None,LineTrigger='Line2'):
         
@@ -323,7 +328,7 @@ class ThreadRunAcq(QtCore.QThread):
                 dat1 = np.array(dat1)#, dtype=np.double)
                 dat1.squeeze()
                 dat1=dat1[:,:,0]
-                print(dat1)
+                
                 self.data=np.rot90(dat1,1)
                 print('start8')
                 if self.stopRunAcq==True:
@@ -346,8 +351,8 @@ class ThreadOneAcq(QtCore.QThread):
     
     '''Second thread for controling one acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object) # signal to send data 
-    newStateCam=QtCore.Signal(bool) #signal to send the state of the camera (running or not)
+    newDataRun=QtCore.pyqtSignal(object) # signal to send data 
+    newStateCam=QtCore.pyqtSignal(bool) #signal to send the state of the camera (running or not)
     
     def __init__(self, parent,cam0=None,itrig=None,LineTrigger='Line2'):
         

@@ -29,14 +29,19 @@ class Imaging :
             usefull to set init parameters (expTime and gain)
             The default is None.
 """
-from PyQt5.QtWidgets import QApplication,QWidget
+try :
+    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+    from PyQt6 import QtCore,QtGui
+except ImportError:
 
-from pyqtgraph.Qt import QtCore
+    from PyQt5.QtWidgets import QApplication,QWidget
+    from PyQt5.QtCore import Qt,QMutex
+    from pyqtgraph.Qt import QtCore
 
 import sys,time
 import numpy as np
 import pathlib,os
-from PyQt5.QtCore import Qt,QMutex
+
 #https://github.com/TheImagingSource/IC-Imaging-Control-Samples
 try:
     from dll import tisgrabber as IC 
@@ -95,7 +100,7 @@ class IMGSOURCE (QtCore.QThread):
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.IniFormat)
+            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         if "multi"in kwds :
             self.multi=kwds["multi"]
         else:
@@ -297,7 +302,7 @@ class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object)
+    newDataRun=QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
@@ -306,7 +311,7 @@ class ThreadRunAcq(QtCore.QThread):
         self.cam0 = self.parent.cam0
         self.stopRunAcq=False
         # self.itrig= self.parent.itrig
-        
+        self.mutex=QtCore.QMutex()
     def __del__(self):
         self.wait()   
         
@@ -326,7 +331,7 @@ class ThreadRunAcq(QtCore.QThread):
         if not self.cam0.callback_registered:
             self.cam0.SetFrameReadyCallback()
             
-        self.mutex=QMutex()
+        
         while self.stopRunAcq is not True :
             self.mutex.lock()
             self.cam0.reset_frame_ready()
@@ -363,8 +368,8 @@ class ThreadOneAcq(QtCore.QThread):
     
     '''Second thread for controling one acquisition independtly
     '''
-    newDataRun=QtCore.Signal(object) # signal to send data 
-    newStateCam=QtCore.Signal(bool) #signal to send the state of the camera (running or not)
+    newDataRun=QtCore.pyqtSignal(object) # signal to send data 
+    newStateCam=QtCore.pyqtSignal(bool) #signal to send the state of the camera (running or not)
     
     def __init__(self, parent):
         

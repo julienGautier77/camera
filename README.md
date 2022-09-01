@@ -14,7 +14,7 @@ Works with different cameras types:
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
 
 -Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  or pip instal git+https://github.com/alliedvision/VimbaPython (official library works with vimba 2.5.)
-if you use pymba you have to cameraType="guppy" if you use vimba cameraType==allied"
+vimba cameraType==allied"
 
 -IDS camera use pyueye (pip install pyueye)
 
@@ -26,18 +26,17 @@ if you use pymba you have to cameraType="guppy" if you use vimba cameraType==all
 ## Requirements
 *   python 3.x
 *   Numpy
-*   PyQt5
+*   PyQt6
 *   pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git) 
-    * pip intall pyqtgraph=O.11.1
+    * pip intall pyqtgraph
 *   qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
     * pip install qdarkstyle. 
  * visu
-   * pip install git+https://github.com/julieGautier77/visu
+   * pip install git+https://github.com/julieGautier77/visu@visuQt6
   
   ## Usages   
   appli = QApplication(sys.argv)    
-  appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())    
-  #pathVisu='C:/Users/loa/Desktop/Python/guppyCam/guppyCam/confVisuFootPrint.ini'    
+  appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())     
   e = CAMERA("cam='FirstAllied'",fft='off',meas='on',affLight=False)    
   e.show()   
   appli.exec_()    
