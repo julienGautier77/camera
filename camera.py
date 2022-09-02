@@ -19,21 +19,6 @@ pip install pypylon: https://github.com/basler/pypylon
 
 pip install qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
 pip install pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git)
-Change in pyqtgraph in ImgageItem.py line 462 :
-    if bins == 'auto':
-            if stepData.dtype.kind in "ui":
-                mn = stepData.min()
-                mx = stepData.max()
-                if mn==mx:                # add to avoid / by zero !!!
-                    mx=mx+0.01
-                step = np.ceil((mx-mn) / 500.)
-                bins = np.arange(mn, mx+1.01*step, step, dtype=np.int)
-                if len(bins) == 0:
-                    bins = [mn, mx]
-            else:
-                bins = 500
-
-
 
 pip install visu
 
@@ -41,11 +26,11 @@ pip install visu
 
 
 @author: juliengautier
-version : 2021.12
+version : 2022.09
 """
 
 __author__='julien Gautier'
-__version__='2020.04'
+__version__='2022.09'
 
 try :
     from PyQt6.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLayout
@@ -55,12 +40,7 @@ try :
     from PyQt6.QtCore import Qt
     from PyQt6 import QtGui 
 except ImportError:
-    from PyQt5.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget
-    from PyQt5.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
-    from pyqtgraph.Qt import QtCore
-    from PyQt5.QtCore import Qt
-    from PyQt5.QtGui import QIcon
-    from PyQt5 import QtGui 
+    print('error import PyQt6 you can try to use pyQt5 branch')
 
 import sys,time
 import pathlib,os
@@ -184,15 +164,15 @@ class CAMERA(QWidget):
         self.camID=self.conf.value(self.nbcam+"/camId")
         print(self.nbcam,':',self.ccdName,'Type:',self.cameraType)
         
-        if self.cameraType=="guppy" :
-            try :
-                import guppyCam
-                self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
-                self.CAM.openCamByID(self.camID)
-                self.isConnected=self.CAM.isConnected
-            except :
-                print("no allied vision camera detected or vimba is not installed")
-                pass
+        # if self.cameraType=="guppy" :
+        #     try :
+        #         import guppyCam
+        #         self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+        #         self.CAM.openCamByID(self.camID)
+        #         self.isConnected=self.CAM.isConnected
+        #     except :
+        #         print("no allied vision camera detected or vimba is not installed")
+        #         pass
         
             
         if self.cameraType=="allied" :
@@ -375,16 +355,16 @@ class CAMERA(QWidget):
             self.camID=""
             self.nbcam='camDefault'
              
-        elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
-            self.nbcam='camDefault'
+        # elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
+        #     self.nbcam='camDefault'
             
-            self.cameraType="guppy"
-            self.ccdName='First guppy Cam'
-            import guppyCam 
+        #     self.cameraType="guppy"
+        #     self.ccdName='First guppy Cam'
+        #     import guppyCam 
             
-            self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
-            self.CAM.openFirstCam()
-            self.isConnected=self.CAM.isConnected
+        #     self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
+        #     self.CAM.openFirstCam()
+        #     self.isConnected=self.CAM.isConnected
         
         elif self.nbcam=="firstAllied": # open the first guppy cam in the list
             self.nbcam='camDefault'
@@ -757,9 +737,10 @@ class CAMERA(QWidget):
         '''
         if self.multi==True:
             self.wait(0.1)
-            
+           
         self.data=data
         self.signalData.emit(self.data)
+        
         # self.visualisation.newDataReceived(self.data)
         self.imageReceived=True
         # self.datareceived.emit(True)
@@ -896,7 +877,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=True,multi=False)#,confpath=path  )
+    e = CAMERA(cam='menu',fft='off',meas='on',affLight=False,aff='right',separate=True,multi=False)#,confpath=path  )
     e.show()
     
     appli.exec_()       

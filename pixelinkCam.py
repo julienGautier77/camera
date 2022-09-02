@@ -24,10 +24,7 @@ try :
     from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
     from PyQt6 import QtCore
 except ImportError:
-    from PyQt5.QtWidgets import QApplication,QWidget
-    from PyQt5.QtWidgets import QInputDialog
-    from pyqtgraph.Qt import QtCore
-    from PyQt5.QtCore import Qt
+    print('import error PyQt6')
 import sys,time
 import numpy as np
 
@@ -89,7 +86,7 @@ class PIXELINK (QtCore.QThread):
         
         items=camAvailable()
            
-        item, ok = QInputDialog.getItem(self, "Select Pixelink camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+        item, ok = QInputDialog.getItem(self, "Select Pixelink camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             
         if ok and item:
             items=list(items)

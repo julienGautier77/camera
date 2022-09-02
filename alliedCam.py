@@ -12,7 +12,7 @@ getCamID(index)
 
     return the ID of the camera 
 
-class GUPPY :
+class ALLIEDVISION :
     
     Parameters
         ----------
@@ -34,10 +34,7 @@ try :
     from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
     from PyQt6 import QtCore
 except ImportError:
-
-    from PyQt5.QtWidgets import QWidget,QInputDialog
-    from pyqtgraph.Qt import QtCore
-    from PyQt5 import QtGui 
+    print('error import pyQt6')
     
 import time,sys
 import numpy as np
@@ -447,6 +444,7 @@ class ThreadRunAcq(QtCore.QThread):
                     #     self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
                     # # self.parent.cam0.stop_streaming()
                     try: 
+                        
                         frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
                         data=(frame.as_numpy_ndarray())
                         data=data[:,:,0]
@@ -454,10 +452,9 @@ class ThreadRunAcq(QtCore.QThread):
                 
                         if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
                     
-#                        data=np.rot90(data,3)    
-                
-                            self.newDataRun.emit(data)
 
+                            self.newDataRun.emit(data)
+                            
                     except:
                         pass
                     
