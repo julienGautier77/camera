@@ -140,7 +140,7 @@ class CAMERA(QWidget):
         
         
         
-        # self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5()) # qdarkstyle :  black windows style
+        # self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6')) # qdarkstyle :  black windows style
         
         if self.confpath==None:
             self.confpath=str(p.parent / confFile) # ini file with global path
@@ -172,7 +172,7 @@ class CAMERA(QWidget):
         self.openCam()
         self.setup()
         self.setCamPara()
-        #self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        #self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         
     def openID(self):
         '''
@@ -894,7 +894,7 @@ class CAMERA(QWidget):
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
-    appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
     e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=True,multi=False)#,confpath=path  )
     e.show()
