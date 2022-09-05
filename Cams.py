@@ -9,12 +9,12 @@ Modified on Fri March  11:06:56 2020
 4 cameras imaging source
 """
 
-import camera2 # class lecture 1 camera
-import CameraMotorLoop
+import camera# class lecture 1 camera
+
 import sys
-from PyQt5.QtWidgets import QGridLayout,QVBoxLayout,QWidget,QApplication,QGroupBox,QTabWidget
-from PyQt5.QtWidgets import QSizePolicy,QDockWidget
-from PyQt5.QtGui import QIcon
+from PyQt6.QtWidgets import QGridLayout,QVBoxLayout,QWidget,QApplication,QGroupBox,QTabWidget
+from PyQt6.QtWidgets import QSizePolicy,QDockWidget
+from PyQt6.QtGui import QIcon
 import qdarkstyle # pip install qdakstyle https://github.com/ColinDuquesnoy/QDarkStyleSheet a faire dans anaconda prompt
 import pathlib,os
 
@@ -29,16 +29,16 @@ class App4Cam(QWidget):
         self.setGeometry(self.left,self.top,self.width,self.height)
         self.setWindowTitle('Lolita CAMERAS' )
        
-        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         p = pathlib.Path(__file__)
         sepa=os.sep
         self.icon=str(p.parent) + sepa + 'icons' +sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.cam0 = camera2.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam1 =camera2.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam2 = camera2.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam3 =camera2.CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam0 = camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam1 =camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam2 = camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam3 =camera.CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
    
         self.cam=[self.cam0,self.cam1,self.cam2,self.cam3]
         self.setup()
@@ -55,23 +55,23 @@ class App4Cam(QWidget):
         self.dock0=QDockWidget(self)
         self.dock0.setWindowTitle(self.cam0.ccdName)
         self.dock0.setWidget(self.cam0)
-        self.dock0.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.dock0.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
 #        self.dock0.setWindowState(Qt::WindowFullScreen)
         
         self.dock1=QDockWidget(self)
         self.dock1.setWindowTitle(self.cam1.ccdName)
         self.dock1.setWidget(self.cam1)
-        self.dock1.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.dock1.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         
         self.dock2=QDockWidget(self)
         self.dock2.setWindowTitle(self.cam2.ccdName)
         self.dock2.setWidget(self.cam2)
-        self.dock2.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.dock2.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         
         self.dock3=QDockWidget(self)
         self.dock3.setWindowTitle(self.cam3.ccdName)
         self.dock3.setWidget(self.cam3)
-        self.dock3.setFeatures(QDockWidget.DockWidgetFloatable)
+        self.dock3.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetFloatable)
         
         grid_layout.addWidget(self.dock0, 0, 0)
         grid_layout.addWidget(self.dock1, 0, 1)
@@ -81,7 +81,7 @@ class App4Cam(QWidget):
         grid_layout.setContentsMargins(1,1,1,1)
         self.horizontalGroupBox=QGroupBox()
         self.horizontalGroupBox.setLayout(grid_layout)
-        self.horizontalGroupBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.horizontalGroupBox.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         windowLayout=QVBoxLayout()
         windowLayout.addWidget(self.horizontalGroupBox)

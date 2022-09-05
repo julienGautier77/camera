@@ -33,6 +33,7 @@ class ALLIEDVISION :
 try :
     from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
     from PyQt6 import QtCore
+    from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import pyQt6')
     
@@ -422,7 +423,7 @@ class ThreadRunAcq(QtCore.QThread):
     def frame_handler(self,cam, frame):
     
         cam.queue_frame(frame)
-    
+    #@pyqtSlot()
     def run(self):
         
         with vmb:
@@ -505,7 +506,7 @@ class ThreadOneAcq(QtCore.QThread):
             QApplication.processEvents()    
     def newRun(self):
         self.stopRunAcq=False
-        
+    #@pyqtSlot()    
     def run(self):
         
         print('run one')

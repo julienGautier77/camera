@@ -28,10 +28,7 @@ try :
     from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import PyQt6 ')
-    from PyQt5.QtWidgets import QInputDialog
-    from pyqtgraph.Qt import QtCore
-    from PyQt5.QtCore import QMutex
-    from PyQt5.QtCore import pyqtSlot
+    
 
 import time
 import numpy as np
