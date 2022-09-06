@@ -143,11 +143,11 @@ class MainWindows(QWidget):
         self.tabs=QTabWidget()
         self.tabs.setContentsMargins(1,1,1,1)
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.tab0=CameraMotorLoop.CAMERAMOTOR(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu,loop=True)
-        self.tab1=camera2.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab2=camera2.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab3=camera2.CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab4=CameraMotorLoop.CAMERAMOTOR(cam='cam5',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu,loop=True)
+        self.tab0=camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)
+        self.tab1=camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab2=camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab3=camera.CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.tab4=camera.CAMERA(cam='cam5',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)
 #        self.tab2=App4Cam()
 
         self.tabs.addTab(self.tab0,self.tab0.ccdName)
@@ -155,7 +155,7 @@ class MainWindows(QWidget):
         self.tabs.addTab(self.tab2,self.tab2.ccdName)
         self.tabs.addTab(self.tab3,self.tab3.ccdName)
         self.tabs.addTab(self.tab4,self.tab4.ccdName)
-        #self.tabs.addTab(self.tab2,'    P3    ')
+        
 
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)

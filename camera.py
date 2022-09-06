@@ -877,7 +877,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='menu',fft='off',meas='on',affLight=False,aff='right',separate=True,multi=False)#,confpath=path  )
+    e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=True,multi=False)#,confpath=path  )
     e.show()
     
     appli.exec_()       
