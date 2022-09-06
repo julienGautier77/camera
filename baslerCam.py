@@ -332,7 +332,8 @@ class ThreadRunAcq(QtCore.QThread):
         
     def newRun(self):
         self.stopRunAcq=False
-        
+
+    @pyqtSlot()   
     def run(self):
         self.mutex=QMutex()
         while self.stopRunAcq is not True :
@@ -390,6 +391,7 @@ class ThreadOneAcq(QtCore.QThread):
     def newRun(self):
         self.stopRunAcq=False
         
+    @pyqtSlot()   
     def run(self):
         self.newStateCam.emit(True)
         

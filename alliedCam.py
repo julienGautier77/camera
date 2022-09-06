@@ -423,7 +423,9 @@ class ThreadRunAcq(QtCore.QThread):
     def frame_handler(self,cam, frame):
     
         cam.queue_frame(frame)
-    #@pyqtSlot()
+
+        
+    @pyqtSlot()
     def run(self):
         
         with vmb:

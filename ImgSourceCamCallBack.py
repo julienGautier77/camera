@@ -311,21 +311,22 @@ class ThreadRunAcq(QtCore.QThread):
         self.cam0 = self.parent.cam0
         self.stopRunAcq=False
         # self.itrig= self.parent.itrig
-        self.mutex=QtCore.QMutex()
+        # self.mutex=QtCore.QMutex()
     def __del__(self):
         self.wait()   
         
     def newRun(self):
         
         self.stopRunAcq=False
-        
+
+    @pyqtSlot()   
     def run(self):
         self.itrig= self.parent.itrig
         self.cam0.reset_frame_ready()
         self.cam0.SetContinuousMode(0)
         self.cam0.StartLive(0)
         
-        self.cam0.enable_trigger(True)
+        # self.cam0.enable_trigger(True)
         
         
         if not self.cam0.callback_registered:
@@ -333,12 +334,12 @@ class ThreadRunAcq(QtCore.QThread):
             
         
         while self.stopRunAcq is not True :
-            self.mutex.lock()
+            # self.mutex.lock()
             self.cam0.reset_frame_ready()
             if self.stopRunAcq:
                 break
-            if self.itrig=="off": # if no harware trigger we send a soft trigger
-                self.cam0.send_trigger()
+            # if self.itrig=="off": # if no harware trigger we send a soft trigger
+            #     self.cam0.send_trigger()
                 # print('soft trig send')
             # self.cam0.SnapImage()
             
@@ -354,7 +355,7 @@ class ThreadRunAcq(QtCore.QThread):
             if np.max(self.data)>0:
                 self.newDataRun.emit(self.data)
                
-            self.mutex.unlock()  
+            # self.mutex.unlock()  
          
             
     def stopThreadRunAcq(self):
@@ -382,7 +383,8 @@ class ThreadOneAcq(QtCore.QThread):
         
     def newRun(self):
         self.stopRunAcq=False
-        
+
+    @pyqtSlot()   
     def run(self):
         
         self.newStateCam.emit(True)
@@ -398,8 +400,8 @@ class ThreadOneAcq(QtCore.QThread):
                 break
             if self.stopRunAcq is not True :
                 
-                if self.itrig=='off' : # si cam pas en mode trig externe on envoi un trig soft...
-                    self.cam0.send_trigger()
+                # if self.itrig=='off' : # si cam pas en mode trig externe on envoi un trig soft...
+                #     self.cam0.send_trigger()
                
                 self.cam0.wait_til_frame_ready(2000000)
                 data1 = self.cam0.GetImage() 
