@@ -34,9 +34,10 @@ try :
     from PyQt6.QtWidgets import QWidget,QInputDialog
     from PyQt6 import QtCore,QtGui
 except ImportError:
+    print('import error pyqt6 ')
     from PyQt5.QtWidgets import QApplication,QWidget
 
-from pyqtgraph.Qt import QtCore
+
 
 import sys,time
 import numpy as np

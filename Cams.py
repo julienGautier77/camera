@@ -6,7 +6,7 @@ Camera Imaging sources
 Modified on Fri March  11:06:56 2020
 @author: loa Julien Gautier
 
-4 cameras imaging source
+4 cameras in a main tab and a windows with 3 tab = 12 cameras control  
 """
 
 import camera# class lecture 1 camera

@@ -3,14 +3,19 @@
 """
 Created on Tue Mar 22 11:24:01 2022
 
+Create a message with the list of camera connected (Basler allied vision imaging source, pixelink)
+Add in the config file the parameter for the cam choosed
+Generate a .py to run the new camera
+
+
 @author: gautier
 """
 
 from camera import CAMERA
 
-from PyQt5.QtWidgets import QApplication,QWidget
-from PyQt5.QtWidgets import QInputDialog
-from pyqtgraph.Qt import QtCore
+from PyQt6.QtWidgets import QApplication,QWidget,QMessageBox
+from PyQt6.QtWidgets import QInputDialog
+from PyQt6 import QtCore
 import sys
 import pathlib
 
@@ -70,7 +75,7 @@ class NEWCAM(QWidget):
         
         items=self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
         
-        item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+        item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
         
         if ok and item:
             
@@ -107,28 +112,35 @@ class NEWCAM(QWidget):
 
             
             else:
-                 self.isconnected=False
+                 self.isConnected=False
                  print('No camera choosen')
                  self.ccdName="no camera"
                  self.nbcam='camDefault'
+                 messError=QMessageBox.warning(self,'Warning',' No camera connected or choosed')
+                 
+                 messError.exec()
         else :
-            self.isconnected=False
-            print('No camera choosen')
+            self.isConnected=False
+            print('No camera choose')
             self.ccdName="no camera"
             self.cameraType=""
             self.camID=""
             self.nbcam='camDefault'
+            messError=QMessageBox.warning(self,'Warning',' No camera connected or choosed')
             
+            
+            messError.exec()
             
         if self.isConnected==True:
-            item, ok = QInputDialog.getText(self, "Chose a name","Name ?: ",flags=QtCore.Qt.WindowStaysOnTopHint)
+            item, ok = QInputDialog.getText(self, "Choose a camera name","Name ?: ",flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             p = pathlib.Path(__file__)
             self.nbcam=item
             self.confpath=str(p.parent / 'confCamera.ini') # ini file with global path
         
-            self.conf=QtCore.QSettings(self.confpath, QtCore.QSettings.IniFormat) # ini file 
+            self.conf=QtCore.QSettings(self.confpath, QtCore.QSettings.Format.IniFormat) # ini file 
         
-           
+            # create a new camera in the config file 
+
             self.conf.setValue(self.nbcam+"/LineTrigger","InputLines")
             self.conf.setValue(self.nbcam+"/bgPath","C:/Users/loa/Dropbox (LOA)/Programmes Python/acquisitionPrinceton/data")
             self.conf.setValue(self.nbcam+"/bloqKeyboard","true")
@@ -170,7 +182,30 @@ class NEWCAM(QWidget):
             self.conf.setValue(self.nbcam+"/yec",10)
             self.conf.sync()      
         
-        
+            # create a .py file named namecamera.py to run the camera 
+            fichierName=self.nbcam+'.py'
+
+            strCam="     e = CAMERA(cam="+self.nbcam+")"
+
+            lines=['# import','from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
+
+            lines2=['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
+            lines3=[strCam,"     e.show()","     appli.exec_()"]
+
+            
+            with open(fichierName, "w") as fichier:
+                fichier.write('\n'.join(lines))
+
+                fichier.write('\n'.join(lines2))
+                fichier.write('\n'.join(lines3))
+            messError=QMessageBox(self)
+            messError.setWindowTitle("Python file created ")
+            messError.setText("the python file to run the camera has beeb created:   "+str(p.parent)+"/"+fichierName+"   double click on it to run ")
+            messError.exec()
+        else :
+            messError=QMessageBox(self)
+            messError.setWindowTitle("ERROR ")
+            messError.setText("No camera connected")
         
 if __name__ == "__main__":       
     

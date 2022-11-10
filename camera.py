@@ -290,7 +290,7 @@ class CAMERA(QWidget):
             
             items=self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
             
-            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             
             if ok and item:
                 
@@ -422,7 +422,7 @@ class CAMERA(QWidget):
             self.groups=self.conf.childGroups()
             for groups in self.groups:
                 self.groupsName.append(self.conf.value(groups+"/nameCDD"))
-            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", self.groupsName, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
+            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", self.groupsName, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             if ok and item:
                 indexItem = self.groupsName.index(item)
                 self.nbcam=self.groups[indexItem]
@@ -729,7 +729,7 @@ class CAMERA(QWidget):
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QtGui.QApplication.processEvents()    
+            QApplication.processEvents()    
     
     def Display(self,data):
         '''Display data with visualisation module
