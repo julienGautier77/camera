@@ -103,7 +103,7 @@ class CAMERA(QWidget):
         if "separate" in kwds:
             self.separate=kwds["separate"]
         else: 
-            self.separate=True
+            self.separate=False
             
         if "aff" in kwds: #  affi of Visu
             self.aff=kwds["aff"]
@@ -487,17 +487,17 @@ class CAMERA(QWidget):
             """
             self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
             
-            self.camNameLabel=QLabel('nomcam',self)
+    #         self.camNameLabel=QLabel('nomcam',self)
             
-            self.camNameLabel.setText(self.ccdName)
+    #         self.camNameLabel.setText(self.ccdName)
 
-            self.camNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.camNameLabel.setMaximumHeight(80)
-            self.camNameLabel.setStyleSheet('font: bold 24px;color: purple')
-    #        self.camNameLabel.setStyleSheet('')
+    #         self.camNameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    #         self.camNameLabel.setMaximumHeight(80)
+    #         self.camNameLabel.setStyleSheet('font: bold 24px;color: purple')
+    # #        self.camNameLabel.setStyleSheet('')
             
             vbox1=QVBoxLayout() # 
-            vbox1.addWidget(self.camNameLabel)
+            # vbox1.addWidget(self.camNameLabel)
             
             
             
@@ -546,7 +546,7 @@ class CAMERA(QWidget):
             
             vbox1.addLayout(hbox1)
             vbox1.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-            vbox1.setContentsMargins(0, 0, 0, 10)
+            vbox1.setContentsMargins(0, 20, 10, 10)
             # vbox1.addSpacing(0)
             # vbox1.addStretch(1)
             self.widgetControl=QWidget(self)
@@ -567,7 +567,7 @@ class CAMERA(QWidget):
             self.itrig=self.trigg.currentIndex()
             hbox2=QHBoxLayout()
             hbox2.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-            hbox2.setContentsMargins(0, 10, 0, 0)
+            hbox2.setContentsMargins(0, 20, 10, 10)
             hbox2.addWidget(self.labelTrigger)
             
             hbox2.addWidget(self.trigg)
@@ -589,7 +589,7 @@ class CAMERA(QWidget):
             self.shutterBox.setMaximumWidth(120)
             
             hboxShutter=QHBoxLayout()
-            hboxShutter.setContentsMargins(0, 0, 0, 0)
+            hboxShutter.setContentsMargins(0, 0, 0, 5)
             hboxShutter.setSpacing(10)
             vboxShutter=QVBoxLayout()
             vboxShutter.setSpacing(0)
@@ -599,7 +599,7 @@ class CAMERA(QWidget):
             hboxShutter.addWidget(self.shutterBox)
             vboxShutter.addLayout(hboxShutter)
             vboxShutter.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
-            vboxShutter.setContentsMargins(0, 2, 0, 0)
+            vboxShutter.setContentsMargins(0, 0, 10, 0)
             vboxShutter.setSpacing(2)
             
             self.widgetShutter=QWidget(self)
@@ -621,7 +621,7 @@ class CAMERA(QWidget):
             self.gainBox.setMaximumWidth(120)
             
             hboxGain=QHBoxLayout()
-            hboxGain.setContentsMargins(0, 0, 0, 0)
+            hboxGain.setContentsMargins(0, 0, 0, 5)
             hboxGain.setSpacing(10)
             vboxGain=QVBoxLayout()
             vboxGain.setSpacing(0)
@@ -632,7 +632,7 @@ class CAMERA(QWidget):
             vboxGain.addLayout(hboxGain)
             vboxGain.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
             
-            vboxGain.setContentsMargins(0, 5, 0, 0)
+            vboxGain.setContentsMargins(0, 0, 10, 0)
             vboxGain.setSpacing(2)
             self.widgetGain=QWidget(self)
             self.widgetGain.setLayout(vboxGain)
@@ -877,7 +877,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=True,multi=False)#,confpath=path  )
+    e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=False,multi=False)#,confpath=path  )
     e.show()
     
     appli.exec_()       

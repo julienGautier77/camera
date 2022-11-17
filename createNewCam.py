@@ -185,7 +185,7 @@ class NEWCAM(QWidget):
             # create a .py file named namecamera.py to run the camera 
             fichierName=self.nbcam+'.py'
 
-            strCam="     e = CAMERA(cam="+self.nbcam+")"
+            strCam="     e = CAMERA(cam='" +self.nbcam + "')"
 
             lines=['# import','from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
 
