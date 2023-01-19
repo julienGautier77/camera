@@ -37,8 +37,9 @@ try :
     from PyQt6.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
     from PyQt6 import QtCore
     from PyQt6.QtGui import QIcon
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtCore import Qt,QTimer
     from PyQt6 import QtGui 
+    from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import PyQt6 you can try to use pyQt5 branch')
 
@@ -52,7 +53,8 @@ version=str(__version__)
 
 class CAMERA(QWidget):
     # datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
-    signalData=QtCore.pyqtSignal(object) # signal emited when receive image
+    signalData=QtCore.pyqtSignal(object) # signal emited when receive image*
+    signalRunning=QtCore.pyqtSignal(object) # signal emited when running cam state change
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
         Parameters
@@ -152,6 +154,9 @@ class CAMERA(QWidget):
         self.openCam()
         self.setup()
         self.setCamPara()
+        # self.timer=QTimer()
+        # self.timer.timeout.connect(self.affTimer)
+        # self.timer.start(100)
         #self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         
     def openID(self):
@@ -710,7 +715,7 @@ class CAMERA(QWidget):
         self.CAM.newData.connect(self.Display)
         self.CAM.endAcq.connect(self.stopAcq)#,QtCore.Qt.DirectConnection)
         # self.TrigSoft.clicked.connect(self.softTrigger)
-    
+        self.CAM.signalRunning.connect(self.camIsRunning)
     
     def oneImage(self):
         #self.nbShot=1
@@ -740,13 +745,25 @@ class CAMERA(QWidget):
            
         self.data=data
         self.signalData.emit(self.data)
-        
+        self.isRunning=False # we receive a data
         # self.visualisation.newDataReceived(self.data)
         self.imageReceived=True
         # self.datareceived.emit(True)
-        if self.CAM.camIsRunnig==False:
+        if self.CAM.camIsRunning==False:
             self.stopAcq()
-              
+    @pyqtSlot() 
+    def camIsRunning(self):
+        self.isCamRunning=self.CAM.camIsRunning
+        print('emit in camera',self.isCamRunning)
+        self.signalRunning.emit(self.isCamRunning)
+        return(self.isCamRunning)
+
+    def affTimer(self):
+        a=self.camIsRunning()
+        print('',a)
+    
+    
+    
     def shutter (self):
         '''
         set exposure time 
@@ -877,7 +894,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='menu',fft='off',meas='on',affLight=True,aff='right',separate=False,multi=False)#,confpath=path  )
+    e = CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='right',separate=True,multi=False)#,confpath=path  )
     e.show()
     
     appli.exec_()       

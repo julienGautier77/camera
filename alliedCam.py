@@ -103,6 +103,7 @@ class ALLIEDVISION (QWidget):
     
     newData=QtCore.pyqtSignal(object)
     endAcq=QtCore.pyqtSignal(bool)
+    signalRunning=QtCore.pyqtSignal(bool)
     def __init__(self,cam='camDefault',**kwds):
         
         super(ALLIEDVISION,self).__init__()
@@ -114,7 +115,7 @@ class ALLIEDVISION (QWidget):
         else :
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         self.camParameter=dict()
-        self.camIsRunnig=False
+        self.camIsRunning=False
         self.nbShot=1
         self.items=cameraIds
   
@@ -273,7 +274,7 @@ class ALLIEDVISION (QWidget):
         
         self.threadRunAcq=ThreadRunAcq(self)
         self.threadRunAcq.newDataRun.connect(self.newImageReceived)
-        
+        self.threadRunAcq.newStateCam.connect(self.stateCam)
         self.threadOneAcq=ThreadOneAcq(self)
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)#,QtCore.Qt.DirectConnection)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
@@ -335,13 +336,13 @@ class ALLIEDVISION (QWidget):
                 self.camParameter["trigger"]=self.cam0.TriggerMode.get()
         
     def startAcq(self):
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadRunAcq.newRun() # to set stopRunAcq=False
         self.threadRunAcq.start()
     
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadOneAcq.newRun() # to set stopRunAcq=False
         self.threadOneAcq.start()
         
@@ -379,7 +380,7 @@ class ALLIEDVISION (QWidget):
         #    with self.cam0:
         #        stop=self.cam0.get_feature_by_name('AcquisitionStop')
         #        stop.run()
-        self.camIsRunnig=False  
+        self.camIsRunning=False  
             
     def newImageReceived(self,data):
         
@@ -388,8 +389,9 @@ class ALLIEDVISION (QWidget):
     
         
     def stateCam(self,state):
-        self.camIsRunnig=state
-    
+        self.camIsRunning=state
+        self.signalRunning.emit(state)
+
     def closeCamera(self):
         self.stopAcq()
         # self.cam0.close()
@@ -406,7 +408,7 @@ class ThreadRunAcq(QtCore.QThread):
     '''Second thread for controling continus acquisition independtly
     '''
     newDataRun=QtCore.pyqtSignal(object)
-    
+    newStateCam=QtCore.pyqtSignal(bool)
     def __init__(self, parent):
         
         super(ThreadRunAcq,self).__init__(parent)
@@ -447,7 +449,7 @@ class ThreadRunAcq(QtCore.QThread):
                     #     self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
                     # # self.parent.cam0.stop_streaming()
                     try: 
-                        
+                        self.newStateCam.emit(True)
                         frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
                         data=(frame.as_numpy_ndarray())
                         data=data[:,:,0]
@@ -457,6 +459,7 @@ class ThreadRunAcq(QtCore.QThread):
                     
 
                             self.newDataRun.emit(data)
+                            self.newStateCam.emit(False) #cam is not reading
                             
                     except:
                         pass
@@ -508,7 +511,7 @@ class ThreadOneAcq(QtCore.QThread):
             QApplication.processEvents()    
     def newRun(self):
         self.stopRunAcq=False
-    #@pyqtSlot()    
+    @pyqtSlot()    
     def run(self):
         
         print('run one')
