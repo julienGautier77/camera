@@ -106,7 +106,7 @@ class IMGSOURCE (QtCore.QThread):
         else:
             self.multi=False    
         self.camParameter=dict()
-        self.camIsRunnig=False
+        self.camIsRunning=False
         self.nbShot=1
         self.Camera = IC.TIS_CAM()
         self.cam0=self.Camera
@@ -265,14 +265,14 @@ class IMGSOURCE (QtCore.QThread):
             
     def startAcq(self):
         
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadRunAcq.newRun()# to set stopRunAcq=False
         self.threadRunAcq.start()
         
         
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadOneAcq.newRun() # to set stopRunAcq=False
         self.threadOneAcq.start()
         
@@ -283,7 +283,7 @@ class IMGSOURCE (QtCore.QThread):
             self.threadRunAcq.terminate()
             
         self.threadOneAcq.stopThreadOneAcq()
-        self.camIsRunnig=False  
+        self.camIsRunning=False  
             
     def newImageReceived(self,data):
         
@@ -292,7 +292,7 @@ class IMGSOURCE (QtCore.QThread):
         
         
     def stateCam(self,state):
-        self.camIsRunnig=state
+        self.camIsRunning=state
     
     def closeCamera(self):
         self.cam0.close()

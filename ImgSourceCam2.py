@@ -98,7 +98,7 @@ class IMGSOURCE (QWidget):
         else:
             self.conf=conf
         self.camParameter=dict()
-        self.camIsRunnig=False
+        self.camIsRunning=False
         self.nbShot=1
     
         self.cam0=Camera
@@ -251,13 +251,13 @@ class IMGSOURCE (QWidget):
             self.itrig='off'
             
     def startAcq(self):
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadRunAcq.newRun() # to set stopRunAcq=False
         self.threadRunAcq.start()
     
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadOneAcq.newRun() # to set stopRunAcq=False
         self.threadOneAcq.start()
         
@@ -265,7 +265,7 @@ class IMGSOURCE (QWidget):
         
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
-        self.camIsRunnig=False  
+        self.camIsRunning=False  
             
     def newImageReceived(self,data):
         
@@ -274,7 +274,7 @@ class IMGSOURCE (QWidget):
     
         
     def stateCam(self,state):
-        self.camIsRunnig=state
+        self.camIsRunning=state
     
     def closeCamera(self):
         self.cam0.close()

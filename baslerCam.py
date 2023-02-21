@@ -84,7 +84,7 @@ class BASLER (QtCore.QThread):
             self.multi=False   
             
         self.camParameter=dict()
-        self.camIsRunnig=False
+        self.camIsRunning=False
         self.nbShot=1
         self.isConnected=False
         
@@ -269,7 +269,7 @@ class BASLER (QtCore.QThread):
         '''Acquistion in live mode
         '''
         
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadRunAcq.newRun() # to set stopRunAcq=False
         self.threadRunAcq.start()
     
@@ -278,7 +278,7 @@ class BASLER (QtCore.QThread):
         '''
         
         self.nbShot=nbShot 
-        self.camIsRunnig=True
+        self.camIsRunning=True
         self.threadOneAcq.newRun() # to set stopRunAcq=False
         self.threadOneAcq.start()
         
@@ -303,7 +303,7 @@ class BASLER (QtCore.QThread):
         '''state of camera : True is running False : is stopped
         '''
         
-        self.camIsRunnig=state
+        self.camIsRunning=state
         
     def endAcquisition(self):
         self.endAcq.emit(True)
