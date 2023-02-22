@@ -2,35 +2,43 @@
 """
 Created on Tue Mar 24 10:59:16 2020
 
-a Python user interface for camera allied vison, ImgingSource, Balser 
+a Python user interface for camera allied vison, ImgingSource, Balser ,pixelink ,ids 
 
 
-install aliiedVision SDK (https://www.alliedvision.com/en/products/software.html)
+
 
 on conda prompt :
+
+pip install git+https//github.com/julienGautier77/visu
+
     for allied vision camera :
-pip install pymba (https://github.com/morefigs/pymba.git ) 
-#  Encrease timeout :
-  #change in File "C:\ProgramData\Anaconda3\lib\site-packages\pymba\camera.py
-  #  def acquire_frame(self, timeout_ms: Optional[int] = 200000000) -> Frame: 
+    install aliiedVision SDK (https://www.alliedvision.com/en/products/software.html)
+    pip install git+https://github.com/alliedvision/VimbaPython
 
     for Basler camera :
-pip install pypylon: https://github.com/basler/pypylon 
+        pip install pypylon: https://github.com/basler/pypylon 
+    
+    for imagingSource:
+        all is the dll folder
+    
+    for IdS camera :
+        pip install pyueye
+    
+    for pixelink 
+        all is the dll folder
 
-pip install qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
-pip install pyqtgraph (https://github.com/pyqtgraph/pyqtgraph.git)
 
-pip install visu
+
 
 
 
 
 @author: juliengautier
-version : 2022.09
+version : 2023.02
 """
 
 __author__='julien Gautier'
-__version__='2022.09'
+
 
 try :
     from PyQt6.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLayout
@@ -52,9 +60,11 @@ __version__=__init__.__version__
 version=str(__version__)
 
 class CAMERA(QWidget):
-    # datareceived=QtCore.pyqtSignal(bool) # signal emited when receive image
+    
+
     signalData=QtCore.pyqtSignal(object) # signal emited when receive image*
     signalRunning=QtCore.pyqtSignal(object) # signal emited when running cam state change
+
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
         Parameters
@@ -63,7 +73,7 @@ class CAMERA(QWidget):
             DESCRIPTION. 
                 cam='choose' : generate a input dialog box which the list of all the camera connected (allied,basler,imagingSource) 
                 cam='cam1' : open the camera by the ID and type save in the confFile.ini 
-                ncam='menu': generate a input dialog box with a menu with all the camera name present in the .ini file
+                cam='menu': generate a input dialog box with a menu with all the camera name present in the .ini file
                 cam='firstGuppy' open the first allied vision camera
                 cam='firstBasler' open the first Basler camera
                 cam='firstImgSource' open the first ImagingSource camera
@@ -96,7 +106,8 @@ class CAMERA(QWidget):
         if "affLight" in kwds:
             self.light=kwds["affLight"]
         else:
-            self.light=True
+            self.light=False
+
         if "multi" in kwds:
             self.multi=kwds["multi"]
         else:
@@ -120,22 +131,16 @@ class CAMERA(QWidget):
         
         
         
-        
-        
-        # self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6')) # qdarkstyle :  black windows style
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6')) # qdarkstyle :  black windows style
         
         if self.confpath==None:
             self.confpath=str(p.parent / confFile) # ini file with global path
         
         self.conf=QtCore.QSettings(self.confpath, QtCore.QSettings.Format.IniFormat) # ini file 
-        
-        
         self.kwds["confpath"]=self.confpath
         
         
-        
         sepa=os.sep
-        
         self.icon=str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.iconPlay=self.icon+'Play.png'
@@ -149,15 +154,13 @@ class CAMERA(QWidget):
         self.iconSnap=pathlib.PurePosixPath(self.iconSnap)
         self.nbShot=1
         self.isConnected=False
+
         self.version=str(__version__)
         
         self.openCam()
         self.setup()
         self.setCamPara()
-        # self.timer=QTimer()
-        # self.timer.timeout.connect(self.affTimer)
-        # self.timer.start(100)
-        #self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
+        
         
     def openID(self):
         '''
@@ -182,10 +185,8 @@ class CAMERA(QWidget):
             
         if self.cameraType=="allied" :
             try :
-                
                 import alliedCam
-                
-                self.CAM=alliedCam.ALLIEDVISION (cam=self.nbcam,conf=self.conf)
+                self.CAM=alliedCam.ALLIEDVISION (cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
             except :
@@ -203,18 +204,16 @@ class CAMERA(QWidget):
                 pass
         
         elif self.cameraType=="imgSource":
-            
             try :
                 import ImgSourceCamCallBack
                 self.CAM=ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
-                # print('openID',self.camID)
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
                 pass
+
         elif self.cameraType=="pixelink":
-            
             try :
                 import pixelinkCam
                 self.CAM=pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
@@ -222,10 +221,9 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
-           
-            pass
+                pass
+
         elif self.cameraType=="ids":
-            
             try :
                 import idsCam
                 self.CAM=idsCam.IDS(cam=self.nbcam,conf=self.conf,**self.kwds)
@@ -360,25 +358,15 @@ class CAMERA(QWidget):
             self.camID=""
             self.nbcam='camDefault'
              
-        # elif self.nbcam=="firstGuppy": # open the first guppy cam in the list
-        #     self.nbcam='camDefault'
-            
-        #     self.cameraType="guppy"
-        #     self.ccdName='First guppy Cam'
-        #     import guppyCam 
-            
-        #     self.CAM=guppyCam.GUPPY(cam=self.nbcam,conf=self.conf)
-        #     self.CAM.openFirstCam()
-        #     self.isConnected=self.CAM.isConnected
         
-        elif self.nbcam=="firstAllied": # open the first guppy cam in the list
+        elif self.nbcam=="firstAllied": # open the first allied camera  cam in the list
             self.nbcam='camDefault'
             
             self.cameraType="allied"
             self.ccdName='First allied Cam'
             import alliedCam
             
-            self.CAM=alliedCam.ALLIEDVISION(cam=self.nbcam,conf=self.conf)
+            self.CAM=alliedCam.ALLIEDVISION(cam=self.nbcam,conf=self.conf,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected    
         
@@ -410,14 +398,12 @@ class CAMERA(QWidget):
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected      
         
-        elif self.nbcam=="firstIds": # open the first guppy cam in the list
+        elif self.nbcam=="firstIds": # open the first ids cam in the list
             self.nbcam='camDefault'
-            
             self.cameraType="ids"
             self.ccdName='First ids Cam'
             import idsCam
-            
-            self.CAM=idsCam.IDS(cam=self.nbcam,conf=self.conf)
+            self.CAM=idsCam.IDS(cam=self.nbcam,conf=self.conf,**self.kwds)
             self.CAM.openFirstCam()
             self.isConnected=self.CAM.isConnected    
         
@@ -445,10 +431,7 @@ class CAMERA(QWidget):
         '''
         
         if self.isConnected==True: # if camera is connected we address min and max value  and value to the shutter and gain box
-            # print('camshutter',self.CAM.camParameter["exposureTime"])
-            # self.CAM.setTrigger("off")
-            
-            
+           
             if self.CAM.camParameter["expMax"]>1500: # we limit exposure time at 1500ms
                 self.hSliderShutter.setMaximum(1500)
                 self.shutterBox.setMaximum(1500)
@@ -461,8 +444,6 @@ class CAMERA(QWidget):
             self.hSliderShutter.setMinimum(int(self.CAM.camParameter["expMin"]+1))
             self.shutterBox.setMinimum(int(self.CAM.camParameter["expMin"]+1))
             
-            
-            
             self.hSliderGain.setMinimum(int(self.CAM.camParameter["gainMin"]))
             self.hSliderGain.setMaximum(int(self.CAM.camParameter["gainMax"]))
             self.hSliderGain.setValue(int(self.CAM.camParameter["gain"]))
@@ -472,7 +453,7 @@ class CAMERA(QWidget):
             
             self.actionButton()
             
-        if  self.isConnected==False:
+        if  self.isConnected==False: # no camera connected 
             self.setWindowTitle('Visualization         No camera connected      '   +  'v.  '+ self.version)
             self.runButton.setEnabled(False)
             self.snapButton.setEnabled(False)
@@ -504,11 +485,10 @@ class CAMERA(QWidget):
             vbox1=QVBoxLayout() # 
             # vbox1.addWidget(self.camNameLabel)
             
-            
-            
             hbox1=QHBoxLayout() # horizontal layout pour run snap stop
             self.sizebuttonMax=30
             self.sizebuttonMin=30
+
             self.runButton=QToolButton(self)
             self.runButton.setMaximumWidth(self.sizebuttonMax)
             self.runButton.setMinimumWidth(self.sizebuttonMax)
@@ -519,7 +499,6 @@ class CAMERA(QWidget):
             self.snapButton=QToolButton(self)
             self.snapButton.setPopupMode(QToolButton.ToolButtonPopupMode.MenuButtonPopup)
             menu=QMenu()
-            #menu.addAction('acq',self.oneImage)
             menu.addAction('set nb of shot',self.nbShotAction)
             self.snapButton.setMenu(menu)
             self.snapButton.setMaximumWidth(self.sizebuttonMax)
@@ -529,7 +508,6 @@ class CAMERA(QWidget):
             self.snapButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: transparent ;border-color: green;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"% (self.iconSnap,self.iconSnap) )
             
             self.stopButton=QToolButton(self)
-            
             self.stopButton.setMaximumWidth(self.sizebuttonMax)
             self.stopButton.setMinimumWidth(self.sizebuttonMax)
             self.stopButton.setMaximumHeight(self.sizebuttonMax)
@@ -543,19 +521,14 @@ class CAMERA(QWidget):
             hbox1.addWidget(self.stopButton)
             # hbox1.addStretch(10)
             hbox1.setSizeConstraint(QLayout.SizeConstraint.SetMaximumSize)#setFixedSize)#
-            
-            
             hbox1.setContentsMargins(0, 0, 0, 0)
-            
             hbox1.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            
             vbox1.addLayout(hbox1)
             vbox1.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
             vbox1.setContentsMargins(0, 20, 10, 10)
             # vbox1.addSpacing(0)
             # vbox1.addStretch(1)
             self.widgetControl=QWidget(self)
-            
             self.widgetControl.setLayout(vbox1)
             self.dockControl=QDockWidget(self)
             self.dockControl.setWidget(self.widgetControl)
@@ -574,10 +547,8 @@ class CAMERA(QWidget):
             hbox2.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
             hbox2.setContentsMargins(0, 20, 10, 10)
             hbox2.addWidget(self.labelTrigger)
-            
             hbox2.addWidget(self.trigg)
             self.widgetTrig=QWidget(self)
-            
             self.widgetTrig.setLayout(hbox2)
             self.dockTrig=QDockWidget(self)
             self.dockTrig.setWidget(self.widgetTrig)
@@ -611,8 +582,6 @@ class CAMERA(QWidget):
             self.widgetShutter.setLayout(vboxShutter)
             self.dockShutter=QDockWidget(self)
             self.dockShutter.setWidget(self.widgetShutter)
-            
-            
             
             self.labelGain=QLabel('Gain')
             self.labelGain.setStyleSheet('font :bold  10pt')
@@ -655,15 +624,14 @@ class CAMERA(QWidget):
             
             hMainLayout=QHBoxLayout()
             
-            if self.light==False:
+            if self.light==False: # light option : not all the option af visu 
                 from visu import SEE
                 self.visualisation=SEE(parent=self,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
             else:
                 from visu import SEELIGHT
                 
                 self.visualisation=SEELIGHT(parent=self,name=self.nbcam,**self.kwds)
-                
-                
+                    
             self.visualisation.setWindowTitle(self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
                 
             self.dockTrig.setTitleBarWidget(QWidget())        
@@ -671,7 +639,7 @@ class CAMERA(QWidget):
             self.dockShutter.setTitleBarWidget(QWidget())
             self.dockGain.setTitleBarWidget(QWidget())
             
-            if self.separate==True:
+            if self.separate==True: # control camera button is not on the menu but in a widget at the left or right of the display screen
                 self.dockTrig.setTitleBarWidget(QWidget())
                 if self.aff=='left':
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.dockControl)
@@ -689,9 +657,7 @@ class CAMERA(QWidget):
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockTrig)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockShutter)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockGain)
-                
-                
-                
+             
             hMainLayout.addWidget(self.visualisation)
             self.setLayout(hMainLayout)
             self.setContentsMargins(0, 0, 0, 0)
@@ -713,7 +679,7 @@ class CAMERA(QWidget):
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
         self.CAM.newData.connect(self.Display)
-        self.CAM.endAcq.connect(self.stopAcq)#,QtCore.Qt.DirectConnection)
+        self.CAM.endAcq.connect(self.stopAcq)
         # self.TrigSoft.clicked.connect(self.softTrigger)
         self.CAM.signalRunning.connect(self.camIsRunning)
     
@@ -734,8 +700,9 @@ class CAMERA(QWidget):
     def wait(self,seconds):
         time_end=time.time()+seconds
         while time.time()<time_end:
-            QApplication.processEvents()    
-    
+            QApplication.processEvents()  
+
+    @pyqtSlot() 
     def Display(self,data):
         '''Display data with visualisation module
         
@@ -746,29 +713,23 @@ class CAMERA(QWidget):
         self.data=data
         self.signalData.emit(self.data)
         self.isRunning=False # we receive a data
-        # self.visualisation.newDataReceived(self.data)
+        # self.visualisation.newDataReceived(self.data) # It can be use but is better to use signal than function
         self.imageReceived=True
         # self.datareceived.emit(True)
         if self.CAM.camIsRunning==False:
             self.stopAcq()
+
     @pyqtSlot() 
     def camIsRunning(self):
         self.isCamRunning=self.CAM.camIsRunning
         print('emit in camera',self.isCamRunning)
         self.signalRunning.emit(self.isCamRunning)
         return(self.isCamRunning)
-
-    def affTimer(self):
-        a=self.camIsRunning()
-        print('',a)
-    
-    
-    
+   
     def shutter (self):
         '''
         set exposure time 
         '''
-        
         sh=self.shutterBox.value() # 
         self.hSliderShutter.setValue(sh) # set value of slider
         time.sleep(0.1)
@@ -777,8 +738,6 @@ class CAMERA(QWidget):
         self.CAM.camParameter["exposureTime"]=sh
         self.conf.sync()
     
-    
-    
     def mSliderShutter(self): # for shutter slider 
         sh=self.hSliderShutter.value() 
         self.shutterBox.setValue(sh) # 
@@ -786,8 +745,7 @@ class CAMERA(QWidget):
         self.conf.setValue(self.nbcam+"/shutter",float(sh))
         self.CAM.camParameter["exposureTime"]=sh
         # self.conf.sync()
-        
-        
+      
     def gain (self):
         '''
         set gain
@@ -801,7 +759,7 @@ class CAMERA(QWidget):
     
     def mSliderGain(self):
         '''
-        set slider
+        set gain slider
 
         '''
         g=self.hSliderGain.value()
@@ -838,7 +796,6 @@ class CAMERA(QWidget):
         
         self.CAM.startOneAcq(self.nbShot)
         
-    
     def acquireMultiImage(self):    
         ''' 
             start the acquisition thread
@@ -853,7 +810,6 @@ class CAMERA(QWidget):
         self.trigg.setEnabled(False)
         
         self.CAM.startAcq() # start mutli image acquisition thread 
-        
         
     def stopAcq(self):
         
@@ -872,12 +828,9 @@ class CAMERA(QWidget):
         self.stopButton.setStyleSheet("QToolButton:!pressed{border-image: url(%s);background-color: gray ;border-color: gray;}""QToolButton:pressed{image: url(%s);background-color: gray ;border-color: gray}"%(self.iconStop,self.iconStop) )
         self.trigg.setEnabled(True)  
     
-    
-    
     def close(self):
         if self.isConnected==True:
             self.CAM.closeCamera()
-        
         
     def closeEvent(self,event):
         ''' closing window event (cross button)
@@ -887,14 +840,15 @@ class CAMERA(QWidget):
              time.sleep(0.1)
              self.close()
         self.visualisation.close()  
-            
+
+
+
             
 if __name__ == "__main__":       
     
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='right',separate=True,multi=False)#,confpath=path  )
+    e = CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confpath=path  )
     e.show()
-    
     appli.exec_()       

@@ -200,7 +200,7 @@ class NEWCAM(QWidget):
                 fichier.write('\n'.join(lines3))
             messError=QMessageBox(self)
             messError.setWindowTitle("Python file created ")
-            messError.setText("the python file to run the camera has beeb created:   "+str(p.parent)+"/"+fichierName+"   double click on it to run ")
+            messError.setText("The python file to run the camera has been created:   "+str(p.parent)+"/"+fichierName+"   double click on it to run ")
             messError.exec()
         else :
             messError=QMessageBox(self)
