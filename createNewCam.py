@@ -11,7 +11,7 @@ Generate a .py to run the new camera
 @author: gautier
 """
 
-from camera import CAMERA
+
 
 from PyQt6.QtWidgets import QApplication,QWidget,QMessageBox
 from PyQt6.QtWidgets import QInputDialog
