@@ -291,7 +291,7 @@ class ALLIEDVISION (QWidget):
                 with self.cam0:
                     exp=self.cam0.get_feature_by_name(self.camLanguage['exposure'])
                     exp.set(float(sh*1000))
-                    print('eeexp',exp.get())
+                    print('exp',exp.get())
                     exp.set(float(sh*1000)) # in gyppy ccd exposure time is microsecond
                     self.camParameter["exposureTime"]=int(exp.get())/1000
                     print("exposure time is set to",self.camParameter["exposureTime"],' micro s')
@@ -454,11 +454,12 @@ class ThreadRunAcq(QtCore.QThread):
                         data=(frame.as_numpy_ndarray())
                         data=data[:,:,0]
                         data=np.rot90(data,3)
-                
+                        
                         if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
                     
 
                             self.newDataRun.emit(data)
+                            
                             self.newStateCam.emit(False) #cam is not reading
                             
                     except:

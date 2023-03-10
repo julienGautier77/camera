@@ -702,7 +702,7 @@ class CAMERA(QWidget):
         while time.time()<time_end:
             QApplication.processEvents()  
 
-    @pyqtSlot() 
+    #@pyqtSlot() 
     def Display(self,data):
         '''Display data with visualisation module
         
@@ -711,7 +711,9 @@ class CAMERA(QWidget):
             self.wait(0.1)
            
         self.data=data
+
         self.signalData.emit(self.data)
+        time.sleep(0.1)
         self.isRunning=False # we receive a data
         # self.visualisation.newDataReceived(self.data) # It can be use but is better to use signal than function
         self.imageReceived=True
@@ -722,7 +724,7 @@ class CAMERA(QWidget):
     @pyqtSlot() 
     def camIsRunning(self):
         self.isCamRunning=self.CAM.camIsRunning
-        print('emit in camera',self.isCamRunning)
+        #print('emit in camera',self.isCamRunning)
         self.signalRunning.emit(self.isCamRunning)
         return(self.isCamRunning)
    
@@ -849,6 +851,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confpath=path  )
+    e = CAMERA(cam='tacheFocale',fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confpath=path  )
     e.show()
     appli.exec_()       
