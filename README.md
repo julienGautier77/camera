@@ -13,8 +13,7 @@ Works with different cameras types:
 
 -The imaging source (https://github.com/TheImagingSource/IC-Imaging-Control-Samples).  
 
--Allied technology (pip install pymba https://github.com/morefigs/pymba.git).  or pip instal git+https://github.com/alliedvision/VimbaPython (official library works with vimba 2.5.)
-vimba cameraType==allied"
+-Allied technology pip instal git+https://github.com/alliedvision/VimbaPython (official library works with vimba 2.5.)
 
 -IDS camera use pyueye (pip install pyueye)
 
