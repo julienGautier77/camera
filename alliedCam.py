@@ -33,7 +33,7 @@ class ALLIEDVISION :
 try :
     from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
     from PyQt6 import QtCore
-    from PyQt6.QtCore import pyqtSlot
+    #from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import pyQt6')
     
@@ -432,35 +432,22 @@ class ThreadRunAcq(QtCore.QThread):
         
         with vmb:
             with self.parent.cam0:
-                # self.parent.cam0.start_streaming()#self.frame_handler)
-                while self.stopRunAcq is not True :
-                    #print("streaming")
-                # frame=vimba.frame.Frame()
-                # handler=self.frame_handler(cam=self.parent.cam0,frame=frame)
                 
-                    
-                    
-                    # if self.parent.itrig=='off':
-                    #     self.parent.cam0.TriggerSource.set('Software')
-                        
-                    #     sofTrig=self.parent.cam0.get_feature_by_name('TriggerSoftware')
-                    #     sofTrig.run()
-                    # else :
-                    #     self.parent.cam0.TriggerSource.set(self.parent.LineTrigger)
-                    # # self.parent.cam0.stop_streaming()
+                while self.stopRunAcq is not True :
+                 
                     try: 
                         self.newStateCam.emit(True)
                         frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
                         data=(frame.as_numpy_ndarray())
                         data=data[:,:,0]
                         data=np.rot90(data,3)
-                        
+                        time.sleep(0.01)
                         if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
                     
 
                             self.newDataRun.emit(data)
                             
-                            self.newStateCam.emit(False) #cam is not reading
+                            #self.newStateCam.emit(False) #cam is not reading
                             
                     except:
                         pass
@@ -512,7 +499,7 @@ class ThreadOneAcq(QtCore.QThread):
             QApplication.processEvents()    
     def newRun(self):
         self.stopRunAcq=False
-    @pyqtSlot()    
+    #@pyqtSlot()    
     def run(self):
         
         print('run one')
