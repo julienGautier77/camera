@@ -681,7 +681,7 @@ class CAMERA(QWidget):
         self.CAM.newData.connect(self.Display)
         self.CAM.endAcq.connect(self.stopAcq)
         # self.TrigSoft.clicked.connect(self.softTrigger)
-        self.CAM.signalRunning.connect(self.camIsRunning)
+       # self.CAM.signalRunning.connect(self.camIsRunning)
     
     def oneImage(self):
         #self.nbShot=1
@@ -713,11 +713,11 @@ class CAMERA(QWidget):
         self.data=data
 
         self.signalData.emit(self.data)
-        time.sleep(0.1)
+        
         self.isRunning=False # we receive a data
         # self.visualisation.newDataReceived(self.data) # It can be use but is better to use signal than function
         self.imageReceived=True
-        # self.datareceived.emit(True)
+        #self.datareceived.emit(True)
         if self.CAM.camIsRunning==False:
             self.stopAcq()
 
@@ -851,6 +851,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='SpectroProsilica',fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confpath=path  )
+    e = CAMERA(cam='cam1',fft='off',meas='on',affLight=False,aff='right',separate=False,multi=False)#,confpath=path  )
     e.show()
     appli.exec_()       
