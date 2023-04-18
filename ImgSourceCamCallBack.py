@@ -29,14 +29,10 @@ class Imaging :
             usefull to set init parameters (expTime and gain)
             The default is None.
 """
-try :
-    from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
-    from PyQt6 import QtCore,QtGui
-except ImportError:
 
-    from PyQt5.QtWidgets import QApplication,QWidget
-    from PyQt5.QtCore import Qt,QMutex
-    from pyqtgraph.Qt import QtCore
+from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
+from PyQt6 import QtCore,QtGui
+from PyQt6.QtCore import pyqtSlot
 
 import sys,time
 import numpy as np
@@ -49,7 +45,7 @@ except:
     print("")
 try :
     
-    # print('import imgSource dll : ok')
+    print('import imgSource dll : ok')
     Camera = IC.TIS_CAM()
     Devices = Camera.GetDevices()
 except :
@@ -69,7 +65,7 @@ def getCamID(index):
     
 class IMGSOURCE (QtCore.QThread):
     newData=QtCore.pyqtSignal(object)
-    
+    endAcq=QtCore.pyqtSignal(bool)
     def __init__(self,cam='camDefault',**kwds):
         '''
         Parameters
@@ -297,7 +293,8 @@ class IMGSOURCE (QtCore.QThread):
     def closeCamera(self):
         self.cam0.close()
 
-
+    def endAcquisition(self):
+        self.endAcq.emit(True)
 class ThreadRunAcq(QtCore.QThread):
     
     '''Second thread for controling continus acquisition independtly
@@ -312,9 +309,7 @@ class ThreadRunAcq(QtCore.QThread):
         self.stopRunAcq=False
         # self.itrig= self.parent.itrig
         # self.mutex=QtCore.QMutex()
-    def __del__(self):
-        self.wait()   
-        
+    
     def newRun(self):
         
         self.stopRunAcq=False
