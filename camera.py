@@ -717,7 +717,7 @@ class CAMERA(QWidget):
         self.isRunning=False # we receive a data
         # self.visualisation.newDataReceived(self.data) # It can be use but is better to use signal than function
         self.imageReceived=True
-        #self.datareceived.emit(True)
+        # self.datareceived.emit(True)
         if self.CAM.camIsRunning==False:
             self.stopAcq()
 

@@ -33,7 +33,7 @@ class ALLIEDVISION :
 try :
     from PyQt6.QtWidgets import QWidget,QInputDialog,QApplication
     from PyQt6 import QtCore
-    #from PyQt6.QtCore import pyqtSlot
+    from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import pyQt6')
     
