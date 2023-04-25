@@ -146,6 +146,12 @@ class ALLIEDVISION (QWidget):
             try:
                 self.camID=getCamID(ID)
                 self.cam0=vmb.get_camera_by_id(self.camID)
+                with self.cam0:
+                        self.cam0.get_frame()#DeviceReset.run()
+                        #print('reset cam')
+                        #time.sleep(5)
+                # with vmb:           #if use DeviceReset we need to connect open again the camera
+                #     self.cam0=vmb.get_camera_by_id(self.camID)
                 self.isConnected=True
                 self.nbcam='camDefault'
             except:
@@ -161,10 +167,16 @@ class ALLIEDVISION (QWidget):
         ''' read cam serial number
         '''
         self.camID=camID
-        
+       
         try :
             with vmb:
                 self.cam0=vmb.get_camera_by_id(self.camID)
+                with self.cam0:
+                        self.cam0.get_frame()#DeviceReset.run()
+                        #print('reset cam')
+                        #time.sleep(5)
+            # with vmb:           
+            #     self.cam0=vmb.get_camera_by_id(self.camID)
                 self.isConnected=True
             
         except:# if id number doesn't work we take the first one
@@ -173,7 +185,11 @@ class ALLIEDVISION (QWidget):
                     print('Id not valid open the fisrt camera')
                     self.camID=getCamID(0)
                     self.cam0=vmb.get_camera_by_id(self.camID)
-                
+                    with self.cam0:
+                        self.cam0.get_frame()
+                        #self.cam0.DeviceReset.run()
+                        #time.sleep(5)
+                    #self.cam0=vmb.get_camera_by_id(self.camID)
                     self.isConnected=True
             except:
                     print('not ccd connected')
@@ -184,32 +200,22 @@ class ALLIEDVISION (QWidget):
             
             
     def setCamParameter(self):
-        """Open camera
-        
-        
+        """
         Set initial parameters
     
         """
         
         self.camLanguage=dict()
-        
-       
-       
         with vmb:
             with self.cam0:
-               # 
-               # modelCam=self.cam0.get_model()
+              
               self.modelCam=self.cam0.get_name()
+              
               print( 'connected @:'  ,self.camID,'model : ',self.modelCam )
               self.cam0.TriggerMode.set('Off')
               self.cam0.TriggerSelector.set('AcquisitionStart')
-              
-              
               self.cam0.TriggerActivation.set('RisingEdge')
-                
-                
 #              self.cam0.TriggerSource.set('Software')
-              
               self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
             
             
@@ -394,6 +400,12 @@ class ALLIEDVISION (QWidget):
 
     def closeCamera(self):
         self.stopAcq()
+        with vmb :
+            try:
+                with self.cam0:
+                        self.cam0.AcquisitionStop.run()
+                        self.cam0.DeviceReset.run()
+            except:pass
         # self.cam0.close()
     
     def endAcquisition(self):
