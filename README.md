@@ -40,6 +40,13 @@ Works with different cameras types:
   e.show()   
   appli.exec_()    
   
+  Or use createNewCam.py :
+  
+  a messagewindows will be created  with all camera connected
+  
+  choose one and run the .py created
+  
+  
   ## Parameters   
           
         cam : TYPE str, optional  
