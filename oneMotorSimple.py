@@ -21,6 +21,8 @@ import __init__
 
 __version__=__init__.__version__
 
+
+
 class ONEMOTOR(QWidget) :
 
     def __init__(self, mot0='',motorTypeName0='',nomWin='',unit=2,jogValue=1):
@@ -106,7 +108,7 @@ class ONEMOTOR(QWidget) :
         self.butePos=float(self.conf.value(self.motor+"/buteePos"))
         self.buteNeg=float(self.conf.value(self.motor+"/buteeneg"))
     
-    
+        
         self.thread2=PositionThread(mot=self.MOT,motorType=self.motorType) # thread pour afficher position
         self.thread2.POS.connect(self.Position)
         
@@ -224,11 +226,11 @@ class ONEMOTOR(QWidget) :
         
         self.MOT.stopMotor()
     
-    
+    def stopConnexion(self): 
+        self.motorType.stopConnexion()
     def pMove(self):# action jog +
-        print('jog+')
+        
         a=float(self.jogStep.value())
-        print(a)
         a=float(a*self.unitChange)
         b=self.MOT.position()
         if b+a<self.buteNeg :
@@ -291,7 +293,11 @@ class ONEMOTOR(QWidget) :
         
         a=float(Posi)
         #b=a # valeur en pas moteur pour sauvegarder en pas 
-        a=round(a/self.unitChange,3) # valeur tenant compte du changement d'unite
+        if self.indexUnit==0 or self.indexUnit==1:
+            a=round(a/self.unitChange,1)
+        else :
+            a=round(a/self.unitChange,3)
+             # valeur tenant compte du changement d'unite
         self.position.setText(str(a)) 
     
     def closeEvent(self, event):
@@ -324,9 +330,8 @@ class PositionThread(QtCore.QThread):
             if self.stop==True:
                 break
             else:
-                
                 Posi=(self.MOT.position())
-                time.sleep(1)
+                time.sleep(0.1)
                 try :
                     self.POS.emit(Posi)
                     
@@ -345,8 +350,8 @@ class PositionThread(QtCore.QThread):
 
         
 if __name__ =='__main__':
-    motor0="testMot1"
-    motorType="test"
+    motor0="mot1"
+    motorType="SmartAct"
     appli=QApplication(sys.argv)
     mot5=ONEMOTOR(mot0=motor0,motorTypeName0=motorType,nomWin='motorSimple',unit=1,jogValue=100)
     mot5.show()

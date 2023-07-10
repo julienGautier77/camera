@@ -170,9 +170,8 @@ class SCAN(QWidget):
         self.but_start.clicked.connect(self.startScan)
         self.but_stop.clicked.connect(self.stopScan)
         self.but_Shoot.clicked.connect(self.startShoot)
-        if self.parent is not None:
-            
-            self.parent.CAM.signalRunning.connect(self.ScanCamisrunnig)
+        # if self.parent is not None:
+        #     self.parent.CAM.visualisation.signalDisplayed.connect(self.ScanCamisrunnig)
         
     def startShoot(self):
         self.stepChange()
@@ -193,11 +192,7 @@ class SCAN(QWidget):
         self.but_Shoot.setEnabled(False)
         self.but_stop.setEnabled(True)
         self.but_stop.setStyleSheet("border-radius:20px;background-color: red")
-        # if self.parent is not None :
-        #     self.parent.CAM.oneImage()
-        # else:
-        #     print('acq test')
-       
+        
         
         
     def stopScan(self):
@@ -227,11 +222,12 @@ class SCAN(QWidget):
     def Remain(self,nbstepdone)   :
         print('remain',nbstepdone,self.nbStep)
         
-        self.val_nbStepRemain.setText(str((self.nbStep*self.val_nbShoot)-nbstepdone))
+        self.val_nbStepRemain.setText(str(nbstepdone))
         
-        if self.nbStep*self.val_nbShoot==nbstepdone:
-            print ('fin scan')
-            self.stopScan()
+
+        # if self.nbStep*self.val_nbShoot==nbstepdone:
+        #     print ('fin scan')
+        #     self.stopScan()
             
     def RemainShoot(self,nbstepdone)   :
         print('remain shoot',nbstepdone,self.nbStep)
@@ -308,12 +304,18 @@ class SCAN(QWidget):
         self.val_fin.setSuffix(" %s" % self.unitName)
 
     def acquireOneImage(self):
+        self.camIsRunning=True
         self.acqMain.emit() # emit to CamOneMoteurScan
-    
-    def ScanCamisrunnig(self,etat):
-        print('scanMain',etat)
-        self.camIsRunning=etat
 
+    
+    # def ScanCamisrunnig(self,etat):
+    #     print('ScanCamisrunnig',etat)
+    #     self.camIsRunning=False
+    
+
+    # def isCamRunning(self):
+    #     print(self.camIsRunning)
+    #     return(self.camIsRunning)
         
 
 
@@ -321,7 +323,6 @@ class SCAN(QWidget):
         """ when closing the window
         """
         self.isWinOpen=False
-       
         time.sleep(0.1)
         event.accept() 
     
@@ -360,94 +361,98 @@ class ThreadScan(QtCore.QThread):
         super(ThreadScan,self).__init__(parent)
         self.parent = parent
         self.stop=False
-        # date=time.strftime("%Y_%m_%d_%H_%M_%S")
-        # fileNameLog='logScanMotor_'+date+'.log'
-        
-        # self.handler_scan= logging.FileHandler(fileNameLog, mode="a", encoding="utf-8")
-        # # self.handler_scan.setFormatter('%(asctime)s %(message)s')
-        # self.logger = logging.getLogger("Scan")
-        # self.logger.setLevel(logging.INFO)
-        # self.logger.addHandler(self.handler_scan)
+        if self.parent.parent is not None:
+            self.parent.parent.CAM.visualisation.signalDisplayed.connect(self.CamisrunnigFct)
+
+
+    def CamisrunnigFct(self):
+        self.Camisrunnig=False
+        return False
+
 
     def run(self):
         
         self.stop=False
-        # self.logger.info('')
-        # self.logger.info('')
-        # self.logger.info('Start Scan')
-        # self.logger.info(str('number of steps:  '+ str(self.parent.nbStep) ))
-        # self.logger.info(str('Initial position:  ' + str(self.parent.vInit)+ str(self.parent.unitName)))
-        # self.logger.info(str('final position:  '+ str(self.parent.vFin)+str(self.parent.unitName)))
-        # self.logger.info(str('step value:  '+str(self.parent.vStep)+str(self.parent.unitName)))
-        # self.logger.info(str('nb of shoot for one postion:  '+str(self.parent.val_nbTir.value())))
         
-        self.vini=self.parent.vInit*self.parent.unitChange
-        self.vfin=self.parent.vFin*self.parent.unitChange
-        self.step=self.parent.vStep*self.parent.unitChange
-        
-        self.val_time=self.parent.val_time.value()
+        nb=0 # numero du tir/image
+        self.vini=int(self.parent.vInit*self.parent.unitChange)
+        self.vfin=int(self.parent.vFin*self.parent.unitChange)
+        self.step=int(self.parent.vStep*self.parent.unitChange)
+        self.val_nbTir=int(self.parent.val_nbTir.value())
+        self.val_time=float(self.parent.val_time.value())
+        movement=np.arange(float(self.vini),float(self.vfin),float(self.step))
+        # print (movement,"start scan",self.parent.unitChange)
+        nbTotShot=np.size(movement)*self.val_nbTir
+        self.nbRemain.emit(nbTotShot-nb)
         # print('timeouts',self.val_time)
+        # # print('ini',self.vini)
+        # # print('fin',self.vfin)
+        # # print('step',self.step)
+        # print('nb image to acq per position',self.val_nbTir)
         self.parent.MOT.move(self.vini)
         
         b=self.parent.MOT.position()
-        while b!=self.vini:
+        
+        while True:
+            if self.vini-10< float(b) and b<=self.vini+10:
+                break
             if self.stop==True:
                 break
             else:	
-                time.sleep(1)
+                time.sleep(0.2)
                 b=self.parent.MOT.position()
-        time.sleep(0.5)
-        # print(self.vini,self.vfin,self.step)
-        movement=np.arange(self.vini+self.step,self.vfin+self.step,self.step)
-        # print (movement,"start scan",self.parent.unitChange)
-        nb=0
+                print(b,self.vini)
+        time.sleep(0.1)
+        print('position initial reached')
+       
         for mv in movement:
-            
+            print ('position to reach',mv)
             if self.stop==True:
                 break
             else:
-                mv=int(mv)
+                
                 self.parent.MOT.move(mv)
                 b=self.parent.MOT.position()
-                b=int(b)
+                
                 while True:
                     if self.stop==True:
                         break
                     else :
                         b=self.parent.MOT.position()
-                        # print (b,mv)
-                        if b==mv:
-                            # self.logger.info('position reached '+ str(b))
-                            print( "position reached", str(b))
-                            break
-                
-                for nu in range (0,int(self.parent.val_nbTir.value())):
-                    nb+=1
-                    print('acq')
-                    # self.logger.info('acq')
+                        time.sleep(0.1)
+                        #print (' Moving..., Actual position :',b,'Position to reach', mv)
+                        if mv-10<b and b<=mv+10:
+                            print( "position reached (step): ",b )
+                            break 
+                for nbImage in range (1,self.val_nbTir+1):
                     self.acqScan.emit()
-                    self.nbRemain.emit(nb)
-                    time.sleep(0.1)
-                    while self.parent.camIsRunning==True: # if cam is runnnig we wait
-                        print(self.parent.camIsRunning)
-                        print('cam running...',end='')#,self.parent.isrunnig)
+                    self.Camisrunnig=True
+                    t0=time.time()
+                    time.sleep(0.01)
+                    print('Acquisition en cours n°',nbImage)
+                    while True:
+                        print('cam is running in thread',self.CamisrunnigFct())
+                        if self.Camisrunnig==False:
+                            break # if cam is ruunig we wait
                         if self.stop==True:
-                            print('') 
                             break
                         else :
-                            time.sleep(0.1)
-
-
-                    time.sleep(self.val_time)
-                    print('sleep')
-
-
-
-        print ("fin du scan")
-        # self.logger.info('end of scan')
-        # self.logger.info('  ')
-        # self.logger.info('  ')
+                            time.sleep(0.01)
+                    t1=time.time()
+                    print(  nbImage ,' th Acquisition done  time :',t1-t0)   
+                    
+                    time.sleep(self.val_time)     
+                    print('wait ... ',self.val_time,'s')#,self.stop)
+                    nb=nb+1
+                    self.nbRemain.emit(nbTotShot-nb)
+                
+        
+        
+        print ("    End Scan    ")
+        print('Go back to initial value ')
+        self.parent.MOT.move(self.vini)
         self.parent.stopScan()
+
     def stopThread(self):
         self.stop=True
         print( "stop thread" )  

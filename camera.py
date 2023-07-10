@@ -63,7 +63,7 @@ class CAMERA(QWidget):
     
 
     signalData=QtCore.pyqtSignal(object) # signal emited when receive image*
-    signalRunning=QtCore.pyqtSignal(object) # signal emited when running cam state change
+    signalAcqDone=QtCore.pyqtSignal(object) # signal emited when running cam state change
 
     def __init__(self,cam='choose',confFile='confCamera.ini',**kwds):
         '''
@@ -170,7 +170,7 @@ class CAMERA(QWidget):
         self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.cameraType=self.conf.value(self.nbcam+"/camType")
         self.camID=self.conf.value(self.nbcam+"/camId")
-        print(self.nbcam,':',self.ccdName,'Type:',self.cameraType)
+       # print(self.nbcam,':',self.ccdName,'Type:',self.cameraType)
         
         # if self.cameraType=="guppy" :
         #     try :
@@ -678,11 +678,16 @@ class CAMERA(QWidget):
         self.gainBox.editingFinished.connect(self.gain)    
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
-        self.CAM.newData.connect(self.Display)
+        # self.CAM.newData.connect(self.Display)
         self.CAM.endAcq.connect(self.stopAcq)
         # self.TrigSoft.clicked.connect(self.softTrigger)
+        self.visualisation.signalDisplayed.connect(self.ImageDisplayed) # receive signal of vis when image displayer
        # self.CAM.signalRunning.connect(self.camIsRunning)
-    
+    # @QtCore.pyqtSlot()
+    # def ImageDisplayed(self):
+        # self.signalAcqDone.emit(True)
+        
+
     def oneImage(self):
         #self.nbShot=1
         self.acquireOneImage()
@@ -724,7 +729,7 @@ class CAMERA(QWidget):
     
     def camIsRunning(self):
         self.isCamRunning=self.CAM.camIsRunning
-        #print('emit in camera',self.isCamRunning)
+        print('emit in camera',self.isCamRunning)
         self.signalRunning.emit(self.isCamRunning)
         return(self.isCamRunning)
     
