@@ -454,7 +454,7 @@ class CAMERA(QWidget):
             self.actionButton()
             
         if  self.isConnected==False: # no camera connected 
-            self.setWindowTitle('Visualization         No camera connected      '   +  'v.  '+ self.version)
+            self.setWindowTitle('No camera connected    ' +'Visu v.'+self.visualisation.version)   
             self.runButton.setEnabled(False)
             self.snapButton.setEnabled(False)
             self.trigg.setEnabled(False)
@@ -471,7 +471,7 @@ class CAMERA(QWidget):
         
             """ user interface definition 
             """
-            self.setWindowTitle('Visualization    '+ self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
+            
             
     #         self.camNameLabel=QLabel('nomcam',self)
             
@@ -632,8 +632,8 @@ class CAMERA(QWidget):
                 
                 self.visualisation=SEELIGHT(parent=self,name=self.nbcam,**self.kwds)
                     
-            self.visualisation.setWindowTitle(self.cameraType+"   " + self.ccdName+'       v.'+ self.version)
-                
+            
+            self.setWindowTitle(self.cameraType+"   " + self.ccdName+ '     v.'+ self.version+"   " +'Visu v.'+self.visualisation.version)   
             self.dockTrig.setTitleBarWidget(QWidget())        
             self.dockControl.setTitleBarWidget(QWidget()) # to avoid tittle
             self.dockShutter.setTitleBarWidget(QWidget())
