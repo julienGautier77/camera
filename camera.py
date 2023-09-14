@@ -678,14 +678,14 @@ class CAMERA(QWidget):
         self.gainBox.editingFinished.connect(self.gain)    
         self.hSliderGain.sliderReleased.connect(self.mSliderGain)
         self.trigg.currentIndexChanged.connect(self.trigger)
-        # self.CAM.newData.connect(self.Display)
+        self.CAM.newData.connect(self.Display)
         self.CAM.endAcq.connect(self.stopAcq)
         # self.TrigSoft.clicked.connect(self.softTrigger)
-        self.visualisation.signalDisplayed.connect(self.ImageDisplayed) # receive signal of vis when image displayer
+        # self.visualisation.signalDisplayed.connect(self.ImageDisplayed) # receive signal of vis when image displayer
        # self.CAM.signalRunning.connect(self.camIsRunning)
     # @QtCore.pyqtSlot()
     # def ImageDisplayed(self):
-        # self.signalAcqDone.emit(True)
+    #     self.signalAcqDone.emit(True)
         
 
     def oneImage(self):
@@ -707,7 +707,8 @@ class CAMERA(QWidget):
         while time.time()<time_end:
             QApplication.processEvents()  
 
-    #@pyqtSlot() 
+    # @pyqtSlot() 
+    
     def Display(self,data):
         '''Display data with visualisation module
         

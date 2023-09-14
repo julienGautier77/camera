@@ -64,6 +64,8 @@ class BASLER (QtCore.QThread):
     
     newData=QtCore.pyqtSignal(object) # signal emited when receive image 
     endAcq=QtCore.pyqtSignal(bool)
+    signalRunning=QtCore.pyqtSignal(bool)
+
     def __init__(self,cam='camDefault',**kwds):
         
         super(BASLER,self).__init__()
@@ -289,13 +291,13 @@ class BASLER (QtCore.QThread):
         #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
         self.camIsRunnig=False  
-   
-    @pyqtSlot (object)        
+    
     def newImageReceived(self,data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
         '''
         
         self.data=data
+        
         self.newData.emit(self.data)
     
         
@@ -333,9 +335,9 @@ class ThreadRunAcq(QtCore.QThread):
     def newRun(self):
         self.stopRunAcq=False
 
-    @pyqtSlot()   
+      
     def run(self):
-        self.mutex=QMutex()
+        
         while self.stopRunAcq is not True :
             # self.mutex.lock()
             try :
@@ -355,6 +357,7 @@ class ThreadRunAcq(QtCore.QThread):
                     break
                 else :
                     self.newDataRun.emit(self.data)
+                    
                     # print(self.cam0.DeviceTemperature.GetValue())
             # self.mutex.unlock()
     def stopThreadRunAcq(self):
@@ -391,7 +394,7 @@ class ThreadOneAcq(QtCore.QThread):
     def newRun(self):
         self.stopRunAcq=False
         
-    @pyqtSlot()   
+      
     def run(self):
         self.newStateCam.emit(True)
         
