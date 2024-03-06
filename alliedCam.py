@@ -170,11 +170,12 @@ class ALLIEDVISION (QWidget):
        
         try :
             with vmb:
+                print('coo')
                 self.cam0=vmb.get_camera_by_id(self.camID)
-                with self.cam0:
-                        self.cam0.get_frame()#DeviceReset.run()
-                        #print('reset cam')
-                        #time.sleep(5)
+                # with self.cam0:
+                #         self.cam0.get_frame()#DeviceReset.run()
+                #         #print('reset cam')
+                #         #time.sleep(5)
             # with vmb:           
             #     self.cam0=vmb.get_camera_by_id(self.camID)
                 self.isConnected=True
@@ -237,7 +238,10 @@ class ALLIEDVISION (QWidget):
             self.camLanguage['exposure']='ExposureTime'
             self.LineTrigger='Line1'
         
-                
+        if self.modelCam=='AVT Pike F1600B' :
+            self.camLanguage['exposure']='ExposureTime'
+            self.LineTrigger='InputLines'
+            
         with vmb:
             with self.cam0:
                 
@@ -448,22 +452,21 @@ class ThreadRunAcq(QtCore.QThread):
                 while self.stopRunAcq is not True :
                  
                     try: 
-                        self.newStateCam.emit(True)
-                        frame=self.parent.cam0.get_frame(timeout_ms=3000)#00000000
+                        
+                            # self.newStateCam.emit(True)
+                        frame=self.parent.cam0.get_frame(timeout_ms=10000)#00000000
                         data=(frame.as_numpy_ndarray())
                         data=data[:,:,0]
                         data=np.rot90(data,3)
                         time.sleep(0.01)
                         if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
-                    
-
+                        
                             self.newDataRun.emit(data)
                             
                             #self.newStateCam.emit(False) #cam is not reading
                             
                     except:
                         pass
-                    
                     
                 if self.stopRunAcq ==True :
                     pass
