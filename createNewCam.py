@@ -11,66 +11,60 @@ Generate a .py to run the new camera
 @author: gautier
 """
 
-
-
 from PyQt6.QtWidgets import QApplication,QWidget,QMessageBox
 from PyQt6.QtWidgets import QInputDialog
 from PyQt6 import QtCore
 import sys
 import pathlib
 
-
-
-
 class NEWCAM(QWidget):
     
     def __init__(self):
-        
         
         super(NEWCAM, self).__init__()
         
         try :
             import alliedCam
-            self.itemsGuppy=alliedCam.camAvailable()
+            self.itemsGuppy = alliedCam.camAvailable()
             # print(self.itemsGuppy)
             self.lenGuppy=len(self.itemsGuppy)
             
         except:
             print('No allied vision camera connected')
-            self.itemsGuppy=[]
-            self.lenGuppy=0
+            self.itemsGuppy = []
+            self.lenGuppy = 0
             pass
         try :
             import baslerCam
-            self.itemsBasler=baslerCam.camAvailable()
-            self.lenBasler=len(self.itemsBasler)
+            self.itemsBasler = baslerCam.camAvailable()
+            self.lenBasler = len(self.itemsBasler)
             
         except:
             print('No Basler camera connected')
-            self.itemsBasler=[]
-            self.lenBasler=0
+            self.itemsBasler = []
+            self.lenBasler = 0
             pass 
         
         try :
             import ImgSourceCamCallBack
-            self.itemsImgSource=ImgSourceCamCallBack.camAvailable()
-            self.lenImgSource=len(self.itemsImgSource)
+            self.itemsImgSource = ImgSourceCamCallBack.camAvailable()
+            self.lenImgSource = len(self.itemsImgSource)
             
         except:
             print('No ImagingSource camera connected')
-            self.itemsImgSource=[]
-            self.lenImgSource=0
+            self.itemsImgSource = []
+            self.lenImgSource = 0
             pass 
         
         try :
             import pixelinkCam
-            self.itemsPixelink=pixelinkCam.PIXELINK.camAvailable()
-            self.lenImgPixelink=len(self.itemsPixelink)
+            self.itemsPixelink = pixelinkCam.PIXELINK.camAvailable()
+            self.lenImgPixelink = len(self.itemsPixelink)
             
         except:
             print('No pixelink camera connected')
-            self.itemsPixelink=[]
-            self.lenPixelink=0
+            self.itemsPixelink = []
+            self.lenPixelink = 0
             pass 
         
         items=self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
@@ -82,19 +76,19 @@ class NEWCAM(QWidget):
             indexItem = items.index(item)
         
             if indexItem<self.lenGuppy:
-                indexItem=indexItem
-                self.cameraType="allied"
-                self.camID=alliedCam.getCamID(indexItem)
-                self.isConnected=True
-            elif indexItem>=self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy:
-                indexItem=indexItem-self.lenGuppy
-                self.cameraType="basler"
-                self.camID=baslerCam.getCamID(indexItem)
+                indexItem = indexItem
+                self.cameraType = "allied"
+                self.camID = alliedCam.getCamID(indexItem)
+                self.isConnected = True
+            elif indexItem >= self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy:
+                indexItem = indexItem-self.lenGuppy
+                self.cameraType = "basler"
+                self.camID = baslerCam.getCamID(indexItem)
                
-                self.isConnected=True
+                self.isConnected = True
                 
                 
-            elif indexItem>=self.lenBasler+self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy+self.lenImgSource:
+            elif indexItem >= self.lenBasler+self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy+self.lenImgSource:
                 indexItem=indexItem-self.lenGuppy-self.lenBasler
                 self.cameraType="imgSource"
                 self.camID=ImgSourceCamCallBack.getCamID(indexItem)
@@ -159,8 +153,6 @@ class NEWCAM(QWidget):
                                
             self.conf.setValue(self.nbcam+"/pathBg","")
 
-
-
             self.conf.setValue(self.nbcam+"/rotation",0)
             self.conf.setValue(self.nbcam+"/rx",50)
             self.conf.setValue(self.nbcam+"/ry",50)
@@ -171,22 +163,19 @@ class NEWCAM(QWidget):
             self.conf.setValue(self.nbcam+"/xc",1)
             self.conf.setValue(self.nbcam+"/yc",2)
             
-            
             self.conf.setValue(self.nbcam+"/r1x",10)
             self.conf.setValue(self.nbcam+"/r1y",11)
             self.conf.setValue(self.nbcam+"/r2x",20)
             self.conf.setValue(self.nbcam+"/r2y",20)
             
             self.conf.setValue(self.nbcam+"/xec",10)
-            
             self.conf.setValue(self.nbcam+"/yec",10)
             self.conf.sync()      
         
             # create a .py file named namecamera.py to run the camera 
-            fichierName=self.nbcam+'.py'
-
-            strCam="     e = CAMERA(cam='" +self.nbcam + "')"
-
+            fichierName = self.nbcam + '.py'
+            #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
+            strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
             lines=['# import','from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
 
             lines2=['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]

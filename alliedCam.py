@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 30 10:23:01 2020
@@ -41,31 +42,35 @@ import time,sys
 import numpy as np
 
 try :
-    import vmbpy #https://github.com/alliedvision/VmbPy    or vimba  ## pip install git+https://github.com/alliedvision/VimbaPython
+    import vmbpy #https://github.com/alliedvision/VmbPy   
+    print('VimbaX is used')
+    with vmbpy.VmbSystem.get_instance() as vmb:
+        cameraIds = vmb.get_all_cameras()
+        nbCamera = len(cameraIds)
+        print( nbCamera,"Alliedvision Cameras available :")
+        for i in range (0,nbCamera):
+            print(cameraIds[i])
 except :
     print('vimbaX not installed')
     try :
-        import vimba 
+        import vimba as vimba # vimba  ## pip install git+https://github.com/alliedvision/VimbaPython
+        print('vimba used')
+        with vimba.Vimba.get_instance() as vmb:
+            cameraIds = vmb.get_all_cameras()
+            nbCamera = len(cameraIds)
+            print( nbCamera,"Alliedvision Cameras available :")
+        for i in range (0,nbCamera):
+            print(cameraIds[i])  
     except:
-        print('vimba not installed ')
-
-
-with vmbpy.VmbSystem.get_instance() as vmb:
-    cameraIds=vmb.get_all_cameras()
-    nbCamera=len(cameraIds)
-    print( nbCamera,"Alliedvision Cameras available:")
-    for i in range (0,nbCamera):
-        print(cameraIds[i])
-        
+        print('vimba not installed ')   
         
 def getCamID(index):
-    a=cameraIds[index].get_id()
+    a = cameraIds[index].get_id()
     return a
 
 def print_feature(feature):
     try:
         value = feature.get()
-
     except :
         value = None
 
@@ -77,49 +82,47 @@ def print_feature(feature):
     print('/// Unit           : {}'.format(feature.get_unit()))
     print('/// Value          : {}\n'.format(str(value)))
 
-
 def cameraFeatures(nbCam=1):
-    camID=getCamID(nbCam)
+    camID = getCamID(nbCam)
     with vmb:
        cam=vmb.get_camera_by_id(camID)
-       print(cam)
-      
+       #print(cam)
        with cam:
            for feature in cam.get_all_features():
                     print_feature(feature) 
-           modelCam=cam.get_model()
-           nameCam=cam.get_name()
+           modelCam = cam.get_model()
+           nameCam = cam.get_name()
            print(modelCam,nameCam)
-           time=cam.ExposureTime.get()
-           trig=cam.TriggerMode.set('Off')
+           time = cam.ExposureTime.get()
+           trig = cam.TriggerMode.set('Off')
            print(time,trig)
     
 def camAvailable(): 
-    nbCamera=len(cameraIds)
-    camA=[]
+    nbCamera = len(cameraIds)
+    camA = []
     for i in range (0,nbCamera):
         camA.append (cameraIds[i].get_id())
     return camA    
     
 class ALLIEDVISION (QWidget):
     
-    newData=QtCore.pyqtSignal(object)
-    endAcq=QtCore.pyqtSignal(bool)
-    signalRunning=QtCore.pyqtSignal(bool)
+    newData = QtCore.pyqtSignal(object)
+    endAcq = QtCore.pyqtSignal(bool)
+    signalRunning = QtCore.pyqtSignal(bool)
+
     def __init__(self,cam='camDefault',**kwds):
-        
         super(ALLIEDVISION,self).__init__()
         
-        self.nbcam=cam
-        self.itrig='off'
+        self.nbcam = cam
+        self.itrig = 'off'
         if "conf"  in kwds :
             self.conf=kwds["conf"]
         else :
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
-        self.camParameter=dict()
-        self.camIsRunning=False
-        self.nbShot=1
-        self.items=cameraIds
+            self.conf = QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
+        self.camParameter = dict()
+        self.camIsRunning = False
+        self.nbShot = 1
+        self.items = cameraIds
   
     def openMenuCam(self):
         '''create a message box to choose a camera
@@ -128,39 +131,31 @@ class ALLIEDVISION (QWidget):
         item, ok = QInputDialog.getItem(self, "Select allied camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
         
         if ok and item:
-            items=list(items)
+            items = list(items)
             index = items.index(item)
-            
-            self.camID=getCamID(index)
+            self.camID = getCamID(index)
             with vmb:
-                self.cam0=vmb.get_camera_by_id(self.camID)
-            self.isConnected=True
+                self.cam0 = vmb.get_camera_by_id(self.camID)
+            self.isConnected = True
             self.nbcam='camDefault'
             
-        if self.isConnected==True:
-            
+        if self.isConnected is True:
             self.setCamParameter()
         return self.isConnected
     
     def openFirstCam(self,ID=0):
-        
         with vmb :
             try:
-                self.camID=getCamID(ID)
-                self.cam0=vmb.get_camera_by_id(self.camID)
+                self.camID = getCamID(ID)
+                self.cam0 = vmb.get_camera_by_id(self.camID)
                 with self.cam0:
                         self.cam0.get_frame()#DeviceReset.run()
-                        #print('reset cam')
-                        #time.sleep(5)
-                # with vmb:           #if use DeviceReset we need to connect open again the camera
-                #     self.cam0=vmb.get_camera_by_id(self.camID)
                 self.isConnected=True
                 self.nbcam='camDefault'
             except:
                 self.isConnected=False
                 self.ccdName='no camera'
-        if self.isConnected==True:
-            
+        if self.isConnected is True:
             self.setCamParameter()
         return self.isConnected
     
@@ -172,16 +167,8 @@ class ALLIEDVISION (QWidget):
        
         try :
             with vmb:
-                
                 self.cam0=vmb.get_camera_by_id(self.camID)
-                
-                # with self.cam0:
-                #         self.cam0.get_frame()#DeviceReset.run()
-                #         #print('reset cam')
-                #         #time.sleep(5)
-            # with vmb:           
-            #     self.cam0=vmb.get_camera_by_id(self.camID)
-                self.isConnected=True
+                self.isConnected = True
             
         except:# if id number doesn't work we take the first one
             try:
@@ -198,8 +185,8 @@ class ALLIEDVISION (QWidget):
             except:
                     print('not ccd connected')
                     self.isConnected=False
-                    self.ccdName='no camera'            
-        if self.isConnected==True:
+                    self.ccdName = 'no camera'            
+        if self.isConnected is True:
             self.setCamParameter()
             
             
@@ -208,20 +195,18 @@ class ALLIEDVISION (QWidget):
         Set initial parameters
     
         """
-        self.camLanguage=dict()
+        self.camLanguage = dict()
         with vmb:
             with self.cam0:
-              self.modelCam=self.cam0.get_name()
+              self.modelCam = self.cam0.get_name()
               
               print( 'connected @:'  ,self.camID,'model : ',self.modelCam )
-        
               self.cam0.TriggerMode.set('Off')
               self.cam0.TriggerSelector.set('AcquisitionStart')
               self.cam0.TriggerActivation.set('RisingEdge')
-              
 #              self.cam0.TriggerSource.set('Software')
               self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
-              print('temp',self.cam0.DeviceTemperature.get())
+              print('camera tempature',self.cam0.DeviceTemperature.get(),' °C')
             
         ## init cam parameter## different command name depend on camera type 
         if self.modelCam == "GT1290":
@@ -269,22 +254,20 @@ class ALLIEDVISION (QWidget):
                 #if exposure time save in the ini file is not in the range we put the minimum
                 if self.camParameter["expMin"] <= float(self.conf.value(self.nbcam+"/shutter")) <= self.camParameter["expMax"]:
                     exp.set(float(self.conf.value(self.nbcam+"/shutter"))*1000)
-                    
                 else :
                     exp.set(float(self.camParameter["expMin"]))
                 
                 self.camParameter["exposureTime"] = float(exp.get()/1000)
-                
+        
                 self.camParameter["gainMax"] = self.cam0.Gain.get_range()[1]
                 self.camParameter["gainMin"] = self.cam0.Gain.get_range()[0]
-                
                 if self.camParameter["gainMin"] <= int(self.conf.value(self.nbcam+"/gain")) <= self.camParameter["gainMax"]:
                     self.cam0.Gain.set(int(self.conf.value(self.nbcam+"/gain")))
                 else:
                     print('gain error: gain set to minimum value')
                     self.cam0.Gain.set(int(self.camParameter["gainMin"]))
                 
-                self.camParameter["gain"]=self.cam0.Gain.get()
+                self.camParameter["gain"] = self.cam0.Gain.get()
         
         self.threadRunAcq = ThreadRunAcq(self)
         self.threadRunAcq.newDataRun.connect(self.newImageReceived)
@@ -301,7 +284,7 @@ class ALLIEDVISION (QWidget):
                 with self.cam0:
                     exp=self.cam0.get_feature_by_name(self.camLanguage['exposure'])
                     exp.set(float(sh*1000))
-                    print('exp',exp.get())
+                    # print('exp',exp.get())
                     exp.set(float(sh*1000)) # in gyppy ccd exposure time is microsecond
                     self.camParameter["exposureTime"]=float(exp.get())/1000
                     print("exposure time is set to",self.camParameter["exposureTime"],' micro s')
@@ -312,12 +295,10 @@ class ALLIEDVISION (QWidget):
         '''
         with vmb:
                 with self.cam0:
-                    self.cam0.Gain.set(g) # 
-        
+                    self.cam0.Gain.set(g) 
                     self.camParameter["gain"]=self.cam0.Gain.get()
         print("Gain is set to",self.camParameter["gain"])   
-        
-        
+            
     # def softTrigger(self):
     #     '''to have a sofware trigger
     #     '''
@@ -340,7 +321,6 @@ class ALLIEDVISION (QWidget):
                     # sofTrig=self.cam0.get_feature_by_name('TriggerSoftware')
                     # sofTrig.run()
                     self.cam0.TriggerMode.set('Off')
-                    
                     self.itrig = 'off'
         
                 self.camParameter["trigger"] = self.cam0.TriggerMode.get()
@@ -375,10 +355,9 @@ class ALLIEDVISION (QWidget):
             try:
                 with self.cam0:
                         self.cam0.AcquisitionStop.run()
-                        self.cam0.DeviceReset.run()
+                        #self.cam0.DeviceReset.run()
             except:pass
-        # self.cam0.close()
-    
+
     def endAcquisition(self):
         self.endAcq.emit(True)
 
@@ -406,19 +385,20 @@ class ThreadRunAcq(QtCore.QThread):
         
     @pyqtSlot()
     def run(self):
+        self.newStateCam.emit(True)
         with vmb:
             with self.parent.cam0:
                 while self.stopRunAcq is not True :
                     try: 
-                            # self.newStateCam.emit(True)
-                        frame = self.parent.cam0.get_frame(timeout_ms=100)#00000000
+                        self.newStateCam.emit(True)
+                        frame = self.parent.cam0.get_frame(timeout_ms=10000)#00000000
                         data = (frame.as_numpy_ndarray())
                         data = data[:,:,0]
                         data = np.rot90(data,3)
-                        time.sleep(0.01)
+                        #time.sleep(0.01)
                         if str(frame.get_status()) == "FrameStatus.Complete" : #np.max(data)>0 or 
                             self.newDataRun.emit(data)
-                            #self.newStateCam.emit(False) #cam is not reading
+                            self.newStateCam.emit(False) #cam is not reading
                     except:
                         pass
                     
