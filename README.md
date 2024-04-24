@@ -31,11 +31,11 @@ Works with different cameras types:
 *   qdarkstyle (https://github.com/ColinDuquesnoy/QDarkStyleSheet.git)
     * pip install qdarkstyle. 
  * visu
-   * pip install git+https://github.com/julieGautier77/visu@visuQt6
+   * pip install git+https://github.com/julieGautier77/visu
   
   ## Usages   
   appli = QApplication(sys.argv)    
-  appli.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())     
+  appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))    
   e = CAMERA("cam='FirstAllied'",fft='off',meas='on',affLight=False)    
   e.show()   
   appli.exec_()    
