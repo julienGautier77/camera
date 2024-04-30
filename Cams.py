@@ -35,10 +35,10 @@ class App4Cam(QWidget):
         self.icon=str(p.parent) + sepa + 'icons' +sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.cam0 = camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam1 =camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam2 = camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.cam3 =camera.CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
+        self.cam0 = camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left')  
+        self.cam1 =camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left')  
+        self.cam2 = camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left')  
+        self.cam3 =camera.CAMERA(cam='firstPixelink',fft='off',meas='on',affLight=False,aff='left')  
    
         self.cam=[self.cam0,self.cam1,self.cam2,self.cam3]
         self.setup()
@@ -143,11 +143,11 @@ class MainWindows(QWidget):
         self.tabs=QTabWidget()
         self.tabs.setContentsMargins(1,1,1,1)
         pathVisu='C:/Users/loa/Desktop/Python/camera/confCamera.ini'
-        self.tab0=camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)
-        self.tab1=camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab2=camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab3=camera.CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)  
-        self.tab4=camera.CAMERA(cam='cam5',fft='off',meas='on',affLight=False,aff='left',separate=False,multi=False,confpath=pathVisu)
+        self.tab0=camera.CAMERA(cam="cam2",fft='off',meas='on',affLight=False,aff='left')
+        self.tab1=camera.CAMERA(cam="cam3",fft='off',meas='on',affLight=False,aff='left')  
+        self.tab2=camera.CAMERA(cam="cam1",fft='off',meas='on',affLight=False,aff='left')  
+        self.tab3=camera.CAMERA(cam='cam4',fft='off',meas='on',affLight=False,aff='left')  
+        self.tab4=camera.CAMERA(cam='cam5',fft='off',meas='on',affLight=False,aff='left')
 #        self.tab2=App4Cam()
 
         self.tabs.addTab(self.tab0,self.tab0.ccdName)

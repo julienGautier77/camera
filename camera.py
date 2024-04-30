@@ -130,7 +130,8 @@ class CAMERA(QWidget):
         
         if "scan" in kwds: #  Scan motor RSAI 
             self.scan=kwds["scan"]
-            self.kwds["motRSAI"] = True
+            if self.scan is True:
+                self.kwds["motRSAI"] = True
         else: 
             self.scan= False
 
@@ -170,6 +171,12 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except :
                 print("no allied vision camera detected or vimba is not installed")
+                self.isconnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
                 pass
         
         elif self.cameraType == "basler":
@@ -180,6 +187,12 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no basler camera detected or pypylon is not installed")
+                self.isconnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
                 pass
         
         elif self.cameraType == "imgSource":
@@ -190,6 +203,12 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
+                self.isconnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
                 pass
 
         elif self.cameraType == "pixelink":
@@ -200,6 +219,12 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
+                self.isconnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
                 pass
 
         elif self.cameraType=="ids":
@@ -210,6 +235,12 @@ class CAMERA(QWidget):
                 self.isConnected=self.CAM.isConnected
             except:
                 print("no imaging source camera detected or Tisgrabber is not installed")
+                self.isconnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
                 pass 
         else:
             print('no camera')
@@ -428,6 +459,7 @@ class CAMERA(QWidget):
             self.actionButton()
             
         if  self.isConnected is False: # no camera connected 
+            self.nbcam = 'camDefault'
             self.setWindowTitle('No camera connected    ' +'Visu v.'+self.visualisation.version)   
             self.runButton.setEnabled(False)
             self.snapButton.setEnabled(False)
@@ -582,7 +614,7 @@ class CAMERA(QWidget):
             # self.vbox1.addWidget(self.TrigSoft)
         
             hMainLayout = QHBoxLayout()
-            
+            print('ici',self.nbcam)
             if self.light is False: # light option : not all the option af visu 
                 from visu import SEE
                 self.visualisation = SEE(parent=self,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
@@ -811,6 +843,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='test',fft='off',affLight=False,aff='right',scan=True,motRSAI = True )#,confpath=path  )
+    e = CAMERA(cam='cam2',fft='off',affLight=False,aff='right',scan=False,motRSAI = False)#,confpath=path  )
     e.show()
     appli.exec_()       
