@@ -42,7 +42,7 @@ import time,sys
 import numpy as np
 
 try :
-    import vmbpy #https://github.com/alliedvision/VmbPy   
+    import vmbpy #https://github.com/alliedvision/VmbPy   : in the install directory of vimbaX pip install vbpy-XXX.whl
     print('VimbaX is used')
     with vmbpy.VmbSystem.get_instance() as vmb:
         cameraIds = vmb.get_all_cameras()
