@@ -42,7 +42,7 @@ import time,sys
 import numpy as np
 
 try :
-    import vmbpy #https://github.com/alliedvision/VmbPy   : in the install directory of vimbaX pip install vbpy-XXX.whl
+    import vmbpy #https://github.com/alliedvision/VmbPy   
     print('VimbaX is used')
     with vmbpy.VmbSystem.get_instance() as vmb:
         cameraIds = vmb.get_all_cameras()
@@ -221,6 +221,7 @@ class ALLIEDVISION (QWidget):
         if self.modelCam == 'Allied Vision 1800 U-050m' :
             self.camLanguage['exposure'] = 'ExposureTime'
             self.LineTrigger = 'Line1'
+            
         
         if self.modelCam == 'Allied Vision Mako U-029B' :
             self.camLanguage['exposure'] = 'ExposureTime'
@@ -229,7 +230,7 @@ class ALLIEDVISION (QWidget):
         if self.modelCam == 'AVT Pike F1600B' :
             self.camLanguage['exposure'] = 'ExposureTime'
             self.LineTrigger = 'InputLines'
-            
+        
         with vmb:
             with self.cam0:
                 
@@ -239,7 +240,7 @@ class ALLIEDVISION (QWidget):
                 else:
                     self.cam0.ExposureAuto.set('Off')
                     self.cam0.GainAuto.set('Off')
-                
+                    
                 if self.cam0.Height.get() != self.cam0.HeightMax.get():
                     self.cam0.Height.set(self.cam0.HeightMax.get())
                

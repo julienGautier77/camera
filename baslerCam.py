@@ -32,7 +32,7 @@ except ImportError:
 
 import time
 import numpy as np
-
+from pypylon import pylon
 try :   
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
@@ -42,7 +42,7 @@ try :
     cameras = pylon.InstantCameraArray(min(len(devices), 20))
     
 except:
-    print('pyplon is not installed')
+    print('pypylon is not installed')
 
 def camAvailable() :
     '''list of camera avialable

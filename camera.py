@@ -32,7 +32,7 @@ pip install git+https//github.com/julienGautier77/visu
 """
 
 try :
-    from PyQt6.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLayout,QDoubleSpinBox
+    from PyQt6.QtWidgets import QApplication,QVBoxLayout,QHBoxLayout,QWidget,QLayout,QDoubleSpinBox,QMessageBox
     from PyQt6.QtWidgets import QComboBox,QSlider,QLabel,QSpinBox,QToolButton,QMenu,QInputDialog,QDockWidget
     from PyQt6 import QtCore
     from PyQt6.QtGui import QIcon
@@ -108,6 +108,7 @@ class CAMERA(QWidget):
         self.version=str(__version__)
         print('camera version :',self.version )
         self.kwds=kwds
+        self.messError=QMessageBox.information(self,'Starting',' launching...')    
         
         if "affLight" in kwds:
             self.light=kwds["affLight"]
@@ -162,7 +163,7 @@ class CAMERA(QWidget):
         self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.cameraType=self.conf.value(self.nbcam+"/camType")
         self.camID=self.conf.value(self.nbcam+"/camId")
-       
+        
         if self.cameraType=="allied" :
             try :
                 import alliedCam
@@ -614,7 +615,7 @@ class CAMERA(QWidget):
             # self.vbox1.addWidget(self.TrigSoft)
         
             hMainLayout = QHBoxLayout()
-            print('ici',self.nbcam)
+            
             if self.light is False: # light option : not all the option af visu 
                 from visu import SEE
                 self.visualisation = SEE(parent=self,name=self.nbcam,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
@@ -661,6 +662,7 @@ class CAMERA(QWidget):
             #self.activateWindow()
             #self.raise_()
             #self.showNormal()
+            
             
     def actionButton(self): 
         '''action when button are pressed
@@ -843,6 +845,7 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path='/home/gautier/Documents/confCamera.ini'
+     
     e = CAMERA(cam='cam2',fft='off',affLight=False,aff='right',scan=False,motRSAI = False)#,confpath=path  )
     e.show()
-    appli.exec_()       
+    appli.exec_()      

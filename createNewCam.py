@@ -16,13 +16,17 @@ from PyQt6.QtWidgets import QInputDialog
 from PyQt6 import QtCore
 import sys
 import pathlib
+import sys
+import subprocess
+import time
+import qdarkstyle
 
 class NEWCAM(QWidget):
     
     def __init__(self):
         
         super(NEWCAM, self).__init__()
-        
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         try :
             import alliedCam
             self.itemsGuppy = alliedCam.camAvailable()
@@ -176,8 +180,10 @@ class NEWCAM(QWidget):
             fichierName = self.nbcam + '.py'
             #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
             strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
-            lines=['# import','from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
+            top= '#! '+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/miniforge3/bin/python3.10'
+            
 
+            lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
             lines2=['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
             lines3=[strCam,"     e.show()","     appli.exec_()"]
 
@@ -191,6 +197,56 @@ class NEWCAM(QWidget):
             messError.setWindowTitle("Python file created ")
             messError.setText("The python file to run the camera has been created:   "+str(p.parent)+"/"+fichierName+"   double click on it to run ")
             messError.exec()
+
+            if sys.platform == 'linux': 
+                print('linux sytem')
+
+                # creation racourci linux
+                fichierRacourci = self.nbcam + '.desktop'
+                with open(fichierRacourci, "w") as fichierR:
+                    l=['[Desktop Entry]']
+                    fichierR.write('\n'.join(l))
+                    fichierR.write('\n')
+                    ll=['Version=1.0']
+                    fichierR.write('\n'.join(ll))
+                    fichierR.write('\n')
+                    l2=['Type=Application']
+                    fichierR.write('\n'.join(l2))
+                    fichierR.write('\n')
+                    l6=['Terminal=false']
+                    fichierR.write('\n'.join(l6))
+                    fichierR.write('\n')
+                    path=pathlib.Path(__file__)
+                    path=str(path.parent)
+                    l3=['Exec='+path+"/"+fichierName]
+                    fichierR.write('\n'.join(l3))
+                    fichierR.write('\n')
+                    l4=['Name='+ self.nbcam]
+                    fichierR.write('\n'.join(l4))
+                    fichierR.write('\n')
+                    lll=['StartupNotify=true']
+                    fichierR.write('\n'.join(lll))
+                    fichierR.write('\n')
+                    l5=['Icon='+path+'/icons/camLOA.png']
+                    fichierR.write('\n'.join(l5))
+                    fichierR.write('\n')
+                    
+                    fichierR.close()
+                    
+                    cmd ='chmod +x %s'%fichierName # autorisation fichier.py
+                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+
+                    
+                    bureauPath=str(pathlib.Path(__file__).parent.parent.parent.parent)+'/'+'Bureau'
+                    cmd = 'cp %s '%fichierRacourci +str(bureauPath)
+                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+
+                    cmd ='chmod +x '+bureauPath+'/%s'%fichierRacourci
+                    print(cmd)
+                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+
+                
+
         else :
             messError=QMessageBox(self)
             messError.setWindowTitle("ERROR ")
