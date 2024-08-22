@@ -464,7 +464,7 @@ class CAMERA(QWidget):
             
         if  self.isConnected is False: # no camera connected 
             self.nbcam = 'camDefault'
-            self.setWindowTitle('No camera connected    ' +'Visu v.'+self.visualisation.version)   
+            self.setWindowTitle('No camera connected    ' +'Visu v. '+self.visualisation.version)   
             self.runButton.setEnabled(False)
             self.snapButton.setEnabled(False)
             self.trigg.setEnabled(False)
@@ -624,7 +624,7 @@ class CAMERA(QWidget):
                 from visu import SEELIGHT
                 self.visualisation = SEELIGHT(parent=self,name=self.nbcam,spectro=False,**self.kwds)
                     
-            self.setWindowTitle(self.cameraType+"   " + self.ccdName+ '     v.'+ self.version+"   " +'Visu v.'+self.visualisation.version)   
+            self.setWindowTitle(self.cameraType+"   " + self.ccdName+ '     v. '+ self.version+"   " +'Visu v. '+self.visualisation.version)   
             self.dockTrig.setTitleBarWidget(QWidget())        
             self.dockControl.setTitleBarWidget(QWidget())  # to avoid tittle
             self.dockShutter.setTitleBarWidget(QWidget())
