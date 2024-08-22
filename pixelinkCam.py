@@ -34,7 +34,8 @@ try :
     cameras=pixelink.PxLApi.getNumberCameras()
     cameras=cameras[1]
 except:
-    print('pixelinkWrapper is not installed')
+    pass
+    #print('pixelinkWrapper is not installed')
 
 def camAvailable() :
     '''list of camera avialable

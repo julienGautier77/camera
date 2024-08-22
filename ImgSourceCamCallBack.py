@@ -42,10 +42,10 @@ import pathlib,os
 try:
     from dll import tisgrabber as IC 
 except:
-    print("")
+    pass
 try :
     
-    print('import imgSource dll : ok')
+    #print('import imgSource dll : ok')
     Camera = IC.TIS_CAM()
     Devices = Camera.GetDevices()
 except :
@@ -57,7 +57,7 @@ except :
 def camAvailable():
     # print(Devices)
     DeviceDecode=[x.decode() for x in Devices]
-    print(DeviceDecode)
+    #print(DeviceDecode)
     return DeviceDecode
 
 def getCamID(index):

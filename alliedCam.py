@@ -283,12 +283,12 @@ class ALLIEDVISION (QWidget):
         '''
         with vmb:
                 with self.cam0:
-                    exp=self.cam0.get_feature_by_name(self.camLanguage['exposure'])
+                    exp = self.cam0.get_feature_by_name(self.camLanguage['exposure'])
                     exp.set(float(sh*1000))
                     # print('exp',exp.get())
-                    exp.set(float(sh*1000)) # in gyppy ccd exposure time is microsecond
-                    self.camParameter["exposureTime"]=float(exp.get())/1000
-                    print("exposure time is set to",self.camParameter["exposureTime"],' micro s')
+                    exp.set(float(sh*1000)) # in gyppy camera exposure time is in microsecond
+                    self.camParameter["exposureTime"] = float(exp.get())/1000
+                    print("exposure time is set to",self.camParameter["exposureTime"],' ms')
         
     def setGain(self,g):
         ''' 
@@ -297,7 +297,7 @@ class ALLIEDVISION (QWidget):
         with vmb:
                 with self.cam0:
                     self.cam0.Gain.set(g) 
-                    self.camParameter["gain"]=self.cam0.Gain.get()
+                    self.camParameter["gain"] = self.cam0.Gain.get()
         print("Gain is set to",self.camParameter["gain"])   
             
     # def softTrigger(self):
@@ -340,7 +340,7 @@ class ALLIEDVISION (QWidget):
     def stopAcq(self):
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
-        self.camIsRunning=False  
+        self.camIsRunning = False  
             
     def newImageReceived(self,data):
         self.data = data
@@ -383,7 +383,6 @@ class ThreadRunAcq(QtCore.QThread):
     def frame_handler(self,cam, frame):
         cam.queue_frame(frame)
 
-        
     @pyqtSlot()
     def run(self):
         self.newStateCam.emit(True)
@@ -403,13 +402,12 @@ class ThreadRunAcq(QtCore.QThread):
                     except:
                         pass
                     
-                if self.stopRunAcq ==True :
+                if self.stopRunAcq == True :
                     pass
                     
     def stopThreadRunAcq(self):
-        
         #self.cam0.send_trigger()
-        self.stopRunAcq=True
+        self.stopRunAcq = True
 
 
 class ThreadOneAcq(QtCore.QThread):
@@ -430,7 +428,7 @@ class ThreadOneAcq(QtCore.QThread):
         
     def wait(self,seconds):
         time_end = time.time()+seconds
-        while time.time()<time_end:
+        while time.time() < time_end:
             QApplication.processEvents()
 
     def newRun(self):
@@ -464,7 +462,7 @@ class ThreadOneAcq(QtCore.QThread):
                 self.newStateCam.emit(False)
         
     def stopThreadOneAcq(self):
-        self.stopRunAcq=True
+        self.stopRunAcq = True
 
 
 if __name__ == "__main__":       
