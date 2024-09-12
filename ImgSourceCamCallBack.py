@@ -50,8 +50,8 @@ try :
     Devices = Camera.GetDevices()
 except :
     print ('librairy imaging source not found')
-    print('add path ...\camera\dll\ in environement variable path and reboot spyder ')
-    print('in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d environement')
+    # print('add path ...\camera\dll\ in environement variable path and reboot spyder ')
+    # print('in windows :parametres system/infosysteme/inrformationsytem/parametre systeme avance/variable d environement')
     pass
     
 def camAvailable():

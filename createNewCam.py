@@ -1,5 +1,6 @@
-#!/usr/bin/env python3
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
+
 """
 Created on Tue Mar 22 11:24:01 2022
 
@@ -7,7 +8,6 @@ Create a message with the list of camera connected (Basler allied vision imaging
 Add in the config file the parameter for the cam choosed
 Generate a .py to run the new camera and a shortcut on the desktop
 @author: gautier
-
 """
 
 from PyQt6.QtWidgets import QApplication,QWidget,QMessageBox
@@ -20,6 +20,7 @@ import os
 import subprocess
 import time
 import qdarkstyle
+
 
 class NEWCAM(QWidget):
     
@@ -180,24 +181,30 @@ class NEWCAM(QWidget):
             self.conf.sync()      
         
             # create a .py file named namecamera.py to run the camera 
-            fichierName = self.nbcam + '.py'
+            path = pathlib.Path(__file__)
+            path = str(path.parent)
+            fichierName = path + '/' + self.nbcam + '.py'
+            print(fichierName)
             #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
             strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
-            top = '#! '+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/miniforge3/bin/python3.10'
+            top = '#! /usr/bin/python3' #   '#! '+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/miniforge3/bin/python3.10'
 
             lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
             lines2 = ['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
             lines3 = [strCam,"     e.show()","     appli.exec_()"]
             
             with open(fichierName, "w") as fichier:
+                print('ii')
                 fichier.write('\n'.join(lines))
                 fichier.write('\n'.join(lines2))
                 fichier.write('\n'.join(lines3))
-                
+                fichier.write('\n')
+                fichier.close()
+
             messError = QMessageBox(self)
             messError.setWindowIcon(QIcon(self.icon+'LOA.png'))
             messError.setWindowTitle("Python file created ")
-            messError.setText("The python file to run the camera has been created:   "+str(p.parent)+"/"+fichierName+"   double click on it to run ")
+            messError.setText("The python file to run the camera has been created:   click right on desktop file to autoriser execution")#+str(p.parent)+"/"+fichierName+"   double click on it to run ")
             messError.exec()
 
             # creation de raccourcci
@@ -206,7 +213,8 @@ class NEWCAM(QWidget):
                 print('linux sytem')
 
                 # creation racourci linux
-                fichierRacourci = self.nbcam + '.desktop'
+                fichierRacourci =  path + '/' + self.nbcam + '.desktop'
+                print('fichierRacourci ',fichierRacourci )
                 with open(fichierRacourci, "w") as fichierR:
                     l = ['[Desktop Entry]']
                     fichierR.write('\n'.join(l))
@@ -222,7 +230,7 @@ class NEWCAM(QWidget):
                     fichierR.write('\n')
                     path = pathlib.Path(__file__)
                     path = str(path.parent)
-                    l3 = ['Exec='+path+"/"+fichierName]
+                    l3 = ['Exec='+fichierName]
                     fichierR.write('\n'.join(l3))
                     fichierR.write('\n')
                     l4 = ['Name='+ self.nbcam]
@@ -231,21 +239,22 @@ class NEWCAM(QWidget):
                     lll = ['StartupNotify=true']
                     fichierR.write('\n'.join(lll))
                     fichierR.write('\n')
-                    l5 = ['Icon='+path+'/icons/camLOA.png']
+                    l5 = ['Icon='+path+'/icons/camera.png']
                     fichierR.write('\n'.join(l5))
                     fichierR.write('\n')
                     
                     fichierR.close()
                     
-                    cmd = 'chmod +x %s'%fichierName # autorisation fichier.py
+                    cmd = 'chmod +x %s'% fichierName # autorisation fichier.py
                     subprocess.run(cmd,shell=True, executable="/bin/bash")
-                    
+                    print(cmd)
                     bureauPath = str(pathlib.Path(__file__).parent.parent.parent.parent)+'/'+'Bureau'
                     cmd = 'cp %s '%fichierRacourci +str(bureauPath)
                     subprocess.run(cmd,shell=True, executable="/bin/bash")
-
-                    cmd = 'chmod +x '+bureauPath+'/%s'%fichierRacourci
+                    print(cmd)
+                    cmd = 'chmod +x %s'%fichierRacourci
                     subprocess.run(cmd,shell=True, executable="/bin/bash")
+                    print(cmd)
             else : 
                 print('system' , sys.platform)
                 import win32com.client  # pip install pywin32
@@ -270,10 +279,8 @@ class NEWCAM(QWidget):
         #     messError.exec()
         
 if __name__ == "__main__":       
-    
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     e = NEWCAM()
-    #e.show()
-    
+    # e.show()
     # appli.exec_()       
