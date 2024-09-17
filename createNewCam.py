@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /home/upx/loaenv/bin/python3.12
 # -*- coding: utf-8 -*-
 
 """
@@ -187,7 +187,7 @@ class NEWCAM(QWidget):
             print(fichierName)
             #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
             strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
-            top = '#! /usr/bin/python3' #   '#! '+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/miniforge3/bin/python3.10'
+            top = '#! /home/upx/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
 
             lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
             lines2 = ['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]

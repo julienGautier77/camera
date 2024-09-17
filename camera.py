@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#! /home/upx/loaenv/bin/python3.12
 # -*- coding: utf-8 -*-
 """
 Created on Tue Mar 24 10:59:16 2020
@@ -98,7 +98,9 @@ class CAMERA(QWidget):
         self.nbcam = cam
         sepa = os.sep
         self.icon = str(p.parent) + sepa+'icons'+sepa
-        self.setWindowIcon(QIcon(self.icon+'LOA.png'))
+        self.Qicon=  QtGui.QIcon()
+        self.Qicon.addFile(self.icon +'LOA.png', QtCore.QSize(256,256))
+        self.setWindowIcon(self.Qicon)
         self.iconPlay = self.icon+'Play.png'
         self.iconSnap = self.icon+'Snap.png'
         self.iconStop = self.icon+'Stop.png'
