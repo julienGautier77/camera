@@ -258,7 +258,7 @@ class NEWCAM(QWidget):
             else : 
                 print('system' , sys.platform)
                 import win32com.client  # pip install pywin32
-                target_path = str(p.parent) + "/" + fichierName
+                target_path = fichierName
                 icon_path = str(p.parent)+"/" + 'icons' + "/" + 'camera.ico'
                 desktop = os.path.join(os.environ['USERPROFILE'], 'Desktop')
                 shortcutName = self.nbcam + ".lnk"
