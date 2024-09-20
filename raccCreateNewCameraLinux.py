@@ -8,7 +8,7 @@ path = str(path.parent)
 
 fichierRacourci='createNewCam.desktop'
 fichierName = 'createNewCam'
-
+env = str(pathlib.Path(__file__).parent.parent.parent.parent) + '/loaenv/bin/python3.12'
 with open(fichierRacourci, "w") as fichierR:
                     l = ['[Desktop Entry]']
                     fichierR.write('\n'.join(l))
@@ -24,7 +24,7 @@ with open(fichierRacourci, "w") as fichierR:
                     fichierR.write('\n')
                     path = pathlib.Path(__file__)
                     path = str(path.parent)
-                    l3 = ['Exec='+path+"/"+fichierName+".py"]
+                    l3 = ['Exec=' + env + ' ' + path + "/"+fichierName+".py"]
                     fichierR.write('\n'.join(l3))
                     fichierR.write('\n')
                     l4 = ['Name='+ fichierName]

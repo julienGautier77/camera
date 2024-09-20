@@ -1,4 +1,4 @@
-#! /home/upx/loaenv/bin/python3.12
+#! /home/Zita/loaenv/bin/python3.12
 # -*- coding: utf-8 -*-
 
 """
@@ -184,10 +184,12 @@ class NEWCAM(QWidget):
             path = pathlib.Path(__file__)
             path = str(path.parent)
             fichierName = path + '/' + self.nbcam + '.py'
+            env = str(pathlib.Path(__file__).parent.parent.parent.parent) + '/loaenv/bin/python3.12'
+            print ('path',pathlib.Path(__file__).parent.parent.parent.parent)
             print(fichierName)
             #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
             strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
-            top = '#! /home/upx/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
+            top = '#!'+env #'#! /home/Zita1/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
 
             lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
             lines2 = ['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
@@ -230,7 +232,7 @@ class NEWCAM(QWidget):
                     fichierR.write('\n')
                     path = pathlib.Path(__file__)
                     path = str(path.parent)
-                    l3 = ['Exec='+fichierName]
+                    l3 = ['Exec='+env+ ' ' + fichierName]
                     fichierR.write('\n'.join(l3))
                     fichierR.write('\n')
                     l4 = ['Name='+ self.nbcam]
