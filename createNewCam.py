@@ -1,4 +1,4 @@
-#! /home/Zita/loaenv/bin/python3.12
+#! /home/sallejaune/loaenv/bin/python3.12
 # -*- coding: utf-8 -*-
 
 """
@@ -24,7 +24,7 @@ import qdarkstyle
 
 class NEWCAM(QWidget):
     
-    def __init__(self):
+    def __init__(self,motRSAI=False):
         
         super(NEWCAM, self).__init__()
         p = pathlib.Path(__file__)
@@ -190,13 +190,15 @@ class NEWCAM(QWidget):
             #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
             strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
             top = '#!'+env #'#! /home/Zita1/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
-
-            lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
+            if motRSAI is True :
+                strCam = "     e = CAMERAONEMOTOR(cam='" +self.nbcam + "')"
+                lines = [top,'from PyQt6.QtWidgets import QApplication','from CamMoteurScan import CAMERAONEMOTOR','import sys','import qdarkstyle','']
+            else: 
+                lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
             lines2 = ['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
             lines3 = [strCam,"     e.show()","     appli.exec_()"]
             
             with open(fichierName, "w") as fichier:
-                print('ii')
                 fichier.write('\n'.join(lines))
                 fichier.write('\n'.join(lines2))
                 fichier.write('\n'.join(lines3))
@@ -283,6 +285,6 @@ class NEWCAM(QWidget):
 if __name__ == "__main__":       
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
-    e = NEWCAM()
+    e = NEWCAM(motRSAI=True)
     # e.show()
     # appli.exec_()       

@@ -206,7 +206,7 @@ class ALLIEDVISION (QWidget):
               self.cam0.TriggerActivation.set('RisingEdge')
 #              self.cam0.TriggerSource.set('Software')
               self.cam0.AcquisitionMode.set('SingleFrame')#Continuous
-              print('camera tempature',self.cam0.DeviceTemperature.get(),' °C')
+              
             
         ## init cam parameter## different command name depend on camera type 
         if self.modelCam == "GT1290":
@@ -220,8 +220,8 @@ class ALLIEDVISION (QWidget):
             self.LineTrigger = 'InputLines'
         if self.modelCam == 'Allied Vision 1800 U-050m' :
             self.camLanguage['exposure'] = 'ExposureTime'
-            self.LineTrigger = 'Line1'
-            
+            self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger")) 
+            print('camera tempature',self.cam0.DeviceTemperature.get(),' °C')
         
         if self.modelCam == 'Allied Vision Mako U-029B' :
             self.camLanguage['exposure'] = 'ExposureTime'

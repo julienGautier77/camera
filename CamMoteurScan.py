@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on 2023/01/19 
-Scan one motor with camera acquisition
+Scan with rsai motorwith camera acquisition
 
 @author: juliengautier
 version : 2023.01
@@ -14,7 +14,8 @@ import sys
 import qdarkstyle 
 from PyQt6 import QtCore
 from PyQt6.QtGui import QIcon
-from oneMotorSimple import ONEMOTOR
+import moteurRSAISERVER
+from MainMotorsServer import MAINMOTOR
 from scanMotorCamera import SCAN
 import os
 import pathlib
@@ -28,39 +29,39 @@ class CAMERAONEMOTOR(QWidget):
         Parameters
         cam:name of the camera 
         configFile= ini file of the camera
-        mot0= name of the motor to control
-        motorType : type of motor ('RSAI','SmartAct','A2V','NewFocus','newport','Servo','Arduino','Apt','test')
+        IpAdress =RSAI rack ip 
         """
+
         super(CAMERAONEMOTOR, self).__init__(parent)
         self.parent = parent
         self.kwds = kwds
-        self.CAM = CAMERA(cam=cam,configFile=confFile,separate=True,motRSAI=True,**self.kwds)
-         
-        self.MOTWidget = ONEMOTOR(IpAdress, NoMotor,nomWin='motorSimple',unit=1,jogValue=100)
-        self.MOTWidget.startThread2()
+        self.CAM = CAMERA(cam=cam,configFile=confFile,separate=False,motRSAI=True,**self.kwds)
+        self.MOTWidget = MAINMOTOR()
+        #self.MOTWidget.startThread2()
         sepa = os.sep
         p = pathlib.Path(__file__)
         self.icon = str(p.parent) + sepa+'icons'+sepa
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
-        self.scanWidget = SCAN(MOT=self.MOTWidget.MOT,parent=self)
+        self.scanWidget = SCAN()#MOT=self.MOTWidget.MOT,parent=self)
         self.setup()
         self.actButton()
 
 
     def setup(self):
-        vbox=QVBoxLayout()
+
+        vbox = QVBoxLayout()
         self.dockMotor = QDockWidget(self)
         self.dockMotor.setTitleBarWidget(QWidget())
         self.dockMotor.setWidget(self.MOTWidget)
 
-        self.CAM.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockMotor)
+        self.CAM.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockMotor)
         self.buttonScan = QToolButton()
         self.buttonScan.setText("Scan")
         self.buttonScan.setMinimumWidth(30)
         self.buttonScan.setMinimumHeight(30)
         self.buttonScan.setMaximumWidth(60)
         self.buttonScan.setMaximumHeight(30)
-        self.MOTWidget.hbox3.addWidget(self.buttonScan)
+#        self.MOTWidget.hbox3.addWidget(self.buttonScan)
         vbox.addWidget(self.CAM)
         self.setLayout(vbox)
 

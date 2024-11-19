@@ -62,33 +62,33 @@ def getCamID (index):
 
 class BASLER (QtCore.QThread):
     
-    newData=QtCore.pyqtSignal(object) # signal emited when receive image 
-    endAcq=QtCore.pyqtSignal(bool)
-    signalRunning=QtCore.pyqtSignal(bool)
+    newData = QtCore.pyqtSignal(object) # signal emited when receive image 
+    endAcq = QtCore.pyqtSignal(bool)
+    signalRunning = QtCore.pyqtSignal(bool)
 
     def __init__(self,cam='camDefault',**kwds):
         
         super(BASLER,self).__init__()
         
-        self.nbcam=cam
-        self.itrig='off'
+        self.nbcam = cam
+        self.itrig = 'off'
         
         if "conf"  in kwds :
-            self.conf=kwds["conf"]
+            self.conf = kwds["conf"]
         else :
             
-            self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
+            self.conf = QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         
             
         if "multi"in kwds :
-            self.multi=kwds["multi"]
+            self.multi = kwds["multi"]
         else:
-            self.multi=False   
+            self.multi = False   
             
-        self.camParameter=dict()
-        self.camIsRunning=False
-        self.nbShot=1
-        self.isConnected=False
+        self.camParameter =  dict()
+        self.camIsRunning = False
+        self.nbShot = 1
+        self.isConnected = False
         
     
    
@@ -104,21 +104,21 @@ class BASLER (QtCore.QThread):
         item, ok = QInputDialog.getItem(self, "Select Basler camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
             
         if ok and item:
-            items=list(items)
+            items = list(items)
             index = items.index(item)
-            self.id=cameras[index].GetDeviceInfo().GetSerialNumber()
+            self.id = cameras[index].GetDeviceInfo().GetSerialNumber()
             for i in devices:
-                if i.GetSerialNumber()==self.id:
-                    camConnected=i
-            self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
-            self.ccdName=self.cam0.GetDeviceInfo().GetFriendlyName()
-            self.isConnected=True
-            self.nbcam='camDefault'
+                if i.GetSerialNumber() == self.id:
+                    camConnected = i
+            self.cam0 = pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+            self.ccdName = self.cam0.GetDeviceInfo().GetFriendlyName()
+            self.isConnected = True
+            self.nbcam = 'camDefault'
         else:
-            self.isConnected=False
-            self.nbcam='camDefault'
+            self.isConnected = False
+            self.nbcam = 'camDefault'
         
-        if self.isConnected==True:
+        if self.isConnected is True:
             self.setCamParameter()   
              
             
@@ -126,17 +126,17 @@ class BASLER (QtCore.QThread):
         '''we take the fisrt one
         '''
         
-        self.nbcam='camDefault' #
+        self.nbcam = 'camDefault' #
         
         try:
-            self.cam0=pylon.InstantCamera(tlFactory.CreateFirstDevice())
-            self.ccdName='CamDefault'
-            self.isConnected=True
+            self.cam0 = pylon.InstantCamera(tlFactory.CreateFirstDevice())
+            self.ccdName = 'CamDefault'
+            self.isConnected = True
         except:
-            self.isConnected=False
-            self.ccdName='no camera'
+            self.isConnected = False
+            self.ccdName = 'no camera'
         
-        if self.isConnected==True:
+        if self.isConnected is True:
             self.setCamParameter()       
             
     def openCamByID(self,camID=0): 
@@ -146,37 +146,33 @@ class BASLER (QtCore.QThread):
         # if
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
-        self.camID=camID
+        self.camID = camID
         
         for i in devices:
             
             
-            if i.GetSerialNumber()==self.camID:
-                camConnected=i
-                # print(('ici'))
-                self.cam0= pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
-                
-                self.isConnected=True
+            if i.GetSerialNumber() == self.camID:
+                camConnected = i
+                self.cam0 = pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+                self.isConnected = True
                 break
             else: 
-                self.isConnected=False
+                self.isConnected = False
         # print('la',self.isConnected)       
-        if self.isConnected==True:
-            
+        if self.isConnected is True:
             self.setCamParameter()          
         
-            
             
     def setCamParameter(self): 
         """Set initial parameters
         """
                
         self.cam0.Open()
-        self.camID=self.cam0.GetDeviceInfo().GetSerialNumber()
+        self.camID = self.cam0.GetDeviceInfo().GetSerialNumber()
         print(' connected@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
                 
         
-        self.LineTrigger=str('None') # for 
+        self.LineTrigger = str('None') # for 
         
         self.cam0.TriggerMode.SetValue('Off')
         self.cam0.TriggerActivation.SetValue('RisingEdge')
@@ -187,12 +183,12 @@ class BASLER (QtCore.QThread):
         
         self.cam0.GainAuto.SetValue('Off')
         
-        self.cam0.Width=self.cam0.Width.Max  # set camera width at maximum
-        self.cam0.Height=self.cam0.Height.Max
+        self.cam0.Width = self.cam0.Width.Max  # set camera width at maximum
+        self.cam0.Height = self.cam0.Height.Max
         
         
-        self.camParameter["expMax"]=float(self.cam0.ExposureTimeAbs.GetMax()/1000)
-        self.camParameter["expMin"]=float(self.cam0.ExposureTimeAbs.GetMin()/1000)
+        self.camParameter["expMax"] = float(self.cam0.ExposureTimeAbs.GetMax()/1000)
+        self.camParameter["expMin"] = float(self.cam0.ExposureTimeAbs.GetMin()/1000)
         
         self.camParameter["gainMax"]=self.cam0.GainRaw.GetMax()
         self.camParameter["gainMin"]=self.cam0.GainRaw.GetMin()

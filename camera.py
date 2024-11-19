@@ -135,13 +135,6 @@ class CAMERA(QWidget):
         else: 
             self.aff = "right"    
         
-        if "scan" in kwds: #  Scan motor RSAI 
-            self.scan = kwds["scan"]
-            if self.scan is True:
-                self.kwds["motRSAI"] = True
-        else: 
-            self.scan = False
-
         if "confpath" in kwds:
             self.confpath = kwds["confpath"]
         else  :
@@ -314,7 +307,7 @@ class CAMERA(QWidget):
                 self.lenPixelink = 0
                 pass 
             
-            items = self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
+            items = self.itemsGuppy + list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
             item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             if ok and item:
                 indexItem = items.index(item)
@@ -466,7 +459,7 @@ class CAMERA(QWidget):
             
         if  self.isConnected is False: # no camera connected 
             self.nbcam = 'camDefault'
-            self.setWindowTitle('No camera connected    ' +'Visu v. '+self.visualisation.version)   
+            self.setWindowTitle('No camera connected    ' + 'Visu v. ' + self.visualisation.version)   
             self.runButton.setEnabled(False)
             self.snapButton.setEnabled(False)
             self.trigg.setEnabled(False)
@@ -606,12 +599,7 @@ class CAMERA(QWidget):
             self.dockGain = QDockWidget(self)
             self.dockGain.setWidget(self.widgetGain)
             
-            if self.scan is True :  
-                import MainMotorsCam
-                self.widgetMotor = MainMotorsCam.MAINMOTOR(parent=self)
-                self.dockMotor = QDockWidget(self)
-                self.dockMotor.setWidget(self.widgetMotor)
-                self.dockMotor.setTitleBarWidget(QWidget())
+           
             
             # self.TrigSoft=QPushButton('Trig Soft',self)
             # self.TrigSoft.setMaximumWidth(100)
@@ -624,7 +612,7 @@ class CAMERA(QWidget):
                 self.visualisation = SEE(parent=self,name=self.nbcam,spectro=False,**self.kwds) ## Widget for visualisation and tools  self.confVisu permet d'avoir plusieurs camera et donc plusieurs fichier ini de visualisation
             else:
                 from visu import SEELIGHT
-                self.visualisation = SEELIGHT(parent=self,name=self.nbcam,spectro=False,**self.kwds)
+                self.visualisation = SEELIGHT(parent=self, name=self.nbcam, spectro=False, **self.kwds)
                     
             self.setWindowTitle(self.cameraType+"   " + self.ccdName+ '     v. '+ self.version+"   " +'Visu v. '+self.visualisation.version)   
             self.dockTrig.setTitleBarWidget(QWidget())        
@@ -640,23 +628,20 @@ class CAMERA(QWidget):
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.dockTrig)
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.dockShutter)
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.dockGain)
-                    if self.scan is True : 
-                        self.visualisation.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,self.dockMotor)
+                    
                 else:
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockControl)
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockTrig)
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockShutter)
                     self.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockGain)
-                    if self.scan is True : 
-                        self.visualisation.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.dockMotor)
+                    
             else:
             #self.dockControl.setFeatures(QDockWidget.DockWidgetMovable)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockControl)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockTrig)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockShutter)
                 self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockGain)
-                if self.scan is True : 
-                    self.visualisation.addDockWidget(Qt.DockWidgetArea.TopDockWidgetArea,self.dockMotor)
+                
              
             hMainLayout.addWidget(self.visualisation)
             self.setLayout(hMainLayout)
@@ -881,6 +866,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path = '/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='cam1',fft='off',affLight=False,aff='right',scan=False,motRSAI = False)#,confpath=path  )
+    e = CAMERA(cam='cam1',fft='off',affLight=False,aff='right' )#,confpath=path  )
     e.show()
     sys.exit(appli.exec())   
