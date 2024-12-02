@@ -17,9 +17,9 @@ try :
 except ImportError:
 
     print ("import error Pyqt6")
-    from PyQt6.QtWidgets import QApplication,QWidget
+    from PyQt5.QtWidgets import QApplication,QWidget
     from pyqtgraph.Qt import QtCore
-    from PyQt6 import QtGui 
+    from PyQt5 import QtGui 
 import time,sys
 import numpy as np
 
@@ -46,7 +46,7 @@ class IDS (QWidget):
         else :
             self.conf=QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
         self.camParameter=dict()
-        self.camIsRunning=False
+        self.camIsRunnig=False
         self.nbShot=1
         self.items=2
   
@@ -316,13 +316,13 @@ class IDS (QWidget):
                 
         
     def startAcq(self):
-        self.camIsRunning=True
+        self.camIsRunnig=True
         self.threadRunAcq.newRun() # to set stopRunAcq=False
         self.threadRunAcq.start()
     
     def startOneAcq(self,nbShot):
         self.nbShot=nbShot 
-        self.camIsRunning=True
+        self.camIsRunnig=True
         self.threadOneAcq.newRun() # to set stopRunAcq=False
         self.threadOneAcq.start()
         
@@ -331,7 +331,7 @@ class IDS (QWidget):
         self.threadRunAcq.stopThreadRunAcq()
         self.threadOneAcq.stopThreadOneAcq()
         
-        self.camIsRunning=False  
+        self.camIsRunnig=False  
             
     def newImageReceived(self,data):
         
@@ -340,7 +340,7 @@ class IDS (QWidget):
     
         
     def stateCam(self,state):
-        self.camIsRunning=state
+        self.camIsRunnig=state
         
     def endAcquisition(self):
         self.endAcq.emit(True) # emit signal when acquisition is done

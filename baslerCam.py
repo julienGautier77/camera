@@ -172,12 +172,12 @@ class BASLER (QtCore.QThread):
         print(' connected@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
                 
         
-        self.LineTrigger = str('None') # for 
+        self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger")) # for 
         
         self.cam0.TriggerMode.SetValue('Off')
         self.cam0.TriggerActivation.SetValue('RisingEdge')
 
-        self.cam0.TriggerSource.SetValue('Line1')
+        self.cam0.TriggerSource.SetValue(self.LineTrigger )
         self.cam0.ExposureAuto.SetValue('Off')
         
         

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Exec=/home/sallejaune/loaenv/bin/python3.12 /home/sallejaune/Documents/python/camera/createNewCam.py
+Name=createNewCam
+StartupNotify=true
+Icon=/home/sallejaune/Documents/python/camera/icons/video.png
