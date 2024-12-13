@@ -14,7 +14,9 @@ from oneMotorGuiServerRSAI import ONEMOTORGUI
 import time
 import ast
 import socket as _socket
-
+from PyQt6 import QtCore
+import pathlib
+import os
 
 class MAINMOTOR(QWidget):
     """  widget
@@ -23,13 +25,18 @@ class MAINMOTOR(QWidget):
     def __init__(self, parent=None):
         
         super(MAINMOTOR, self).__init__(parent)
+        
+        p = pathlib.Path(__file__).parent
+        sepa = os.sep
         self.isWinOpen = False
         self.parent = parent
         self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         self.setWindowIcon(QIcon('./icons/LOA.png'))
         self.setWindowTitle('Main Motors')
-        server_host = '10.0.6.12'
-        serverPort = 5100
+        fileconf = str(p) + sepa + "confServer.ini"
+        confServer = QtCore.QSettings(fileconf,QtCore.QSettings.Format.IniFormat)
+        server_host = str( confServer.value('MAIN'+'/server_host') )# 
+        serverPort = int(confServer.value('MAIN'+'/serverPort'))
         self.clientSocket =_socket.socket(_socket.AF_INET,_socket.SOCK_STREAM)
 
         try :

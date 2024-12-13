@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on 2023/01/19 
-Scan one motor with camera acquisition
+amera acquisition with one motor selected 
 
 @author: juliengautier
 version : 2023.01

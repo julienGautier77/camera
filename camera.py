@@ -5,7 +5,9 @@
 Created on Tue Mar 24 10:59:16 2020
 
 a Python user interface for camera allied vison, ImgingSource, Balser ,pixelink ,ids 
-Scan with RSAI Motors
+Scan with RSAI Motors motRSAI = True
+check if confserver.ini file is good in visu folder and in camera foldser
+
 
 
 on conda prompt :
@@ -867,6 +869,6 @@ if __name__ == "__main__":
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     path = '/home/gautier/Documents/confCamera.ini'
-    e = CAMERA(cam='choose',fft='off',affLight=False,aff='right' )#,confpath=path  )
+    e = CAMERA(cam='choose',motRSAI=True,aff='right' )#,confpath=path  )
     e.show()
     sys.exit(appli.exec())   

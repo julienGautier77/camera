@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on 2023/01/19 
-Scan with rsai motorwith camera acquisition
+camera acquisition and you can select motors windows 
 
 @author: juliengautier
 version : 2023.01
@@ -45,7 +45,7 @@ class CAMERAONEMOTOR(QWidget):
         self.scanWidget = SCAN()#MOT=self.MOTWidget.MOT,parent=self)
         self.setup()
         self.actButton()
-
+#
 
     def setup(self):
 
