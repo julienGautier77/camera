@@ -143,7 +143,7 @@ class NEWCAM(QWidget):
         
             # create a new camera in the config file 
 
-            self.conf.setValue(self.nbcam+"/LineTrigger","InputLines")
+            self.conf.setValue(self.nbcam+"/LineTrigger","Lines")
             self.conf.setValue(self.nbcam+"/bgPath","C:/Users/loa/Dropbox (LOA)/Programmes Python/acquisitionPrinceton/data")
             self.conf.setValue(self.nbcam+"/bloqKeyboard","true")
             self.conf.setValue(self.nbcam+"/camId",self.camID)
@@ -285,6 +285,6 @@ class NEWCAM(QWidget):
 if __name__ == "__main__":       
     appli = QApplication(sys.argv) 
     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
-    e = NEWCAM(motRSAI=True)
+    e = NEWCAM(motRSAI=False)
     # e.show()
     # appli.exec_()       
