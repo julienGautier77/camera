@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on 01 December 2023
@@ -8,8 +9,7 @@ Dialog to RSAI motors rack via firebird database
 
 """
 
-from firebird.driver import connect    ### pip install  firebird-driver et installer biblioteque client firebird
-
+from firebird.driver import connect    ### pip install  firebird-driver
 import time
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QMessageBox,QApplication
@@ -23,20 +23,21 @@ UUIDSoftware = QUuid.createUuid() # create unique Id for software
 UUIDSoftware = str(UUIDSoftware.toString()).replace("{","")
 UUIDSoftware = UUIDSoftware.replace("}","")
 
-mut=QMutex()
+mut = QMutex()
 # if not local  dsn=10.0.5.X/ ??
 
 ## connection to data base 
-con = connect('10.0.48.1/3050:C:/PilMotDB/PILMOTCONFIG.FDB', user='sysdba', password='masterkey')
+con = connect('C:\PilMotDB\PILMOTCONFIG.FDB', user='sysdba', password='masterkey')
 cur = con.cursor()
-curCWD=con.cursor()
+curCWD = con.cursor()
+curRef = con.cursor()
 
 def closeConnection():
     # close connection
     con.close()
 
 # " dict for table values"
-listParaStr ={'nomAxe' : 2 ,'nomEquip':10, 'nomRef1': 1201 , 'nomRef2':1202 , 'nomRef3':1203 , 'nomRef4':1204 , 'nomRef5':1205 , 'nomRef6':1206 , 'nomRef7':1207 , 'nomRef8':1208 , 'nomRef9':1209 , 'nomRef10':1210}
+listParaStr = {'nomAxe' : 2 ,'nomEquip':10, 'nomRef1': 1201 , 'nomRef2':1202 , 'nomRef3':1203 , 'nomRef4':1204 , 'nomRef5':1205 , 'nomRef6':1206 , 'nomRef7':1207 , 'nomRef8':1208 , 'nomRef9':1209 , 'nomRef10':1210}
 listParaReal = {'Step':1106 , 'Ref1Val': 1211 , 'Ref2Val':1212 , 'Ref3Val':1213 , 'Ref4Val':1214 , 'Ref5Val':1215 , 'Ref6Val':1216 , 'Ref7Val':1217 , 'Ref8Val':1218 , 'Ref9Val':1219 , 'Ref10Val':1220}
 listParaInt = {'ButLogPlus': 1009 , 'ButLogNeg':1010 }
 
@@ -84,7 +85,7 @@ def rEquipmentList():
     Described list of equipment into database
     Format of the field of the list for one equipment: PkId, Address, Category, Status)
     '''
-    addressEquipement=[]
+    addressEquipement = []
     cur.execute("SELECT * FROM " + "TBEQUIPMENT")
     for row in cur:
         addressEquipement.append (row[1])
@@ -99,8 +100,8 @@ def getValueWhere1ConditionAND(cursor,TableName, ValToRead, ConditionColName,Con
     ConditionValue : Value name for the condition of the query search
     return param p_DataRead : values read
     '''
-   
-    Prepare1Cond= "SELECT " + ValToRead  + " FROM " + TableName + " WHERE " + ConditionColName + " = '" + ConditionValue + "' ;"
+    #con.commit()
+    Prepare1Cond = "SELECT " + ValToRead  + " FROM " + TableName + " WHERE " + ConditionColName + " = '" + ConditionValue + "' ;"
     cursor.execute(Prepare1Cond )
     p_DataRead = cursor.fetchone()[0]
     
@@ -149,7 +150,7 @@ def readPkModBim2BOC(cursor,PkEsbim, NumSlotMod, NumAxis, FlgReadWrite=1):
     TmpPkModBim = cursor.fetchone()[0]
     cursor.execute( "SELECT b.PkId FROM " + TbToRead + " b WHERE IdModule = " + str(TmpPkModBim) + " AND NumAxis = " + str(int(NumAxis)) + ";" );
     # for row in cur :
-    #     p_PKModBim =row[0]
+    #     p_PKModBim = row[0]
     p_PKModBim = cursor.fetchone()[0]
     return p_PKModBim # cle dans TbBim2Boc_1Axis_W correpondant idmodule et au numero d axe
 
@@ -162,22 +163,56 @@ def nameMoteur(IpAdress,NoMotor):
     NoAxis = getAxisNumber(NoMotor)
     PkIdTbBoc = readPkModBim2BOC(cur,IdEquipt, NoMod, NoAxis, FlgReadWrite=1) # Read Primary key identifier of an axis module Bim2BOC :  p_PkModBim
     name = rStepperParameter(cur,PkIdTbBoc,NoMotor,listParaStr['nomAxe'])
+    #con.commit()
     return name
+
+def setNameMoteur(IpAdress,NoMotor,nom):
+    IdEquipt = rEquipmentIdNbr(IpAdress)
+    NoMod  = getSlotNumber(NoMotor)
+    NoAxis = getAxisNumber(NoMotor)
+    valParam = nom
+    a = wStepperParameter(cur,IdEquipt,NoMotor, listParaStr['nomAxe'],valParam)
+    #con.commit()
+
+def setNameRef(IpAdress,NoMotor,nRef,name):
+    IdEquipt = rEquipmentIdNbr(IpAdress)
+    NoMod  = getSlotNumber(NoMotor)
+    NoAxis = getAxisNumber(NoMotor)
+    key = listParaStr['nomRef'+str(nRef)]
+    a = wStepperParameter(curRef,IdEquipt, NoMotor, key, name)
+    #con.commit()
+
+def setPosRef(IpAdress,NoMotor,nRef,pos):
+    IdEquipt = rEquipmentIdNbr(IpAdress)
+    NoMod  = getSlotNumber(NoMotor)
+    NoAxis = getAxisNumber(NoMotor)
+    key = listParaReal['Ref'+str(nRef)+'Val']
+    a = wStepperParameter(curRef,IdEquipt,NoMotor, key, pos)
+    #con.commit()
 
 def listMotorName(IpAdress):
     '''List des moteurs sur l'equipement IpAdress
     '''
     IdEquipt = rEquipmentIdNbr(IpAdress)
-    
-    listSlot=[]
+    con.commit()
+    listSlot = [] # list slot
     SELECT = 'select NumSlot from %s  where  IdEquipment= %s and NumSlot>=0'% ('TbModule',str(IdEquipt))   # list SLot
     cur.execute(SELECT)
     for row in cur :
        listSlot.append(row[0])
+    # print(listSlot)
+    listSlot.sort() #  tri dans l'odre croissant
     
-    listNameMotor=[]
-    for noMot in range (1,2*len(listSlot)+1): # dans notre cas 1...14
+    listNumMot= [] #  liste num moteur
+    #print(listSlot)
+    for i in listSlot:
+        listNumMot.append(2*i-1)
+        listNumMot.append(2*i)
+   
+    listNameMotor = []
+    for noMot in listNumMot: #  range (1,2*len(listSlot)+1): # dans notre cas 1...14
         listNameMotor.append(nameMoteur(IpAdress,noMot))
+   
     return listNameMotor
  
 def nameEquipment(IpAdress):
@@ -191,7 +226,7 @@ def nameEquipment(IpAdress):
 
     SELECT = 'select ValParam from %s where IDMODULE = %s and IDNAME = 10 '% ('TbParameterSTR',str(PkIdMod))
     cur.execute(SELECT)
-    nameEquip=cur.fetchone()[0]
+    nameEquip = cur.fetchone()[0]
     return nameEquip
 
     
@@ -236,7 +271,7 @@ def rEquipmentStatus(IpAddress):
     '''
     Read the status of an equipment from its IP Address
     '''
-    status =getValueWhere1ConditionAND(cur,"TbEquipment", "status", "Address", IpAddress)
+    status = getValueWhere1ConditionAND(cur,"TbEquipment", "status", "Address", IpAddress)
     return status
 
 def rStepperParameter(cursor,PkIdTbBoc,NoMotor, NoParam):
@@ -260,7 +295,7 @@ def rStepperParameter(cursor,PkIdTbBoc,NoMotor, NoParam):
         p_ReadValue = getValueWhere3ConditionAND(cursor,tbToread, "ValParam", "IdName", str(NoParam), "IdModule", str(PkIdModuleBIM), "NumAxis", str(NoAxis))
         return p_ReadValue 
     elif  NoParam in listParaInt.values(): # Int 
-        tbToread="TbParameterINT"
+        tbToread = "TbParameterINT"
         p_ReadValue = getValueWhere3ConditionAND(cursor,tbToread, "ValParam", "IdName", str(NoParam), "IdModule", str(PkIdModuleBIM), "NumAxis", str(NoAxis))
         return p_ReadValue 
     else :
@@ -282,24 +317,24 @@ def wStepperParameter(cursor,IdEquipt,NoMotor, NoParam,valParam):
     if NoParam  in listParaStr.values()  : #  str 
         tbToread = "TbParameterSTR"
         UPDATE = "UPDATE %s set ValParam ='%s' WHERE IdName= %s and IdModule =%s and NumAxis =%s ;" % (tbToread,valParam,str(NoParam),str(PkIdModuleBIM),str(NoAxis))
-        a=cursor.execute(UPDATE)
+        a = cursor.execute(UPDATE)
         con.commit()
 
     elif NoParam in listParaReal.values():
-        tbToread="TbParameterREAL"
+        tbToread = "TbParameterREAL"
         UPDATE = "UPDATE %s set ValParam =%s WHERE IdName= %s and IdModule =%s and NumAxis =%s ; " % (tbToread,valParam,str(NoParam),str(PkIdModuleBIM),str(NoAxis))
-        a=cursor.execute(UPDATE)
+        a = cursor.execute(UPDATE)
         con.commit() 
     elif  NoParam in listParaInt.values():
-        tbToread="TbParameterINT"
-        UPDATE= "UPDATE %s set ValParam =%s WHERE IdName= %s and IdModule =%s and NumAxis =%s ; " % (tbToread,valParam,str(NoParam),str(PkIdModuleBIM),str(NoAxis))
-        a=cursor.execute(UPDATE)
+        tbToread = "TbParameterINT"
+        UPDATE = "UPDATE %s set ValParam =%s WHERE IdName= %s and IdModule =%s and NumAxis =%s ; " % (tbToread,valParam,str(NoParam),str(PkIdModuleBIM),str(NoAxis))
+        a = cursor.execute(UPDATE)
         con.commit() 
     else :
         print( 'parameter value is not valid')
         a = 0
-        
     return a
+
 def wStepperCmd(cursor,PkIdTbBoc, RegOrder, RegPosition, RegVelocity=1000):
     '''
     Write a command to a stepper axis (BOCM) with a cursor
@@ -339,6 +374,7 @@ def wStepperCmd(cursor,PkIdTbBoc, RegOrder, RegPosition, RegVelocity=1000):
         else:
             return 'cmd ok'
 
+
 class MOTORRSAI():
     """
     MOTORRSAI(IpAdrress,NoMotor) 
@@ -356,8 +392,8 @@ class MOTORRSAI():
         self.cur = con.cursor() # def cursor to read postion
         self.curcwd = con.cursor() # def cursor to write cmd
         self.curEtat = con.cursor() # def cursor to read state
-        self.cursorRead =con.cursor() # def cursor to read parameter value
-        self.cursorWrite=con.cursor() # def cursor to write parameter value
+        self.cursorRead = con.cursor() # def cursor to read parameter value
+        self.cursorWrite = con.cursor() # def cursor to write parameter value
 
         self.PkIdTbBoc = readPkModBim2BOC(self.cursorRead,self.IdEquipt, self.NoMod, self.NoAxis, FlgReadWrite=1) # Read Primary key identifier of an axis module Bim2BOC :  p_PkModBim
         self._name = rStepperParameter(self.cursorRead,self.PkIdTbBoc,NoMotor,listParaStr['nomAxe'])
@@ -370,14 +406,16 @@ class MOTORRSAI():
         self.step = self.getStepValue()
         self.butPlus = self.getButLogPlusValue()
         self.butMoins = self.getButLogMoinsValue()
-        self.refName=[]
+        self.refName = []
         for i in range (1,7):
             r = self.getRefName(i)
             self.refName.append(r)
             # time.sleep(0.01)
-        self.refValue=[]
+        self.refValue = []
         for i in range (1,7):
-            rr = self.getRefValue(i)/self.step
+            if self.step == 0:
+                self.step = 1
+            rr = self.getRefValue(i)# /self.step JG 2025_01_20
             self.refValue.append(rr)
             # time.sleep(0.01)
 
@@ -390,7 +428,7 @@ class MOTORRSAI():
         ValToRead = "PosAxis"
         ConditionColName = "PkId"
         ConditionValue = str(self.PkIdTbBoc)
-        Prepare1Cond= "SELECT " + ValToRead  + " FROM " + TableName + " WHERE " + ConditionColName + " = '" + ConditionValue + "' ;"
+        Prepare1Cond = "SELECT " + ValToRead  + " FROM " + TableName + " WHERE " + ConditionColName + " = '" + ConditionValue + "' ;"
         self.cur.execute(Prepare1Cond )      
         posi = self.cur.fetchone()[0]
         mut.unlock()
@@ -509,8 +547,8 @@ class MOTORRSAI():
         setzero(self.moteurname):Set Zero
         """
         mut.lock()
-        RegOrder=10  #  commande pour zero le moteur 
-        a=wStepperCmd(cursor =self.curcwd,PkIdTbBoc=self.PkIdTbBoc, RegOrder=RegOrder, RegPosition=0,RegVelocity=0) 
+        RegOrder = 10  #  commande pour zero le moteur 
+        a = wStepperCmd(cursor =self.curcwd,PkIdTbBoc=self.PkIdTbBoc, RegOrder=RegOrder, RegPosition=0,RegVelocity=0) 
         mut.unlock()
 
     def stopMotor(self): # stop le moteur motor
@@ -533,29 +571,33 @@ class MOTORRSAI():
         # ecire direct la fonction 
         Prepare1Cond = "SELECT " + "StatusAxis"  + " FROM " + TbToRead + " WHERE " + "PkId" + " = " + str(self.PkIdTbBoc) + ";"
         self.curEtat.execute(Prepare1Cond )
-        a=self.curEtat.fetchone()[0]
-        a=str(hex(a))
+        a = self.curEtat.fetchone()[0]
+        a = str(hex(a))
         con.commit()
         time.sleep(0.1)
         mut.unlock()
-        # a refaire prendre que les dernier bits ?
-        if a == '0x2030' or a == '0x30' or a == '0x20': 
-            etat='mvt'
-        elif a=='0x2012' or a=='0x12' or a=='0x92' or a=='0x2082' or a== '0x2002' or a== '0x2': 
-            etat='FDC-'
-        elif a=='0x2011' or a=='0x11' or a=='0x91' or a=='0x2081' or a== '0x2001' or a =='0x1': 
-            etat='FDC+'
-        elif a=='0x2010' or a=='0x10' : 
-            etat='ok'
-        elif a=='0x2090' or a=='0x90' or a=='0x4000': 
-            etat='ok'    
-        elif a=='0x2090' or a=='0x80'or a=='0x0': 
-            etat='ok'
-        elif a=='0x890' or a == '0x2890' or a == '0x880' or a=='0x8c0' or a=='0x2883' : 
-            etat='Power off'
+        if (a & 0x0800 )!= 0 : # 
+            etat = 'Poweroff'
+        elif (a & 0x0200 )!= 0 : # 
+            etat = 'Phasedebranche'
+        elif (a & 0x0400 )!= 0 : # 
+            etat = 'courtcircuit'
+        elif (a & 0x0001) != 0:
+            etat = ('FDD+')
+        elif (a & 0x0002 )!= 0 :
+            etat = 'FDC-'
+        elif (a & 0x0004 )!= 0 :
+            etat = 'Log+'
+        elif (a & 0x0008 )!= 0 :
+            etat = 'Log-'
+        elif (a & 0x0020 )!= 0 :
+            etat = 'mvt'
+        elif (a & 0x0080 )!= 0 : # phase devalidé
+            etat = 'ok'
+        elif (a & 0x8000 )!= 0 : # 
+            etat = 'etatCameOrigin'
         else:
-            etat=str(a)
-        # print('etat',etat)
+            etat = '?'
         return etat
 
     def getEquipementName(self):
@@ -566,6 +608,7 @@ class MOTORRSAI():
 
 
 if __name__ == '__main__':
-    
+    ip = '10.0.1.31'
+    print(listMotorName(ip))
     closeConnection()
 

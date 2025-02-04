@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#! /home/sallejaune/loaenv/bin/python3.12
 # -*- coding: utf-8 -*-
 """
 Created on Sat 18 10 2024
@@ -34,7 +34,6 @@ class ONEMOTOR(QWidget):
         self.nomWin = nomWin
         self.isWinOpen = False
         self.indexUnit = unit
-        self.configPath = "./fichiersConfig/"
         self.isWinOpen = False
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
         self.jogValue = jogValue
@@ -42,7 +41,7 @@ class ONEMOTOR(QWidget):
         self.MOT = moteurRSAISERVER.MOTORRSAI(self.IpAdress, self.NoMotor)
         self.name = str(self.MOT.getName())
         self.setWindowTitle(self.nomWin + str(self.MOT.getEquipementName()) + ' ('+ str(self.IpAdress)+ ')  '+ ' [M'+ str(self.NoMotor) + ']  ' + self.name[0] )
-        self.stepmotor = float(1/(self.MOT.getStepValue()))
+        self.stepmotor = float((1/self.MOT.getStepValue()))
         self.butePos = float(self.MOT.getButLogPlusValue())
         self.buteNeg = float(self.MOT.getButLogMoinsValue())
 
@@ -62,10 +61,10 @@ class ONEMOTOR(QWidget):
             self.unitChange = float((1000*self.stepmotor))
             self.unitName = 'mm'
         if self.indexUnit == 3:  # ps  double passage : 1 microns=6fs
-            self.unitChange = float(1*self.stepmotor/0.0066666666)
+            self.unitChange = float(self.stepmotor/0.0066666666)
             self.unitName = 'ps'
         if self.indexUnit == 4:  # en degres
-            self.unitChange = 1 * float(self.stepmotor)
+            self.unitChange = 1 *float(self.stepmotor)
             self.unitName = '°'
         self.actionButton()
         self.unit()
@@ -80,8 +79,8 @@ class ONEMOTOR(QWidget):
         # pos=QLabel('Pos:')
         # pos.setMaximumHeight(20)
         nameBox = QLabel(self)
-        nameBox.setText(self.name)
-        nameBox.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        nameBox.setText("Foc")
+        nameBox.setAlignment(Qt.AlignCenter)
         nameBox.setStyleSheet('font: bold 15px;color: purple')
         self.position = QLabel('1234567')
         self.position.setMaximumHeight(50)
@@ -106,7 +105,6 @@ class ONEMOTOR(QWidget):
         hbox1.addWidget(self.unitButton)
         hbox1.addWidget(self.zeroButton)
         vbox1.addLayout(hbox1)
-        
         hbox2 = QHBoxLayout()
 
         self.moins = QToolButton()
@@ -141,7 +139,7 @@ class ONEMOTOR(QWidget):
         vbox1.addLayout(hbox3)
         self.hbox3 = hbox3
         self.vbox1 = vbox1
-
+        self.vbox1.addLayout(self.hbox3)
         self.setLayout(self.vbox1)
 
     def actionButton(self):
@@ -162,7 +160,7 @@ class ONEMOTOR(QWidget):
     def pMove(self):  # action jog +
         print('jog+')
         a = float(self.jogStep.value())
-        a = float(a*self.unitChange)
+        a = float(a/self.unitChange)
         b = self.MOT.position()
         if b+a < self.buteNeg:
             print("STOP : Butée Positive")
@@ -175,7 +173,7 @@ class ONEMOTOR(QWidget):
 
     def mMove(self):  # action jog -
         a = float(self.jogStep.value())
-        a = float(a*self.unitChange)
+        a = float(a/self.unitChange)
         b = self.MOT.position()
         if b-a < self.buteNeg:
             print("STOP : Butée Positive")
@@ -194,28 +192,28 @@ class ONEMOTOR(QWidget):
         unit change mot foc
         '''
         self.indexUnit = self.unitButton.currentIndex()
-        valueJog = self.jogStep.value()*self.unitChange
+        valueJog = self.jogStep.value()/self.unitChange
         if self.indexUnit == 0:  # step
             self.unitChange = 1
             self.unitName = 'step'
 
         if self.indexUnit == 1:  # micron
-            self.unitChange = float((1*self.stepmotor))
+            self.unitChange = float((self.stepmotor))
             self.unitName = 'um'
         if self.indexUnit == 2:  # mm 
-            self.unitChange = float((1000*self.stepmotor))
+            self.unitChange = float((self.stepmotor/1000))
             self.unitName = 'mm'
         if self.indexUnit == 3:  # ps  double passage : 1 microns=6fs
-            self.unitChange = float(1*self.stepmotor/0.0066666666)
+            self.unitChange = float(self.stepmotor*0.0066666666)
             self.unitName = 'ps'
         if self.indexUnit == 4:  # en degres
-            self.unitChange = 1 * self.stepmotor
+            self.unitChange = self.stepmotor
             self.unitName = '°'
         if self.unitChange == 0:
             self.unitChange = 1  # avoid 0
             
         self.jogStep.setSuffix(" %s" % self.unitName)
-        self.jogStep.setValue(valueJog/self.unitChange)
+        self.jogStep.setValue(valueJog*self.unitChange)
 
     def Position(self, Posi):
         '''
@@ -224,7 +222,7 @@ class ONEMOTOR(QWidget):
         Pos = Posi[0]
         self.etat = str(Posi[1])
         a = float(Pos)
-        a = a/self.unitChange  # value with unit changed
+        a = a * self.unitChange  # value with unit changed
         if self.etat == 'FDC-':
             self.position.setText(self.etat)
             self.position.setStyleSheet('font: bold 15pt;color:red')
@@ -302,7 +300,7 @@ class PositionThread(QtCore.QThread):
 
 if __name__ == '__main__':
     appli = QApplication(sys.argv)
-    mot5 = ONEMOTOR(IpAdress="10.0.6.31", NoMotor=3, unit=1, jogValue=100)
+    mot5 = ONEMOTOR(IpAdress="10.0.2.30", NoMotor=3, unit=1, jogValue=100)
     mot5.show()
     mot5.startThread2()
     appli.exec_()

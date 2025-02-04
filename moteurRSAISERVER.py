@@ -14,10 +14,9 @@ from PyQt6 import QtCore
 from PyQt6.QtWidgets import QMessageBox,QApplication
 import  socket
 from  PyQt6.QtCore import QUuid, QMutex
-import sys
+import sys, os 
 import socket as _socket
 import ast
-import os
 import pathlib
 
 p = pathlib.Path(__file__).parent
@@ -29,7 +28,7 @@ server_host = str( confServer.value('MAIN'+'/server_host') )#
 serverPort =int(confServer.value('MAIN'+'/serverPort'))
 clientSocket =_socket.socket(_socket.AF_INET,_socket.SOCK_STREAM)
 #clientSocket.settimeout(5)
-print('servermotor')
+
 try :
     clientSocket.connect((server_host,serverPort))
     isconnected = True
@@ -48,7 +47,6 @@ def listRack():
     clientSocket.sendall((cmdsend).encode())
     listRack = clientSocket.recv(1024).decode()
     listRack = ast.literal_eval(listRack)
-    
     return listRack
 
 def nameEquipment(IP):
