@@ -158,7 +158,7 @@ class BASLER (QtCore.QThread):
                 break
             else: 
                 self.isConnected = False
-        # print('la',self.isConnected)       
+        #print('la',self.isConnected)       
         if self.isConnected is True:
             self.setCamParameter()          
         
@@ -176,11 +176,8 @@ class BASLER (QtCore.QThread):
         
         self.cam0.TriggerMode.SetValue('Off')
         self.cam0.TriggerActivation.SetValue('RisingEdge')
-
         self.cam0.TriggerSource.SetValue(self.LineTrigger )
         self.cam0.ExposureAuto.SetValue('Off')
-        
-        
         self.cam0.GainAuto.SetValue('Off')
         
         self.cam0.Width = self.cam0.Width.Max  # set camera width at maximum
