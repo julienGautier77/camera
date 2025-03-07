@@ -142,8 +142,11 @@ class NEWCAM(QWidget):
             self.conf = QtCore.QSettings(self.confpath, QtCore.QSettings.Format.IniFormat) # ini file 
         
             # create a new camera in the config file 
-
-            self.conf.setValue(self.nbcam+"/LineTrigger","Lines")
+            if self.cameraType == "allied":
+                self.conf.setValue(self.nbcam+"/LineTrigger","Lines")
+            if self.cameraType == "basler":
+                self.conf.setValue(self.nbcam+"/LineTrigger","Line1")
+                
             self.conf.setValue(self.nbcam+"/bgPath","C:/Users/loa/Dropbox (LOA)/Programmes Python/acquisitionPrinceton/data")
             self.conf.setValue(self.nbcam+"/bloqKeyboard","true")
             self.conf.setValue(self.nbcam+"/camId",self.camID)
