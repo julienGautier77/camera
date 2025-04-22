@@ -1,5 +1,5 @@
 # camera
-
+Change confCamera-Source.ini to confCamera.ini
 
 Data acquistion with different type of camera based on pyQtgraph  
 It use visu module to display the data received  
