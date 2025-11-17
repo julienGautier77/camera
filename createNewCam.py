@@ -181,6 +181,9 @@ class NEWCAM(QWidget):
             
             self.conf.setValue(self.nbcam+"/xec",10)
             self.conf.setValue(self.nbcam+"/yec",10)
+            self.conf.setValue(self.nbcam+"/server","10.0.1.57")
+            self.conf.setValue(self.nbcam+"/serverPort",5009)
+
             self.conf.sync()      
         
             # create a .py file named namecamera.py to run the camera 
