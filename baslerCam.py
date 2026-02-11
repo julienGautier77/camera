@@ -17,47 +17,41 @@ BASLER class : class to control basler camera
                 where file is the ini file where camera paremetesr are saved
             The default is None.
         
-
+Modified on Thu Feb 10 2026
 @author: Julien Gautier (LOA)
 '''
-try :
+try:
     from PyQt6.QtWidgets import QInputDialog
     from PyQt6 import QtCore
-    
-    from PyQt6.QtCore import QMutex
     from PyQt6.QtCore import pyqtSlot
 except ImportError:
     print('error import PyQt6 ')
-    
-
 import time
 import numpy as np
-from pypylon import pylon
-try :   
+try: 
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
-
     tlFactory = pylon.TlFactory.GetInstance()
     devices = tlFactory.EnumerateDevices()
-    
     cameras = pylon.InstantCameraArray(min(len(devices), 20))
-    
-except:
-    print('pypylon is not installed')
+except Exception as e:
+    print('pypylon is not installed', e)
+
 
 def camAvailable() :
     '''list of camera avialable
     '''
-    items=()
+    items = ()
     for i, cam in enumerate(cameras):
         cam.Attach(tlFactory.CreateDevice(devices[i]))
-        items=items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
+        items = items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
     return items
-    
-def getCamID (index):
+
+
+def getCamID(index):
     '''get serial number
     '''
-    id=cameras[index].GetDeviceInfo().GetSerialNumber()
-    return(id)
+    id = cameras[index].GetDeviceInfo().GetSerialNumber()
+    return id
     
 
 class BASLER (QtCore.QThread):
@@ -66,40 +60,36 @@ class BASLER (QtCore.QThread):
     endAcq = QtCore.pyqtSignal(bool)
     signalRunning = QtCore.pyqtSignal(bool)
 
-    def __init__(self,cam='camDefault',**kwds):
+    def __init__(self, cam='camDefault',**kwds):
         
-        super(BASLER,self).__init__()
+        super(BASLER, self).__init__()
         
         self.nbcam = cam
         self.itrig = 'off'
         
-        if "conf"  in kwds :
+        if "conf" in kwds:
             self.conf = kwds["conf"]
-        else :
+        else:
             
             self.conf = QtCore.QSettings('confCamera.ini', QtCore.QSettings.Format.IniFormat)
-        
-            
-        if "multi"in kwds :
+          
+        if "multi" in kwds:
             self.multi = kwds["multi"]
         else:
             self.multi = False   
             
-        self.camParameter =  dict()
+        self.camParameter = dict()
         self.camIsRunning = False
         self.nbShot = 1
         self.isConnected = False
         
-    
-   
     def openMenuCam(self):
         '''create a message box to choose a camera
         '''
-        
-        items=()
+        items = ()
         for i, cam in enumerate(cameras):
             cam.Attach(tlFactory.CreateDevice(devices[i]))
-            items=items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
+            items = items+(str(cam.GetDeviceInfo().GetFriendlyName()),)
            
         item, ok = QInputDialog.getItem(self, "Select Basler camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowStaysOnTopHint)
             
@@ -120,125 +110,130 @@ class BASLER (QtCore.QThread):
         
         if self.isConnected is True:
             self.setCamParameter()   
-             
-            
+                
     def openFirstCam(self):
         '''we take the fisrt one
         '''
-        
         self.nbcam = 'camDefault' #
-        
         try:
             self.cam0 = pylon.InstantCamera(tlFactory.CreateFirstDevice())
             self.ccdName = 'CamDefault'
             self.isConnected = True
-        except:
+        except Exception as e:
             self.isConnected = False
             self.ccdName = 'no camera'
+            print(f'error connection to camera: {e}')
         
         if self.isConnected is True:
             self.setCamParameter()       
             
-    def openCamByID(self,camID=0): 
+    def openCamByID(self, camID=0):
         '''connect to a serial number
         '''
-        
         # if
         # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
         # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
         self.camID = camID
-        
         for i in devices:
-            
-            
             if i.GetSerialNumber() == self.camID:
                 camConnected = i
+                # print(('ici'))
                 self.cam0 = pylon.InstantCamera(tlFactory.CreateDevice(camConnected))
+                
                 self.isConnected = True
                 break
-            else: 
+            else:
                 self.isConnected = False
-        #print('la',self.isConnected)       
+        # print('la',self.isConnected)       
         if self.isConnected is True:
             self.setCamParameter()          
         
-            
     def setCamParameter(self): 
         """Set initial parameters
         """
-               
         self.cam0.Open()
         self.camID = self.cam0.GetDeviceInfo().GetSerialNumber()
-        print(' connected@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
-                
+        print(' connected@IP: ', self.cam0.GetDeviceInfo().GetIpAddress() )
         
-        self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger")) # for 
+        self.model = self.cam0.DeviceModelName.GetValue()
+        print(f'model : {self.model}')
+        if self.model == 'a2A4096-9gmBAS':
+            self.camLanguage['exposure'] = 'ExposureTime'
+            self.camLanguage['gain'] = 'Gain'
+        else:
+            self.camLanguage['exposure'] = 'ExposureTimeAbs'
+            self.camLanguage['gain'] = 'GainRaw'
+        
+        self.attExp = getattr(self.cam0, self.camLanguage['exposure'])
+        self.attGain = getattr(self.cam0, self.camLanguage['gain'])
+
+        self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger"))
         
         self.cam0.TriggerMode.SetValue('Off')
         self.cam0.TriggerActivation.SetValue('RisingEdge')
-        self.cam0.TriggerSource.SetValue(self.LineTrigger )
+        self.cam0.TriggerSource.SetValue(self.LineTrigger)
+        #  self.cam0.TriggerSource.SetValue('Line1')
         self.cam0.ExposureAuto.SetValue('Off')
+        
         self.cam0.GainAuto.SetValue('Off')
         
         self.cam0.Width = self.cam0.Width.Max  # set camera width at maximum
         self.cam0.Height = self.cam0.Height.Max
         
+        self.camParameter["expMax"] = float(self.attExp.GetMax()/1000)
+        self.camParameter["expMin"] = float(self.attExp.GetMin()/1000)  # Change minimum and mAximum value from getMin/1000 to Getmin
         
-        self.camParameter["expMax"] = float(self.cam0.ExposureTimeAbs.GetMax()/1000)
-        self.camParameter["expMin"] = float(self.cam0.ExposureTimeAbs.GetMin()/1000)
+        self.camParameter["gainMax"] = self.attGain.GetMax()
+        self.camParameter["gainMin"] = self.attGain.GetMin()
         
-        self.camParameter["gainMax"]=self.cam0.GainRaw.GetMax()
-        self.camParameter["gainMin"]=self.cam0.GainRaw.GetMin()
-        
-        #if exposure time save in the ini file is not in the range we put the minimum
-        if self.camParameter["expMin"] <=float(self.conf.value(self.nbcam+"/shutter"))<=self.camParameter["expMax"]:
-            self.cam0.ExposureTimeAbs.SetValue(float(self.conf.value(self.nbcam+"/shutter"))*1000)
+        # if exposure time save in the ini file is not in the range we put the minimum
+        if self.camParameter["expMin"] <= float(self.conf.value(self.nbcam+"/shutter")) <= self.camParameter["expMax"]:
+            self.attExp.SetValue(float(self.conf.value(self.nbcam+"/shutter"))*1000)
         else:
-            self.cam0.ExposureTimeAbs.SetValue(self.camParameter["expMin"]*1000)
+            self.attExp.SetValue(self.camParameter["expMin"]*1000)
     
-        self.camParameter["exposureTime"]=int(self.cam0.ExposureTimeAbs.GetValue())/1000
+        self.camParameter["exposureTime"] = int(self.attExp.GetValue())/1000
         
-        
-        if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
-            self.cam0.GainRaw.SetValue(int(self.conf.value(self.nbcam+"/gain")))
+        if self.camParameter["gainMin"] <= int(self.conf.value(self.nbcam+"/gain")) <= self.camParameter["gainMax"]:
+            self.attGain.SetValue(int(self.conf.value(self.nbcam+"/gain")))
         else:
             print('gain error: gain set to minimum value')
-            self.cam0.GainRaw.SetValue(int(self.camParameter["gainMin"]))
+            self.attGain.SetValue(int(self.camParameter["gainMin"]))
+        self.camParameter["gain"] = self.attGain.GetValue()
+        try:
+            # Packet size (GigE uniquement)
+            if hasattr(self.cam0, 'GevSCPSPacketSize'):
+                self.cam0.GevSCPSPacketSize.SetValue(1500)
+            # Inter-packet delay (GigE uniquement)
+            if hasattr(self.cam0, 'GevSCPD'):
+                self.cam0.GevSCPD.SetValue(1000)
+            # Nombre de buffers
+            self.cam0.MaxNumBuffer = 50
+        except Exception as e:
+            print(f'error setting packet size and inter-packet delay: {e}')
         
-        self.camParameter["gain"]=self.cam0.GainRaw.GetValue()
+        self.camParameter["trigger"] = self.cam0.TriggerMode.GetValue()
         
-        
-        self.camParameter["trigger"]=self.cam0.TriggerMode.GetValue()
-        
-        self.threadRunAcq=ThreadRunAcq(self)
-        
-        
-        if self.multi==True:
-            self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
-        else:
-            self.threadRunAcq.newDataRun.connect(self.newImageReceived)
-           
-            
-        self.threadOneAcq=ThreadOneAcq(self)
+        self.threadRunAcq = ThreadRunAcq(self)
+        self.threadRunAcq.newDataRun.connect(self.newImageReceived)
+             
+        self.threadOneAcq = ThreadOneAcq(self)
         self.threadOneAcq.newDataRun.connect(self.newImageReceived)
         self.threadOneAcq.newStateCam.connect(self.stateCam)
             
-            
-    def setExposure(self,sh):
+    def setExposure(self, sh):
         ''' set exposure time in ms
+        '''        
+        self.attExp.SetValue(float(sh*1000))  # in balser ccd exposure time is microsecond  # Changed the value from sh*1000 to sh
+        self.camParameter["exposureTime"] = float(self.attExp.GetValue()/1000)
+        print(f"exposure time is set to { float(self.attExp.GetValue())} micro s")
+        
+    def setGain(self, g):
+        ''' set gain
         '''
-        
-        self.cam0.ExposureTimeAbs.SetValue(float (sh*1000))# in balser ccd exposure time is microsecond
-        self.camParameter["exposureTime"]=float(self.cam0.ExposureTimeAbs.GetValue())/1000
-        print("exposure time is set to",float(self.cam0.ExposureTimeAbs.GetValue()),' micro s')
-        
-    def setGain(self,g):
-        ''' set gain 
-        '''
-        
-        self.cam0.GainRaw.SetValue(int(g)) # 
-        print("Gain is set to",self.cam0.GainRaw.GetValue())   
-        self.camParameter["gain"]=self.cam0.GainRaw.GetValue()
+        self.attGain.SetValue(int(g))
+        print("Gain is set to", self.attGain.GetValue())   
+        self.camParameter["gain"] = self.attGain.GainRaw.GetValue()
     
     def softTrigger(self):
         '''to have a sofware trigger
@@ -246,59 +241,50 @@ class BASLER (QtCore.QThread):
         print('trig soft')
         self.cam0.ExecuteSoftwareTrigger()
 
-    def setTrigger(self,trig='off'):
+    def setTrigger(self, trig='off'):
         '''set trigger mode on/off
         '''
-        
-        if trig=='on':
+        if trig == 'on':
             self.cam0.TriggerMode.SetValue('On')
-            self.itrig='on'
+            self.itrig = 'on'
         else:
             self.cam0.TriggerMode.SetValue('Off')
-            
-            self.itrig='off'
+            self.itrig = 'off'
         
-        self.camParameter["trigger"]=self.cam0.TriggerMode.GetValue()
+        self.camParameter["trigger"] = self.cam0.TriggerMode.GetValue()
         
     def startAcq(self):
         '''Acquistion in live mode
         '''
-        
-        self.camIsRunning=True
-        self.threadRunAcq.newRun() # to set stopRunAcq=False
+        self.camIsRunning = True
+        self.threadRunAcq.newRun()  # to set stopRunAcq=False
         self.threadRunAcq.start()
     
-    def startOneAcq(self,nbShot):
+    def startOneAcq(self, nbShot):
         '''Acquisition of a number (nbShot) of image 
         '''
-        
-        self.nbShot=nbShot 
-        self.camIsRunning=True
-        self.threadOneAcq.newRun() # to set stopRunAcq=False
+        self.nbShot = nbShot 
+        self.camIsRunning = True
+        self.threadOneAcq.newRun()  # to set stopRunAcq=False
         self.threadOneAcq.start()
         
     def stopAcq(self):
-        
         self.threadRunAcq.stopThreadRunAcq()
         # if self.threadRunAcq.isRunning():
         #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
-        self.camIsRunnig=False  
+        self.camIsRunnig = False
     
-    def newImageReceived(self,data):
+    def newImageReceived(self, data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
         '''
-        
-        self.data=data
-        
+        self.data = data
         self.newData.emit(self.data)
     
-        
-    def stateCam(self,state):
+    def stateCam(self, state):
         '''state of camera : True is running False : is stopped
         '''
-        
-        self.camIsRunning=state
+        self.camIsRunning = state
         
     def endAcquisition(self):
         self.endAcq.emit(True)
@@ -306,107 +292,115 @@ class BASLER (QtCore.QThread):
     def closeCamera(self):
         print('close basler')
         self.cam0.Close()
-        
-        
-        
-        
+
+
 class ThreadRunAcq(QtCore.QThread):
     '''Second thread for controling continus acquisition independtly
     '''
-    newDataRun=QtCore.pyqtSignal(object)
+    newDataRun = QtCore.pyqtSignal(object)
     
     def __init__(self, parent):
         
-        super(ThreadRunAcq,self).__init__(parent)
-        self.parent=parent
+        super(ThreadRunAcq, self).__init__(parent)
+        self.parent = parent
         self.cam0 = parent.cam0
-        self.stopRunAcq=False
-        self.itrig= parent.itrig
-        self.LineTrigger=parent.LineTrigger
-        self.converter=pylon.ImageFormatConverter()
+        self.stopRunAcq = False
+        self.itrig = parent.itrig
+        self.LineTrigger = parent.LineTrigger
+        self.converter = pylon.ImageFormatConverter()
         
     def newRun(self):
-        self.stopRunAcq=False
+        self.stopRunAcq = False
 
-      
     def run(self):
-        
-        while self.stopRunAcq is not True :
-            # self.mutex.lock()
-            try :
-                data=self.cam0.GrabOne(20000000)
-            except :
+        self.cam0.StartGrabbing(pylon.GrabStrategy_OneByOne)
+        while self.stopRunAcq is not True and self.cam0.IsGrabbing():
+            try:
+                grabResult = self.cam0.RetrieveResult(50000000, pylon.TimeoutHandling_ThrowException)
+            except Exception as e:
                 self.cam0.StopGrabbing()
-                data=self.cam0.GrabOne(20000000)
-            # data=self.converter.Convert(data)
-            data = data.GetArray()#, dtype=np.double)
-            data.squeeze()
+                self.data = self.cam0.GrabOne(20000000)
+                print(f'erreur grab {e}')
+            if grabResult.GrabSucceeded():
+                self.data = grabResult.Array
+                self.data = np.rot90(self.data, 1)
+                self.newDataRun.emit(self.data)
+
+            grabResult.Release()
+
+            # old version with one grab each time
+
+            # while self.stopRunAcq is not True :
+            # # self.mutex.lock()
+            # try :
+            #     data=self.cam0.GrabOne(20000000)
+            # except :
+            #     self.cam0.StopGrabbing()
+            #     data=self.cam0.GrabOne(20000000)
+            # # data=self.converter.Convert(data)
+            # data = data.GetArray()#, dtype=np.double)
+            # data.squeeze()
             
-            self.data=np.rot90(data,1)
+            # self.data=np.rot90(data,1)
             
-            if np.max(self.data)>0: # send data if not zero 
+            # if np.max(self.data)>0: # send data if not zero 
                 
-                if self.stopRunAcq==True:
-                    break
-                else :
-                    self.newDataRun.emit(self.data)
+            #     if self.stopRunAcq==True:
+            #         break
+            #     else :
+            #         self.newDataRun.emit(self.data)
                     
-                    # print(self.cam0.DeviceTemperature.GetValue())
-            # self.mutex.unlock()
     def stopThreadRunAcq(self):
-        
-        self.stopRunAcq=True
-        
-        try :
-            self.cam0.ExecuteSoftwareTrigger()
-        except :
+        self.stopRunAcq = True
+        time.sleep(0.1)
+        try:
+            self.cam0.ExecuteSoftwareTrigger() # new
+            self.cam0.StopGrabbing()
+        except Exception as e:
+            print(f'error stopping acquisition: {e}')
             pass
         
     def closeCamera(self):
         self.cam0.Close()
         
-        
-        
+   
 class ThreadOneAcq(QtCore.QThread):
     '''Second thread for controling one or anumber of  acquisition independtly
     '''
-    newDataRun=QtCore.pyqtSignal(object)
-    newStateCam=QtCore.pyqtSignal(bool) # signal to emit the state (running or not) of the camera
+    newDataRun = QtCore.pyqtSignal(object)
+    newStateCam = QtCore.pyqtSignal(bool) # signal to emit the state (running or not) of the camera
     
     def __init__(self, parent):
         
-        super(ThreadOneAcq,self).__init__()
-        self.parent=parent
+        super(ThreadOneAcq, self).__init__()
+        self.parent = parent
         self.cam0 = parent.cam0
-        self.stopRunAcq=False
-        self.itrig= parent.itrig
-        self.LineTrigger=parent.LineTrigger
-        self.converter=pylon.ImageFormatConverter()
+        self.stopRunAcq = False
+        self.itrig = parent.itrig
+        self.LineTrigger = parent.LineTrigger
+        self.converter = pylon.ImageFormatConverter()
    
-    
     def newRun(self):
-        self.stopRunAcq=False
+        self.stopRunAcq = False
         
-      
     def run(self):
         self.newStateCam.emit(True)
         
         for i in range (self.parent.nbShot):
-            if self.stopRunAcq is not True :
-                data=self.cam0.GrabOne(200000)
-                data=self.converter.Convert(data)
+            if self.stopRunAcq is not True:
+                data = self.cam0.GrabOne(2000000)
+                data = self.converter.Convert(data)
                 data = data.GetArray()#, dtype=np.double)
                 data.squeeze()
-            
-                self.data=np.rot90(data,1)
+                self.data = np.rot90(data, 1)
                 
-                if i<self.parent.nbShot-1:
+                if i < self.parent.nbShot-1:
                     self.newStateCam.emit(True)
                 else:
                     self.newStateCam.emit(False)
-                    time.sleep(0.1)
+                    time.sleep(0.001)
                     
-                if np.max(self.data)>0 : 
+                if np.max(self.data) > 0: 
                     self.newDataRun.emit(self.data)
                     
             else:
@@ -415,24 +409,14 @@ class ThreadOneAcq(QtCore.QThread):
         self.newStateCam.emit(False)
        
     def stopThreadOneAcq(self):
-        
-        self.stopRunAcq=True
-        
-        try :
+        self.stopRunAcq = True
+        try:
             self.cam0.ExecuteSoftwareTrigger()
-        except :
+        except Exception as e:
+            print(f'error stopping acquisition: {e}')
             pass      
-        
-    
-        
-    
-        
+           
+
 if __name__ == "__main__":       
-    
-    
+
     e = BASLER(cam='cam1')
-                 
-        
-        
-        
-        

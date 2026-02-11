@@ -10,7 +10,7 @@ Generate a .py to run the new camera and a shortcut on the desktop
 @author: gautier
 """
 
-from PyQt6.QtWidgets import QApplication,QWidget,QMessageBox
+from PyQt6.QtWidgets import QApplication, QWidget, QMessageBox
 from PyQt6.QtWidgets import QInputDialog
 from PyQt6 import QtCore
 from PyQt6.QtGui import QIcon
@@ -24,7 +24,7 @@ import qdarkstyle
 
 class NEWCAM(QWidget):
     
-    def __init__(self,motRSAI=False):
+    def __init__(self, motRSAI=False):
         
         super(NEWCAM, self).__init__()
         p = pathlib.Path(__file__)
@@ -33,51 +33,51 @@ class NEWCAM(QWidget):
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
 
-        try :
+        try:
             import alliedCam
             self.itemsGuppy = alliedCam.camAvailable()
             # print(self.itemsGuppy)
             self.lenGuppy = len(self.itemsGuppy)
             
         except:
-            #print('No allied vision camera connected')
+            # print('No allied vision camera connected')
             self.itemsGuppy = []
             self.lenGuppy = 0
             pass
-        try :
+        try:
             import baslerCam
             self.itemsBasler = baslerCam.camAvailable()
             self.lenBasler = len(self.itemsBasler)
             
         except:
-            #print('No Basler camera connected')
+            # print('No Basler camera connected')
             self.itemsBasler = []
             self.lenBasler = 0
             pass 
         
-        try :
+        try:
             import ImgSourceCamCallBack
             self.itemsImgSource = ImgSourceCamCallBack.camAvailable()
             self.lenImgSource = len(self.itemsImgSource)
             
         except:
-            #print('No ImagingSource camera connected')
+            # print('No ImagingSource camera connected')
             self.itemsImgSource = []
             self.lenImgSource = 0
             pass 
         
-        try :
+        try:
             import pixelinkCam
             self.itemsPixelink = pixelinkCam.PIXELINK.camAvailable()
             self.lenImgPixelink = len(self.itemsPixelink)
             
         except:
-            #print('No pixelink camera connected')
+            # print('No pixelink camera connected')
             self.itemsPixelink = []
             self.lenPixelink = 0
             pass 
         
-        items = self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
+        items = self.itemsGuppy+list(self.itemsBasler)+self.itemsImgSource + self.itemsPixelink
         
         item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
         
@@ -134,7 +134,7 @@ class NEWCAM(QWidget):
             messError.setWindowTitle(" Warning ")
             messError.exec()
             
-        if self.isConnected is True :
+        if self.isConnected is True:
             item, ok = QInputDialog.getText(self, "Choose a camera name","Name ?: ",flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
             p = pathlib.Path(__file__)
             self.nbcam = item
@@ -143,44 +143,44 @@ class NEWCAM(QWidget):
         
             # create a new camera in the config file 
             if self.cameraType == "allied":
-                self.conf.setValue(self.nbcam+"/LineTrigger","Lines")
+                self.conf.setValue(self.nbcam+"/LineTrigger","Line0")
             if self.cameraType == "basler":
                 self.conf.setValue(self.nbcam+"/LineTrigger","Line1")
                 
             self.conf.setValue(self.nbcam+"/bgPath","C:/Users/loa/Dropbox (LOA)/Programmes Python/acquisitionPrinceton/data")
-            self.conf.setValue(self.nbcam+"/bloqKeyboard","true")
-            self.conf.setValue(self.nbcam+"/camId",self.camID)
-            self.conf.setValue(self.nbcam+"/camType",self.cameraType)
-            self.conf.setValue(self.nbcam+"/gain",float(0))
-            self.conf.setValue(self.nbcam+"/lastFichier"," ")
-            self.conf.setValue(self.nbcam+"/loqKeyboard","false")
+            self.conf.setValue(self.nbcam+"/bloqKeyboard", "true")
+            self.conf.setValue(self.nbcam+"/camId", self.camID)
+            self.conf.setValue(self.nbcam+"/camType", self.cameraType)
+            self.conf.setValue(self.nbcam+"/gain", float(0))
+            self.conf.setValue(self.nbcam+"/lastFichier", " ")
+            self.conf.setValue(self.nbcam+"/loqKeyboard", "false")
 
-            self.conf.setValue(self.nbcam+"/nameBg","bg")
+            self.conf.setValue(self.nbcam+"/nameBg", "bg")
             
-            self.conf.setValue(self.nbcam+"/nameCDD",self.nbcam)
+            self.conf.setValue(self.nbcam+"/nameCDD", self.nbcam)
             
-            self.conf.setValue(self.nbcam+"/nameFile","Tir")
-            self.conf.setValue(self.nbcam+"/pathAutoSave"," ")
+            self.conf.setValue(self.nbcam+"/nameFile", "Tir")
+            self.conf.setValue(self.nbcam+"/pathAutoSave", " ")
                                
-            self.conf.setValue(self.nbcam+"/pathBg","")
+            self.conf.setValue(self.nbcam+"/pathBg", "")
 
-            self.conf.setValue(self.nbcam+"/rotation",0)
-            self.conf.setValue(self.nbcam+"/rx",50)
-            self.conf.setValue(self.nbcam+"/ry",50)
-            self.conf.setValue(self.nbcam+"/shutter",10)
-            self.conf.setValue(self.nbcam+"/stepX",1)
-            self.conf.setValue(self.nbcam+"/stepY",1)
-            self.conf.setValue(self.nbcam+"/tirNumber",1)
-            self.conf.setValue(self.nbcam+"/xc",1)
-            self.conf.setValue(self.nbcam+"/yc",2)
+            self.conf.setValue(self.nbcam+"/rotation", 0)
+            self.conf.setValue(self.nbcam+"/rx", 50)
+            self.conf.setValue(self.nbcam+"/ry", 50)
+            self.conf.setValue(self.nbcam+"/shutter", 10)
+            self.conf.setValue(self.nbcam+"/stepX", 1)
+            self.conf.setValue(self.nbcam+"/stepY", 1)
+            self.conf.setValue(self.nbcam+"/tirNumber", 1)
+            self.conf.setValue(self.nbcam+"/xc", 1)
+            self.conf.setValue(self.nbcam+"/yc", 2)
             
-            self.conf.setValue(self.nbcam+"/r1x",10)
-            self.conf.setValue(self.nbcam+"/r1y",11)
-            self.conf.setValue(self.nbcam+"/r2x",20)
-            self.conf.setValue(self.nbcam+"/r2y",20)
+            self.conf.setValue(self.nbcam+"/r1x", 10)
+            self.conf.setValue(self.nbcam+"/r1y", 11)
+            self.conf.setValue(self.nbcam+"/r2x", 20)
+            self.conf.setValue(self.nbcam+"/r2y", 20)
             
-            self.conf.setValue(self.nbcam+"/xec",10)
-            self.conf.setValue(self.nbcam+"/yec",10)
+            self.conf.setValue(self.nbcam+"/xec", 10)
+            self.conf.setValue(self.nbcam+"/yec", 10)
             self.conf.sync()      
         
             # create a .py file named namecamera.py to run the camera 
@@ -188,18 +188,18 @@ class NEWCAM(QWidget):
             path = str(path.parent)
             fichierName = path + '/' + self.nbcam + '.py'
             env = str(pathlib.Path(__file__).parent.parent.parent.parent) + '/loaenv/bin/python3.12'
-            print ('path',pathlib.Path(__file__).parent.parent.parent.parent)
+            print(f'path: {pathlib.Path(__file__).parent.parent.parent.parent}')
             print(fichierName)
-            #strCam="     e = CAMERA(cam='" +self.nbcam + "')"
-            strCam = "     e = CAMERA(cam='" +self.nbcam + "',scan=False,motRSAI = False)"
-            top = '#!'+env #'#! /home/Zita1/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
-            if motRSAI is True :
+            # strCam="     e = CAMERA(cam='" +self.nbcam + "')"
+            strCam = "     e = CAMERA(cam='" + self.nbcam + "',scan=False,motRSAI = False)"
+            top = '#!'+ env  #'#! /home/Zita1/loaenv/bin/python3.12' #   '#!'+ str(pathlib.Path(__file__).parent.parent.parent.parent)+ '/home/upx/loaenv/bin/python3.12'
+            if motRSAI is True:
                 strCam = "     e = CAMERAONEMOTOR(cam='" +self.nbcam + "')"
-                lines = [top,'from PyQt6.QtWidgets import QApplication','from CamMoteurScan import CAMERAONEMOTOR','import sys','import qdarkstyle','']
+                lines = [top, 'from PyQt6.QtWidgets import QApplication','from CamMoteurScan import CAMERAONEMOTOR','import sys','import qdarkstyle','']
             else: 
-                lines = [top,'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
-            lines2 = ['if __name__ == "__main__":','     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
-            lines3 = [strCam,"     e.show()","     appli.exec_()"]
+                lines = [top, 'from PyQt6.QtWidgets import QApplication','from camera import CAMERA','import sys','import qdarkstyle','']
+            lines2 = ['if __name__ == "__main__":', '     appli = QApplication(sys.argv) ',"     appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))",""]
+            lines3 = [strCam, "     e.show()", "     appli.exec_()"]
             
             with open(fichierName, "w") as fichier:
                 fichier.write('\n'.join(lines))
@@ -216,7 +216,7 @@ class NEWCAM(QWidget):
 
             # creation de raccourcci
 
-            if sys.platform == 'linux': 
+            if sys.platform == 'linux':
                 print('linux sytem')
 
                 # creation racourci linux
@@ -237,10 +237,10 @@ class NEWCAM(QWidget):
                     fichierR.write('\n')
                     path = pathlib.Path(__file__)
                     path = str(path.parent)
-                    l3 = ['Exec='+env+ ' ' + fichierName]
+                    l3 = ['Exec=' + env + ' ' + fichierName]
                     fichierR.write('\n'.join(l3))
                     fichierR.write('\n')
-                    l4 = ['Name='+ self.nbcam]
+                    l4 = ['Name=' + self.nbcam]
                     fichierR.write('\n'.join(l4))
                     fichierR.write('\n')
                     lll = ['StartupNotify=true']
