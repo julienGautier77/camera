@@ -176,7 +176,7 @@ class CAMERA(QWidget):
         self.ccdName = self.conf.value(self.nbcam+"/nameCDD")
         self.cameraType = self.conf.value(self.nbcam+"/camType")
         self.camID = self.conf.value(self.nbcam+"/camId")
-        
+        print(f'camtype {self.cameraType}')
         if self.cameraType == "allied" :
             try:
                 import alliedCam
@@ -262,7 +262,8 @@ class CAMERA(QWidget):
                 import dummyCam
                 self.CAM = dummyCam.DUMMYCAM(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
-                self.isConnected = self.CAM.isConnected
+                self.isConnected = True # self.CAM.isConnected
+                
             except:
                 print("Dummy cam not loaded")
                 self.isconnected = False
@@ -272,7 +273,22 @@ class CAMERA(QWidget):
                 self.camID = ""
                 self.nbcam = 'camDefault'
                 pass
-
+        elif self.cameraType == "dummyGauss":
+                    try :
+                        import dummyGaussianCam
+                        self.CAM = dummyGaussianCam.DUMMYCAM(cam=self.nbcam,conf=self.conf,**self.kwds)
+                        self.CAM.openCamByID(self.camID)
+                        self.isConnected = True # self.CAM.isConnected
+                        
+                    except:
+                        print("Dummy cam not loaded")
+                        self.isconnected = False
+                        print('No camera chosen')
+                        self.ccdName = "no camera"
+                        self.cameraType = ""
+                        self.camID = ""
+                        self.nbcam = 'camDefault'
+                        pass
         else:
             print('no camera')
             self.isConnected = False

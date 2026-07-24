@@ -2,33 +2,25 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 30 10:23:01 2020
+Adapted : dummy camera générant une tache gaussienne 2D aléatoire
 
 @author: Julien Gautier (LOA)
 
-camAvailable:
+Caméra factice qui génère, à chaque acquisition, une image contenant une
+tache gaussienne 2D dont la position, l'amplitude, la largeur (sigma_x,
+sigma_y) et l'orientation (theta) varient aléatoirement d'une image à
+l'autre (simulation de fluctuations de pointé). Un léger bruit de fond est
+ajouté pour se rapprocher d'une image caméra réelle.
 
+Interface strictement identique à dummyCam.py (DUMMYCAM, ThreadRunAcq,
+ThreadOneAcq) : remplacement direct possible pour tester winMeas/visu avec
+un vrai signal (tache) plutôt que du bruit pur.
+
+camAvailable:
     return list of all camera
 
 getCamID(index)
-
     return the ID of the camera
-
-class ALLIEDVISION :
-
-    Parameters
-        ----------
-        cam : TYPE, optional
-            DESCRIPTION.
-            None : Choose a camera in a list
-            camDefault : the first camera is chossen
-            "cam1" : Take the camId in the confCamera.ini file
-            The default is 'camDefault'.
-        conf : TYPE, optional
-            DESCRIPTION.a QtCore.QSettings  objet :
-            QtCore.QSettings('file.ini', QtCore.QSettings.IniFormat)
-            where file is the ini file where camera parameters are saved
-            usefull to set init parameters (expTime and gain)
-            The default is None.
 """
 
 try:
@@ -45,11 +37,15 @@ import numpy as np
 try:
     cameraIds = [1]
     nbCamera = len(cameraIds)
-    print(nbCamera, "dummy Cameras available :")
+    print(nbCamera, "dummy Gaussian Cameras available :")
     for i in range(0, nbCamera):
         print(cameraIds[i])
 except Exception as e:
-    print(f'error loading dummy camera  {e}')
+    print(f'error loading dummy gaussian camera  {e}')
+
+
+# Taille de l'image générée (mêmes dimensions que dummyCam.py)
+IMG_SHAPE = (2048, 1024)  # (nb lignes, nb colonnes)
 
 
 def getCamID(index):
@@ -69,6 +65,69 @@ def camAvailable():
     return [1]
 
 
+def twoD_Gaussian(x, y, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
+    xo = float(xo)
+    yo = float(yo)
+    a = ((np.cos(theta)**2)/(2*sigma_x**2) +
+         (np.sin(theta)**2)/(2*sigma_y**2))
+    b = (-(np.sin(2*theta))/(4*sigma_x**2) +
+         (np.sin(2*theta))/(4*sigma_y**2))
+    c = ((np.sin(theta)**2)/(2*sigma_x**2) +
+         (np.cos(theta)**2)/(2*sigma_y**2))
+    gauss = (offset + amplitude*np.exp(- (a*((x-xo)**2) + 2*b*(x-xo)*(y-yo) +
+                                          c*((y-yo)**2))))
+    return gauss
+
+
+def generate_gaussian_frame(shape=IMG_SHAPE, margin_factor=3, patch_sigma=5):
+    """
+    Génère une image (uint8) contenant une tache gaussienne 2D avec des
+    paramètres tirés aléatoirement (position, amplitude, largeur,
+    orientation), sur un fond légèrement bruité.
+
+    Pour rester rapide, le calcul de la gaussienne (cos/sin/exp) n'est
+    fait que sur un petit patch local autour du centre (au-delà de
+    quelques sigma, la contribution de la gaussienne est négligeable),
+    au lieu de toute l'image ; le bruit de fond est généré avec
+    np.random.randint (rapide), comme dans dummyCam.py.
+    """
+    ny, nx = shape
+
+    # Largeur de la tache (pixels), tirée aléatoirement
+    sigma_x = np.random.uniform(15, 60)
+    sigma_y = np.random.uniform(15, 60)
+
+    # Position aléatoire, avec une marge pour garder la tache bien visible
+    # (évite qu'elle soit systématiquement coupée en bord d'image)
+    margin_x = min(margin_factor * sigma_x, nx / 2 - 1)
+    margin_y = min(margin_factor * sigma_y, ny / 2 - 1)
+    xo = np.random.uniform(margin_x, nx - margin_x)
+    yo = np.random.uniform(margin_y, ny - margin_y)
+
+    theta = np.random.uniform(0, np.pi)
+    amplitude = np.random.uniform(120, 200)   # reste sous 255 avec le fond+bruit
+    offset = np.random.uniform(5, 15)          # niveau de fond
+
+    # Fond bruité sur toute l'image (rapide, comme dans dummyCam.py)
+    offsetInt = int(offset)
+    frame = np.random.randint(offsetInt, offsetInt + 6, shape).astype(np.int16)
+
+    # Patch local autour du centre : au-delà de patch_sigma*sigma, la
+    # gaussienne est quasi nulle, inutile de la calculer sur toute l'image
+    half = int(patch_sigma * max(sigma_x, sigma_y))
+    x0 = max(0, int(xo - half))
+    x1 = min(nx, int(xo + half))
+    y0 = max(0, int(yo - half))
+    y1 = min(ny, int(yo + half))
+
+    yy, xx = np.mgrid[y0:y1, x0:x1]
+    patch = twoD_Gaussian(xx, yy, amplitude, xo, yo, sigma_x, sigma_y, theta, 0)
+    frame[y0:y1, x0:x1] += patch.astype(np.int16)
+
+    frame = np.clip(frame, 0, 255).astype(np.uint8)
+    return frame
+
+
 class DUMMYCAM(QWidget):
     newData = QtCore.pyqtSignal(object)
     endAcq = QtCore.pyqtSignal(bool)
@@ -86,9 +145,7 @@ class DUMMYCAM(QWidget):
         self.camParameter = dict()
         # On lit le temps d'exposition sauvegardé dans le fichier de config
         # (comme le font les vraies caméras), avec un repli à 100 ms si la
-        # clé n'existe pas encore (première utilisation) : auparavant cette
-        # valeur était codée en dur à 1 ms, d'où l'absence des 100 ms
-        # attendus au démarrage.
+        # clé n'existe pas encore (première utilisation).
         self.camParameter["exposureTime"] = float(self.conf.value(str(self.nbcam) + "/shutter", 100))
         self.camParameter["expMin"] = 0
         self.camParameter["expMax"] = 1000
@@ -124,10 +181,10 @@ class DUMMYCAM(QWidget):
         """
         self.camLanguage = dict()
 
-        self.modelCam = "dummy camera"
-        #print(f'Max height {self.height}')
+        self.modelCam = "dummy gaussian camera"
+        print(f'Max height {self.height}')
         print('connected @:', self.camID, 'model : ', self.modelCam)
-        #print("Done")
+        print("Done")
 
         # init cam parameter## different command name depend on camera type
         print(f'model {self.modelCam}')
@@ -200,16 +257,10 @@ class ThreadRunAcq(QtCore.QThread):
 
         super(ThreadRunAcq, self).__init__(parent)
         self.parent = parent
-        #self.cam0 = self.parent.cam0
         self.stopRunAcq = False
-        #self.itrig = parent.itrig
-        #self.LineTrigger = parent.LineTrigger
 
     def newRun(self):
         self.stopRunAcq = False
-
-#    def frame_handler(self, cam, frame):
-#        cam.queue_frame(frame)
 
     @pyqtSlot()
     def run(self):
@@ -219,7 +270,7 @@ class ThreadRunAcq(QtCore.QThread):
         while self.stopRunAcq is not True:
             try:
                 self.newStateCam.emit(True)
-                data = np.random.randint(0, 255, (2048, 1024), dtype=np.uint8)
+                data = generate_gaussian_frame()
                 time.sleep(self.parent.exp/1000)
                 self.newDataRun.emit(data)
                 self.newStateCam.emit(False)  # cam is not reading
@@ -231,7 +282,6 @@ class ThreadRunAcq(QtCore.QThread):
             pass
 
     def stopThreadRunAcq(self):
-        # self.cam0.send_trigger()
         self.stopRunAcq = True
 
 
@@ -245,10 +295,7 @@ class ThreadOneAcq(QtCore.QThread):
 
         super(ThreadOneAcq, self).__init__(parent)
         self.parent = parent
-#        self.cam0 = self.parent.cam0
         self.stopRunAcq = False
-#       self.itrig = parent.itrig
-#        self.LineTrigger = parent.LineTrigger
 
     def wait(self, seconds):
         time_end = time.time() + seconds
@@ -265,7 +312,7 @@ class ThreadOneAcq(QtCore.QThread):
             if self.stopRunAcq is not True:
 
                 try:
-                    data = np.random.randint(0, 255, (2048, 1024), dtype=np.uint8)
+                    data = generate_gaussian_frame()
                     if i < self.parent.nbShot - 1:
                         self.newStateCam.emit(True)
                         time.sleep(0.01)
