@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Exec=/home/upx/loaenv/bin/python3.12 /home/upx/Documents/python/camera/test.py
+Name=test
+StartupNotify=true
+Icon=/home/upx/Documents/python/camera/icons/camera.png
