@@ -178,9 +178,9 @@ class CAMERA(QWidget):
                 self.CAM = alliedCam.ALLIEDVISION (cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected=self.CAM.isConnected
-            except :
-                print("no allied vision camera detected or vimba is not installed")
-                self.isconnected = False
+            except Exception as e:
+                print("no allied vision camera detected or vimba is not installed:", e)
+                self.isConnected = False
                 print('No camera choosen')
                 self.ccdName = "no camera"
                 self.cameraType = ""
@@ -194,9 +194,9 @@ class CAMERA(QWidget):
                 self.CAM = baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected = self.CAM.isConnected
-            except:
-                print("no basler camera detected or pypylon is not installed")
-                self.isconnected = False
+            except Exception as e:
+                print("no basler camera detected or pypylon is not installed:", e)
+                self.isConnected = False
                 print('No camera choosen')
                 self.ccdName = "no camera"
                 self.cameraType = ""
@@ -210,9 +210,9 @@ class CAMERA(QWidget):
                 self.CAM = ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected = self.CAM.isConnected
-            except:
-                print("no imaging source camera detected or Tisgrabber is not installed")
-                self.isconnected = False
+            except Exception as e:
+                print("no imaging source camera detected or Tisgrabber is not installed:", e)
+                self.isConnected = False
                 print('No camera choosen')
                 self.ccdName = "no camera"
                 self.cameraType = ""
@@ -226,9 +226,9 @@ class CAMERA(QWidget):
                 self.CAM = pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected = self.CAM.isConnected
-            except:
-                print("no imaging source camera detected or Tisgrabber is not installed")
-                self.isconnected = False
+            except Exception as e:
+                print("no pixelink camera detected:", e)
+                self.isConnected = False
                 print('No camera choosen')
                 self.ccdName = "no camera"
                 self.cameraType = ""
@@ -242,9 +242,9 @@ class CAMERA(QWidget):
                 self.CAM = idsCam.IDS(cam=self.nbcam,conf=self.conf,**self.kwds)
                 self.CAM.openCamByID(self.camID)
                 self.isConnected = self.CAM.isConnected
-            except:
-                print("no imaging source camera detected or Tisgrabber is not installed")
-                self.isconnected = False
+            except Exception as e:
+                print("no ids camera detected or pyueye is not installed:", e)
+                self.isConnected = False
                 print('No camera choosen')
                 self.ccdName = "no camera"
                 self.cameraType = ""
@@ -263,175 +263,20 @@ class CAMERA(QWidget):
         '''open a camera with different way  
         '''
         
-        if self.nbcam == "choose": # create menu widget with all camera present 
-        
-            self.nbcam = 'camDefault'
-            try :
-                import alliedCam
-                self.itemsGuppy = alliedCam.camAvailable()
-                # print(self.itemsGuppy)
-                self.lenGuppy = len(self.itemsGuppy)
-                
-            except:
-                print('No allied vision camera connected')
-                self.itemsGuppy = []
-                self.lenGuppy = 0
-                pass
-            try :
-                import baslerCam
-                self.itemsBasler = baslerCam.camAvailable()
-                self.lenBasler = len(self.itemsBasler)
-                
-            except:
-                print('No Basler camera connected')
-                self.itemsBasler = []
-                self.lenBasler = 0
-                pass 
-            
-            try :
-                import ImgSourceCamCallBack
-                self.itemsImgSource = ImgSourceCamCallBack.camAvailable()
-                self.lenImgSource = len(self.itemsImgSource)
-                
-            except:
-                print('No ImagingSource camera connected')
-                self.itemsImgSource = []
-                self.lenImgSource = 0
-                pass 
-            
-            try :
-                import pixelinkCam
-                self.itemsPixelink = pixelinkCam.PIXELINK.camAvailable()
-                self.lenImgPixelink = len(self.itemsPixelink)
-                
-            except:
-                print('No pixelink camera connected')
-                self.itemsPixelink = []
-                self.lenPixelink = 0
-                pass 
-            
-            items = self.itemsGuppy + list(self.itemsBasler)+self.itemsImgSource+self.itemsPixelink
-            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", items, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
-            if ok and item:
-                indexItem = items.index(item)
-                if indexItem < self.lenGuppy:
-                    indexItem = indexItem
-                    self.cameraType = "allied"
-                    self.camID = alliedCam.getCamID(indexItem)
-                    self.CAM = alliedCam.ALLIEDVISION(cam=self.nbcam,conf=self.conf)
-                    self.CAM.openCamByID(self.camID)
-                    self.isConnected = self.CAM.isConnected
-                    self.ccdName = self.camID
-                elif indexItem >= self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy:
-                    indexItem = indexItem-self.lenGuppy
-                    self.cameraType = "basler"
-                    self.camID = baslerCam.getCamID(indexItem)
-                    self.CAM = baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
-                    self.CAM.openCamByID(self.camID)
-                    self.isConnected = self.CAM.isConnected
-                    self.ccdName = self.camID
-                    
-                elif indexItem >= self.lenBasler+self.lenGuppy  and indexItem<self.lenBasler+self.lenGuppy+self.lenImgSource:
-                    indexItem = indexItem-self.lenGuppy-self.lenBasler
-                    self.cameraType = "imgSource"
-                    self.camID = ImgSourceCamCallBack.getCamID(indexItem)
-                    self.camID = self.camID.decode()
-                    self.CAM = ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
-                    self.CAM.openCamByID(self.camID)
-                    self.isConnected = self.CAM.isConnected
-                    self.ccdName = self.camID
-                    
-                elif indexItem >= self.lenBasler+self.lenGuppy+ self.lenImgSource and indexItem < self.lenBasler+self.lenGuppy+self.lenImgSource+self.lenPixelink:
-                    indexItem = indexItem-self.lenGuppy-self.lenBasler-self.lenImgSource
-                    self.cameraType = "pixelink"
-                    self.camID = pixelinkCam.getCamID(indexItem)
-                    self.CAM = pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
-                    self.CAM.openCamByID(self.camID)
-                    self.isConnected = self.CAM.isConnected
-                    self.ccdName = self.camID    
-                else:
-                     self.isconnected = False
-                     print('No camera choosen')
-                     self.ccdName = "no camera"
-                     self.nbcam = 'camDefault'
-            else :
-                self.isconnected = False
-                print('No camera choosen')
-                self.ccdName = "no camera"
-                self.cameraType = ""
-                self.camID = ""
-                self.nbcam = 'camDefault'
-            
-        elif  self.nbcam == None:
-            self.isconnected = False
+        if  self.nbcam == None:
+            self.isConnected = False
             print('No camera')
             self.ccdName = "no camera"
             self.cameraType = ""
             self.camID = ""
             self.nbcam = 'camDefault'
-             
-        elif self.nbcam == "firstAllied": # open the first allied camera  cam in the list
-            self.nbcam = 'camDefault'
-            self.cameraType = "allied"
-            self.ccdName = 'First allied Cam'
-            import alliedCam
-            self.CAM = alliedCam.ALLIEDVISION(cam=self.nbcam,conf=self.conf,**self.kwds)
-            self.CAM.openFirstCam()
-            self.isConnected = self.CAM.isConnected    
-        
-        
-        elif self.nbcam == "firstBasler": # open the first basler cam in the list
-            self.ccdName = 'First basler Cam'
-            self.nbcam = 'camDefault'
-            self.cameraType = "basler"
-            import baslerCam 
-            self.CAM = baslerCam.BASLER(cam=self.nbcam,conf=self.conf,**self.kwds)
-            self.CAM.openFirstCam()
-            self.isConnected = self.CAM.isConnected   
             
-        elif self.nbcam == "firstImgSource": # open the first imgSource cam in the list
-            self.ccdName = 'First ImSource Cam'
-            self.nbcam = 'camDefault'
-            self.cameraType = "imgSource"
-            import ImgSourceCamCallBack 
-            self.CAM = ImgSourceCamCallBack.IMGSOURCE(cam=self.nbcam,conf=self.conf,**self.kwds)
-            self.CAM.openFirstCam()
-            self.isConnected = self.CAM.isConnected 
-            
-        elif self.nbcam == "firstPixelink": # open the first pixelink cam in the list
-            self.ccdName = 'First Pixelink Cam'
-            self.nbcam = 'camDefault'
-            self.cameraType = "pixelink"
-            import pixelinkCam
-            self.CAM = pixelinkCam.PIXELINK(cam=self.nbcam,conf=self.conf,**self.kwds)
-            self.CAM.openFirstCam()
-            self.isConnected = self.CAM.isConnected      
-        
-        elif self.nbcam == "firstIds": # open the first ids cam in the list
-            self.nbcam = 'camDefault'
-            self.cameraType = "ids"
-            self.ccdName = 'First ids Cam'
-            import idsCam
-            self.CAM = idsCam.IDS(cam=self.nbcam,conf=self.conf,**self.kwds)
-            self.CAM.openFirstCam()
-            self.isConnected = self.CAM.isConnected    
-        
-        elif self.nbcam == 'menu': # Qdialog with a menu with all the camera name present in the inifile
-            self.groupsName = []
-            self.groups = self.conf.childGroups()
-            for groups in self.groups:
-                self.groupsName.append(self.conf.value(groups+"/nameCDD"))
-            item, ok = QInputDialog.getItem(self, "Select a camera","List of avaible camera", self.groupsName, 0, False,flags=QtCore.Qt.WindowType.WindowStaysOnTopHint)
-            if ok and item:
-                indexItem = self.groupsName.index(item)
-                self.nbcam = self.groups[indexItem]
-                self.openID()
-        
         else :  #open the camera by ID : nbcam return ID of the ini file
-            try : 
+            try :
                 self.openID()
-            except :
-                self.isConnected=False 
+            except Exception as e:
+                print('openID error:', e)
+                self.isConnected=False
         
     def setCamPara(self):
         '''
