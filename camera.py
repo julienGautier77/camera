@@ -250,7 +250,40 @@ class CAMERA(QWidget):
                 self.cameraType = ""
                 self.camID = ""
                 self.nbcam = 'camDefault'
-                pass 
+                pass
+
+        elif self.cameraType == "dummy":
+            try :
+                import dummyCam
+                self.CAM = dummyCam.DUMMYCAM(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected = self.CAM.isConnected
+            except Exception as e:
+                print("no dummy camera:", e)
+                self.isConnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
+                pass
+
+        elif self.cameraType == "dummyGauss":
+            try :
+                import dummyGaussianCam
+                self.CAM = dummyGaussianCam.DUMMYCAM(cam=self.nbcam,conf=self.conf,**self.kwds)
+                self.CAM.openCamByID(self.camID)
+                self.isConnected = self.CAM.isConnected
+            except Exception as e:
+                print("no dummy gaussian camera:", e)
+                self.isConnected = False
+                print('No camera choosen')
+                self.ccdName = "no camera"
+                self.cameraType = ""
+                self.camID = ""
+                self.nbcam = 'camDefault'
+                pass
+
         else:
             print('no camera')
             self.isConnected = False
