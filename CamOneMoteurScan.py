@@ -20,6 +20,10 @@ import os
 import pathlib
 
 class CAMERAONEMOTOR(QWidget):
+    """
+    Widget combining a camera acquisition window with a single motor
+    control dock (ONEMOTOR) and a motor scan window (SCAN).
+    """
 
     signalAcqDoneONEMOTOR=QtCore.pyqtSignal(object)
 
