@@ -255,15 +255,15 @@ class NEWCAM(QWidget):
                     
                     fichierR.close()
                     
-                    cmd = 'chmod +x %s'% fichierName # autorisation fichier.py
-                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+                    cmd = ['chmod', '+x', fichierName] # autorisation fichier.py
+                    subprocess.run(cmd)
                     print(cmd)
                     bureauPath = str(pathlib.Path(__file__).parent.parent.parent.parent)+'/'+'Bureau'
-                    cmd = 'cp %s '%fichierRacourci +str(bureauPath)
-                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+                    cmd = ['cp', fichierRacourci, bureauPath]
+                    subprocess.run(cmd)
                     print(cmd)
-                    cmd = 'chmod +x %s'%fichierRacourci
-                    subprocess.run(cmd,shell=True, executable="/bin/bash")
+                    cmd = ['chmod', '+x', fichierRacourci]
+                    subprocess.run(cmd)
                     print(cmd)
             else : 
                 print('system' , sys.platform)
