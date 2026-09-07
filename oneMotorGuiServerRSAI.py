@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import QVBoxLayout, QHBoxLayout, QPushButton, QGridLayout, 
 from PyQt6.QtWidgets import QComboBox, QLabel
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QRect
-import moteurRSAISERVER
+import zmq_client_RSAI
 import sys
 import time
 import os
@@ -80,7 +80,7 @@ class ONEMOTORGUI(QWidget) :
         self.iconUpdate = pathlib.Path(self.iconUpdate)
         self.iconUpdate = pathlib.PurePosixPath(self.iconUpdate)
 
-        self.MOT[0] = moteurRSAISERVER.MOTORRSAI(self.IpAdress,self.NoMotor)
+        self.MOT[0] = zmq_client_RSAI.MOTORRSAI(self.IpAdress,self.NoMotor)
             
         self.scanWidget = SCAN(MOT=self.MOT[0]) # for the scan
         

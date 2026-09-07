@@ -14,7 +14,6 @@ import sys
 import qdarkstyle 
 from PyQt6 import QtCore
 from PyQt6.QtGui import QIcon
-import moteurRSAISERVER
 from MainMotorsServer import MAINMOTOR
 from scanMotorCamera import SCAN
 import os

@@ -29,7 +29,7 @@ class CAMERAONEMOTOR(QWidget):
         cam:name of the camera 
         configFile= ini file of the camera
         mot0= name of the motor to control
-        motorType : type of motor ('RSAI','SmartAct','A2V','NewFocus','newport','Servo','Arduino','Apt','test')
+        motorType : type of motor ('RSAI')
         """
         super(CAMERAONEMOTOR, self).__init__(parent)
         self.parent = parent
