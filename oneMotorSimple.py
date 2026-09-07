@@ -18,7 +18,7 @@ import time
 import os
 import qdarkstyle
 import pathlib
-import moteurRSAISERVER
+import zmq_client_RSAI
 
 
 class ONEMOTOR(QWidget):
@@ -38,7 +38,7 @@ class ONEMOTOR(QWidget):
         self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
         self.jogValue = jogValue
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
-        self.MOT = moteurRSAISERVER.MOTORRSAI(self.IpAdress, self.NoMotor)
+        self.MOT = zmq_client_RSAI.MOTORRSAI(self.IpAdress, self.NoMotor)
         self.name = str(self.MOT.getName())
         self.setWindowTitle(self.nomWin + str(self.MOT.getEquipementName()) + ' ('+ str(self.IpAdress)+ ')  '+ ' [M'+ str(self.NoMotor) + ']  ' + self.name[0] )
         self.stepmotor = float((1/self.MOT.getStepValue()))
@@ -300,7 +300,7 @@ class PositionThread(QtCore.QThread):
 
 if __name__ == '__main__':
     appli = QApplication(sys.argv)
-    mot5 = ONEMOTOR(IpAdress="10.0.2.30", NoMotor=3, unit=1, jogValue=100)
+    mot5 = ONEMOTOR(IpAdress="10.0.2.30", NoMotor=12, unit=1, jogValue=100)
     mot5.show()
     mot5.startThread2()
     appli.exec_()

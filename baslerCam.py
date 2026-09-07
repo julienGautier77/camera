@@ -33,7 +33,8 @@ except ImportError:
 import time
 import numpy as np
 from pypylon import pylon
-try :   
+from pypylon import genicam
+try :
     from pypylon import pylon # pip install pypylon: https://github.com/basler/pypylon
 
     tlFactory = pylon.TlFactory.GetInstance()
@@ -41,8 +42,8 @@ try :
     
     cameras = pylon.InstantCameraArray(min(len(devices), 20))
     
-except:
-    print('pypylon is not installed')
+except Exception as e:
+    print('pypylon is not installed:', e)
 
 def camAvailable() :
     '''list of camera avialable
@@ -132,7 +133,8 @@ class BASLER (QtCore.QThread):
             self.cam0 = pylon.InstantCamera(tlFactory.CreateFirstDevice())
             self.ccdName = 'CamDefault'
             self.isConnected = True
-        except:
+        except Exception as e:
+            print('openFirstCam error:', e)
             self.isConnected = False
             self.ccdName = 'no camera'
         
@@ -142,10 +144,7 @@ class BASLER (QtCore.QThread):
     def openCamByID(self,camID=0): 
         '''connect to a serial number
         '''
-        
-        # if
-        # self.camID=self.conf.value(self.nbcam+"/camID") ## read cam serial number
-        # self.ccdName=self.conf.value(self.nbcam+"/nameCDD")
+ 
         self.camID = camID
         
         for i in devices:
@@ -158,35 +157,37 @@ class BASLER (QtCore.QThread):
                 break
             else: 
                 self.isConnected = False
-        #print('la',self.isConnected)       
+             
         if self.isConnected is True:
             self.setCamParameter()          
-        
             
     def setCamParameter(self): 
         """Set initial parameters
         """
-        self.camLanguage = dict()    
-        
+        self.camLanguage = dict()       
         self.cam0.Open()
         self.camID = self.cam0.GetDeviceInfo().GetSerialNumber()
         print(' connected@IP: ',self.cam0.GetDeviceInfo().GetIpAddress() )
         
         self.model = self.cam0.DeviceModelName.GetValue()
-        print(self.model) 
-        if self.model == 'a2A4096-9gmBAS' or self.model =='a2A3840-13gmBAS' :
+        print('model',self.model)
+        if self.model in ('a2A4096-9gmBAS', 'a2A3840-13gmBAS'):
             self.camLanguage['exposure'] = 'ExposureTime'
             self.camLanguage['gain'] = 'Gain'
         else :
             self.camLanguage['exposure'] = 'ExposureTimeAbs'
             self.camLanguage['gain'] = 'GainRaw'
-        
-        
+        print('model',self.model)
+    
         self.attExp = getattr(self.cam0,self.camLanguage['exposure'])
         self.attGain = getattr(self.cam0,self.camLanguage['gain'])
-        self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger")) # for 
-        self.cam0.TriggerMode.SetValue('Off')
+        
 
+        self.LineTrigger = str(self.conf.value(self.nbcam+"/LineTrigger")) # for 
+        
+        self.cam0.TriggerMode.SetValue('Off')
+        
+        
         #self.cam0.TriggerActivation.SetValue('RisingEdge')
         
         self.cam0.TriggerSource.SetValue(self.LineTrigger )
@@ -194,10 +195,16 @@ class BASLER (QtCore.QThread):
         
         self.cam0.GainAuto.SetValue('Off')
         
+        try:
+            if genicam.IsWritable(self.cam0.ShutterMode):
+                self.cam0.ShutterMode.SetValue('GlobalResetRelease')
+                print('shutter',self.cam0.ShutterMode.GetValue())
+        except genicam.GenericException:
+            pass  # camera has no ShutterMode node
+
         self.cam0.Width = self.cam0.Width.Max  # set camera width at maximum
         self.cam0.Height = self.cam0.Height.Max
-        
-        
+
         self.camParameter["expMax"] = float(self.attExp.GetMax()/1000)
         self.camParameter["expMin"] = float(self.attExp.GetMin()/1000)  #Change minimum and mAximum value from getMin/1000 to Getmin
         
@@ -212,7 +219,6 @@ class BASLER (QtCore.QThread):
         
         self.camParameter["exposureTime"]=int(self.attExp.GetValue())/1000
         
-        
         if self.camParameter["gainMin"] <=int(self.conf.value(self.nbcam+"/gain"))<=self.camParameter["gainMax"]:
             self.attGain.SetValue(int(self.conf.value(self.nbcam+"/gain")))
         else:
@@ -224,7 +230,6 @@ class BASLER (QtCore.QThread):
         self.camParameter["trigger"] = self.cam0.TriggerMode.GetValue()
         
         self.threadRunAcq = ThreadRunAcq(self)
-        
         
         if self.multi == True:
             self.threadRunAcq.newDataRun.connect(self.newImageReceived,QtCore.Qt.DirectConnection)
@@ -247,7 +252,7 @@ class BASLER (QtCore.QThread):
         '''
         self.attGain.SetValue(int(g)) # 
         print("Gain is set to",self.attGain.GetValue())   
-        self.camParameter["gain"]=self.attGain.GainRaw.GetValue()
+        self.camParameter["gain"]=self.attGain.GetValue()
     
     def softTrigger(self):
         '''to have a sofware trigger
@@ -284,10 +289,8 @@ class BASLER (QtCore.QThread):
         
     def stopAcq(self):
         self.threadRunAcq.stopThreadRunAcq()
-        # if self.threadRunAcq.isRunning():
-        #     self.threadRunAcq.terminate()
         self.threadOneAcq.stopThreadOneAcq()
-        self.camIsRunnig = False  
+        self.camIsRunning = False  
     
     def newImageReceived(self,data):
         '''Emit the data when receive a data from the thread threadRunAcq threadOneAcq
@@ -326,13 +329,13 @@ class ThreadRunAcq(QtCore.QThread):
     def newRun(self):
         self.stopRunAcq = False
 
-      
     def run(self):
         
         while self.stopRunAcq is not True :
             try :
                 data = self.cam0.GrabOne(20000000)
-            except :
+            except genicam.GenericException as e:
+                print('GrabOne error:', e)
                 self.cam0.StopGrabbing()
                 data = self.cam0.GrabOne(20000000)
             
@@ -346,8 +349,6 @@ class ThreadRunAcq(QtCore.QThread):
                     break
                 else :
                     self.newDataRun.emit(self.data)
-                    
-                    # print(self.cam0.DeviceTemperature.GetValue())
     
     def stopThreadRunAcq(self):
         
@@ -355,8 +356,8 @@ class ThreadRunAcq(QtCore.QThread):
         
         try :
             self.cam0.ExecuteSoftwareTrigger()
-        except :
-            pass
+        except genicam.GenericException:
+            pass  # no software trigger pending (e.g. hardware trigger mode)
         
     def closeCamera(self):
         self.cam0.Close()
@@ -413,8 +414,8 @@ class ThreadOneAcq(QtCore.QThread):
         
         try :
             self.cam0.ExecuteSoftwareTrigger()
-        except :
-            pass      
+        except genicam.GenericException:
+            pass  # no software trigger pending (e.g. hardware trigger mode)      
         
         
 if __name__ == "__main__":       
