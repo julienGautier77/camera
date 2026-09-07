@@ -38,9 +38,9 @@ class SCAN(QWidget):
             self.name = self.MOT.getName()
             print('name',self.name)
             self.stepmotor=1/self.MOT.getStepValue()
-            self.setWindowTitle('Scan  : ' + str(self.MOT.getEquipementName()) + ' ('+ str(self.MOT.IpAdress)+ ')  '+ ' [M'+ str(self.MOT.NoMotor) + ']  ' + self.MOT._name)
-        except:
-            print('dummy motors class in scan class')
+            self.setWindowTitle('Scan  : ' + str(self.MOT.getEquipementName()) + ' ('+ str(self.MOT.IpAddress)+ ')  '+ ' [M'+ str(self.MOT.NoMotor) + ']  ' + self.name)
+        except Exception as e:
+            print('dummy motors class in scan class:', e)
             self.motor='test'
             self.name="dummy motor"
             self.setWindowTitle('Scan  : '+self.name)
