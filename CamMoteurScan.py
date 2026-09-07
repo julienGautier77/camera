@@ -23,12 +23,11 @@ class CAMERAONEMOTOR(QWidget):
 
     signalAcqDoneONEMOTOR=QtCore.pyqtSignal(object)
 
-    def __init__(self,cam='',confFile='confCamera.ini',IpAdress=None, NoMotor=None,parent=None,**kwds):
+    def __init__(self,cam='',confFile='confCamera.ini',parent=None,**kwds):
         """
         Parameters
-        cam:name of the camera 
+        cam:name of the camera
         configFile= ini file of the camera
-        IpAdress =RSAI rack ip 
         """
 
         super(CAMERAONEMOTOR, self).__init__(parent)
@@ -103,6 +102,6 @@ class CAMERAONEMOTOR(QWidget):
 if __name__ == "__main__":
      appli = QApplication(sys.argv) 
      appli.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
-     e = CAMERAONEMOTOR(cam='test',IpAdress="10.0.6.31", NoMotor=3)
+     e = CAMERAONEMOTOR(cam='test')
      e.show()
      appli.exec_()
