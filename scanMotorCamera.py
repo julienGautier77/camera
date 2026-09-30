@@ -165,7 +165,25 @@ class SCAN(QWidget):
         # if self.parent is not None:
         #     self.parent.CAM.visualisation.signalDisplayed.connect(self.ScanCamisrunnig)
         
+    def stopCamera(self):
+        '''
+        stop the continuous acquisition of the camera (the images are then
+        taken one by one) : acquiring while running makes the camera crash
+        '''
+        CAM = getattr(self.parent, 'CAM', None)
+        if CAM is None:
+            return
+        stopButton = getattr(CAM, 'stopButton', None)
+        running = (stopButton is not None and stopButton.isEnabled()) or \
+            getattr(getattr(CAM, 'CAM', None), 'camIsRunning', False)
+        if running:
+            CAM.stopAcq()
+            t0 = time.time()
+            while time.time() - t0 < 0.5:  # let the camera thread finish
+                QApplication.processEvents()
+
     def startShoot(self):
+        self.stopCamera()
         self.stepChange()
         self.threadShoot.start()
         self.lab_nbr_step.setEnabled(False)
@@ -247,6 +265,7 @@ class SCAN(QWidget):
        self.val_nbShoot=self.val_nbTir.value()
     
     def startScan(self):
+        self.stopCamera()
         self.stepChange()
         self.threadScan.start()
         self.lab_nbr_step.setEnabled(False)

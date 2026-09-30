@@ -35,7 +35,7 @@ class ONEMOTOR(QWidget):
         self.isWinOpen = False
         self.indexUnit = unit
         self.isWinOpen = False
-        self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt6())
+        self.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
         self.jogValue = jogValue
         self.setWindowIcon(QIcon(self.icon+'LOA.png'))
         self.MOT = zmq_client_RSAI.MOTORRSAI(self.IpAdress, self.NoMotor)
@@ -139,7 +139,6 @@ class ONEMOTOR(QWidget):
         vbox1.addLayout(hbox3)
         self.hbox3 = hbox3
         self.vbox1 = vbox1
-        self.vbox1.addLayout(self.hbox3)
         self.setLayout(self.vbox1)
 
     def actionButton(self):
